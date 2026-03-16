@@ -71,15 +71,18 @@ class MainActivity : AppCompatActivity(), TabStatusListener {
         binding.viewPager.offscreenPageLimit = 5
         binding.viewPager.isUserInputEnabled = true
 
+        val tabIndicatorHeight = resources.getDimensionPixelSize(R.dimen.tab_indicator_height)
+
         // Sync ViewPager → TabLayout selection
         binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 if (pagerAdapter.isFixedPage(position)) {
-                    // No tab for fixed pages — deselect all
+                    binding.tabLayout.setSelectedTabIndicatorHeight(0)
                     syncingTabs = true
                     binding.tabLayout.selectTab(null)
                     syncingTabs = false
                 } else {
+                    binding.tabLayout.setSelectedTabIndicatorHeight(tabIndicatorHeight)
                     syncingTabs = true
                     binding.tabLayout.getTabAt(position - 1)?.select()
                     syncingTabs = false
@@ -180,7 +183,8 @@ class MainActivity : AppCompatActivity(), TabStatusListener {
             TabPickerSheet.TabEntry(
                 title = tab.title,
                 isActive = (idx + 1) == currentViewPos,
-                host = tab.config?.host?.takeIf { it.isNotBlank() }
+                host = tab.config?.host?.takeIf { it.isNotBlank() },
+                status = tabStatusMap[tab.id] ?: ConnectionStatus.NONE
             )
         }
         sheet.listener = object : TabPickerSheet.Listener {

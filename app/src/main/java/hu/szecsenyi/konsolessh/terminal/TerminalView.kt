@@ -43,6 +43,7 @@ class TerminalView @JvmOverloads constructor(
 
     var onKeyInput: ((ByteArray) -> Unit)? = null
     var onTerminalResize: ((cols: Int, rows: Int) -> Unit)? = null
+    var horizontalScrollEnabled = true
 
     val currentCols get() = termCols
     val currentRows get() = termRows
@@ -316,6 +317,17 @@ class TerminalView @JvmOverloads constructor(
 
     fun scrollToBottom() { scrollRowOff = 0; invalidate() }
     fun scrollToTop()    { scrollRowOff = scrollback.size; invalidate() }
+
+    fun setFontSize(sp: Float) {
+        fontSizeSp = sp.coerceIn(6f, 40f)
+        applyFontMetrics()
+        if (viewW > 0 && viewH > 0) {
+            resizeTerm(
+                max(MIN_COLS, (viewW / cellW).toInt()),
+                max(1, (viewH / cellH).toInt())
+            )
+        }
+    }
 
     fun zoom(delta: Float) {
         fontSizeSp = (fontSizeSp + delta).coerceIn(6f, 40f)
@@ -786,13 +798,17 @@ class TerminalView @JvmOverloads constructor(
                     if (!selActive) {
                         val dxTotal = ev.x - touchX0
                         val dyTotal = ev.y - touchY0
-                        val maxColOff = max(0, termCols - (viewW / cellW).toInt())
                         val isHoriz = abs(dxTotal) > abs(dyTotal)
-                        val atEdge = isHoriz && (
-                            (dxTotal > 0 && scrollColOff == 0) ||
-                            (dxTotal < 0 && scrollColOff >= maxColOff)
-                        )
-                        if (!atEdge) parent?.requestDisallowInterceptTouchEvent(true)
+                        if (isHoriz && !horizontalScrollEnabled) {
+                            // let ViewPager handle horizontal swipes
+                        } else {
+                            val maxColOff = max(0, termCols - (viewW / cellW).toInt())
+                            val atEdge = isHoriz && (
+                                (dxTotal > 0 && scrollColOff == 0) ||
+                                (dxTotal < 0 && scrollColOff >= maxColOff)
+                            )
+                            if (!atEdge) parent?.requestDisallowInterceptTouchEvent(true)
+                        }
                     }
                 }
                 if (selActive) {
@@ -810,11 +826,13 @@ class TerminalView @JvmOverloads constructor(
                         touchScrollFrac -= steps
                         invalidate()
                     }
-                    val maxColOff = max(0, termCols - (viewW / cellW).toInt())
-                    val colStep = (-dx / cellW).toInt()
-                    if (colStep != 0) {
-                        scrollColOff = (scrollColOff + colStep).coerceIn(0, maxColOff)
-                        invalidate()
+                    if (horizontalScrollEnabled) {
+                        val maxColOff = max(0, termCols - (viewW / cellW).toInt())
+                        val colStep = (-dx / cellW).toInt()
+                        if (colStep != 0) {
+                            scrollColOff = (scrollColOff + colStep).coerceIn(0, maxColOff)
+                            invalidate()
+                        }
                     }
                     touchX = ev.x; touchY = ev.y
                 }

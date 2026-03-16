@@ -14,7 +14,8 @@ object SavedConnections {
         val json = prefs.getString(KEY_CONNECTIONS, null) ?: return mutableListOf()
         return try {
             val type = object : TypeToken<MutableList<ConnectionConfig>>() {}.type
-            gson.fromJson(json, type)
+            val list: MutableList<ConnectionConfig> = gson.fromJson(json, type)
+            list.sortedBy { it.displayName().lowercase() }.toMutableList()
         } catch (e: Exception) {
             mutableListOf()
         }

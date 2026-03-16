@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">KonsoleSSH</string>
+    <string name="new_connection">Új kapcsolat</string>
+    <string name="connect">Csatlakozás</string>
+    <string name="disconnect">Lecsatlakozás</string>
+    <string name="close_tab">Fül bezárása</string>
+    <string name="manage_connections">Mentett kapcsolatok</string>
+    <string name="host">Szerver</string>
+    <string name="port">Port</string>
+    <string name="username">Felhasználónév</string>
+    <string name="password">Jelszó</string>
+    <string name="private_key">SSH kulcs</string>
+    <string name="save_connection">Kapcsolat mentése</string>
+</resources>

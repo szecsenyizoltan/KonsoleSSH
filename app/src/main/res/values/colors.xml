@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Terminal dark theme -->
+    <color name="terminal_bg">#0D1117</color>
+    <color name="toolbar_bg">#161B22</color>
+    <color name="tab_bg">#0D1117</color>
+    <color name="tab_selected_text">#E6EDF3</color>
+    <color name="tab_unselected_text">#8B949E</color>
+    <color name="status_bg">#1C2128</color>
+    <color name="status_text">#7D8590</color>
+    <color name="keybar_bg">#2A3A4E</color>
+    <color name="keybar_key_bg">@android:color/transparent</color>
+    <color name="keybar_key_text">#FFFFFF</color>
+    <color name="keybar_mod_active">#E95420</color>
+    <color name="input_bg">#21262D</color>
+    <color name="card_bg">#161B22</color>
+
+    <!-- Text -->
+    <color name="text_primary">#E6EDF3</color>
+    <color name="text_secondary">#8B949E</color>
+
+    <!-- Accent / Ubuntu orange-ish -->
+    <color name="accent">#E95420</color>
+    <color name="accent_variant">#F7C2B1</color>
+
+    <!-- State -->
+    <color name="error_color">#F85149</color>
+    <color name="success_color">#3FB950</color>
+
+    <!-- Material required -->
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+</resources>

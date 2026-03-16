@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Saved connections picker -->
+        <LinearLayout
+            android:id="@+id/savedConnectionsSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Mentett kapcsolat betöltése:"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"
+                android:layout_marginBottom="4dp" />
+
+            <Spinner
+                android:id="@+id/spinnerSaved"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/input_bg" />
+
+        </LinearLayout>
+
+        <!-- Name -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Kapcsolat neve (opcionális)"
+            style="@style/KonsoleInputLayout"
+            android:layout_marginBottom="8dp">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editName"
+                style="@style/KonsoleInputEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:imeOptions="actionNext" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Internal host -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutHost"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Host (IP vagy hostname) *"
+            style="@style/KonsoleInputLayout"
+            android:layout_marginBottom="8dp">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editHost"
+                style="@style/KonsoleInputEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textUri"
+                android:imeOptions="actionNext" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Internal port + Username row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/layoutPort"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Port"
+                style="@style/KonsoleInputLayout"
+                android:layout_marginEnd="8dp">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/editPort"
+                    style="@style/KonsoleInputEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:text="22"
+                    android:imeOptions="actionNext" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:hint="Felhasználónév *"
+                style="@style/KonsoleInputLayout">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/editUsername"
+                    style="@style/KonsoleInputEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text"
+                    android:imeOptions="actionNext" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+        </LinearLayout>
+
+        <!-- Auth type -->
+        <RadioGroup
+            android:id="@+id/radioGroupAuth"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+
+            <RadioButton
+                android:id="@+id/radioPassword"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Jelszó"
+                android:checked="true"
+                android:textColor="@color/text_primary"
+                android:layout_marginEnd="16dp" />
+
+            <RadioButton
+                android:id="@+id/radioPrivateKey"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SSH kulcs"
+                android:textColor="@color/text_primary" />
+
+        </RadioGroup>
+
+        <!-- Password section -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Jelszó (opcionális)"
+            style="@style/KonsoleInputLayout"
+            app:passwordToggleEnabled="true"
+            android:layout_marginBottom="8dp"
+            xmlns:app="http://schemas.android.com/apk/res-auto">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editPassword"
+                style="@style/KonsoleInputEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textPassword"
+                android:imeOptions="actionDone" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Private key section -->
+        <LinearLayout
+            android:id="@+id/layoutPrivateKey"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:layout_marginBottom="8dp">
+
+            <!-- File picker button -->
+            <Button
+                android:id="@+id/btnPickKeyFile"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="📂 Kulcsfájl választása…"
+                android:textSize="13sp"
+                android:layout_marginBottom="6dp"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:textColor="@color/accent"
+                android:paddingStart="0dp" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Private key (PEM tartalom)"
+                style="@style/KonsoleInputLayout">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/editPrivateKey"
+                    style="@style/KonsoleInputEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textMultiLine"
+                    android:minLines="4"
+                    android:gravity="top"
+                    android:fontFamily="monospace"
+                    android:textSize="11sp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+        </LinearLayout>
+
+        <!-- Jump host section (visible when internal IP detected) -->
+        <LinearLayout
+            android:id="@+id/jumpSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:layout_marginTop="8dp">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/tab_unselected_text"
+                android:layout_marginBottom="10dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Jump host (külső hálózat)"
+                android:textColor="@color/accent"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Válassz mentett kapcsolatból, vagy add meg a külső szerver elérhetőségét:"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"
+                android:layout_marginBottom="4dp" />
+
+            <Spinner
+                android:id="@+id/spinnerJumpConnection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/input_bg"
+                android:layout_marginBottom="8dp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/tab_unselected_text"
+                android:layout_marginBottom="10dp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

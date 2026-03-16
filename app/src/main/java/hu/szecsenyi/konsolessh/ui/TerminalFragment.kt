@@ -612,6 +612,8 @@ class TerminalFragment : Fragment() {
     }
 
     private fun connectSsh(cfg: ConnectionConfig) {
+        val savedSp = MainActivity.savedFontSize(requireContext())
+        if (savedSp > 0f) binding.terminalView.post { binding.terminalView.setFontSize(savedSp) }
         val jumpConfig = resolveJumpConfig(cfg)
         if (cfg.jumpConnectionId.isNotBlank() && jumpConfig == null) {
             binding.terminalView.append(
@@ -661,6 +663,9 @@ class TerminalFragment : Fragment() {
                 onConnected = {
                     emitStatus(ConnectionStatus.CONNECTED)
                     binding.statusBar.text = "${cfg.displayName()} ● Csatlakozva"
+                    try {
+                        hu.szecsenyi.konsolessh.ssh.SshForegroundService.start(requireContext())
+                    } catch (_: Exception) {}
                     startReading(session)
                     binding.terminalView.focusInput()
                 },
@@ -692,6 +697,7 @@ class TerminalFragment : Fragment() {
                 emitStatus(ConnectionStatus.DISCONNECTED)
                 _binding?.statusBar?.text = "${config?.displayName() ?: ""} ○ Lecsatlakozva"
                 _binding?.terminalView?.append("\r\n[Kapcsolat lezárva]\r\n".toByteArray(), "\r\n[Kapcsolat lezárva]\r\n".length)
+                try { context?.let { hu.szecsenyi.konsolessh.ssh.SshForegroundService.stop(it) } } catch (_: Exception) {}
             }
         }
     }
@@ -701,6 +707,9 @@ class TerminalFragment : Fragment() {
     }
 
     fun disconnectAndClose() {
+        if (sshSession?.isConnected == true) {
+            try { context?.let { hu.szecsenyi.konsolessh.ssh.SshForegroundService.stop(it) } } catch (_: Exception) {}
+        }
         readJob?.cancel()
         sshSession?.disconnect()
     }

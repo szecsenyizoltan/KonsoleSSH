@@ -44,6 +44,7 @@ class TerminalView @JvmOverloads constructor(
     var onKeyInput: ((ByteArray) -> Unit)? = null
     var onTerminalResize: ((cols: Int, rows: Int) -> Unit)? = null
     var horizontalScrollEnabled = true
+    val fontSize: Float get() = fontSizeSp
 
     val currentCols get() = termCols
     val currentRows get() = termRows

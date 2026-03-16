@@ -17,7 +17,8 @@ class TabPickerSheet : BottomSheetDialogFragment() {
     data class TabEntry(
         val title: String,
         val isActive: Boolean,
-        val host: String?          // null for welcome/local tabs
+        val host: String?,          // null for welcome/local tabs
+        val status: ConnectionStatus = ConnectionStatus.NONE
     )
 
     interface Listener {
@@ -56,7 +57,14 @@ class TabPickerSheet : BottomSheetDialogFragment() {
         }
         openTabs.forEachIndexed { index, entry ->
             val row = inflateRow()
-            row.findViewById<TextView>(R.id.itemIcon).text = if (entry.isActive) "▶" else "○"
+            val icon = row.findViewById<TextView>(R.id.itemIcon)
+            icon.text = if (entry.isActive) "▶" else "●"
+            icon.setTextColor(when (entry.status) {
+                ConnectionStatus.CONNECTED    -> android.graphics.Color.rgb(63, 185, 80)
+                ConnectionStatus.CONNECTING   -> android.graphics.Color.rgb(240, 180, 0)
+                ConnectionStatus.DISCONNECTED -> android.graphics.Color.rgb(248, 81, 73)
+                ConnectionStatus.NONE         -> android.graphics.Color.GRAY
+            })
             row.findViewById<TextView>(R.id.itemTitle).text = entry.title
 
             // Show hostname below title if available
@@ -70,6 +78,7 @@ class TabPickerSheet : BottomSheetDialogFragment() {
             if (entry.isActive) {
                 row.findViewById<TextView>(R.id.itemBadge).apply {
                     text = "aktív"
+                    setTextColor(android.graphics.Color.WHITE)
                     visibility = View.VISIBLE
                 }
             }

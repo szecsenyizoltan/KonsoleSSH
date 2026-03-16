@@ -373,51 +373,52 @@ class TerminalFragment : Fragment() {
     private fun showLocalShellPrompt() {
         emitStatus(ConnectionStatus.NONE)
         binding.statusBar.text = "Nincs kapcsolat"
-        val e = "\u001B["
-        val r = "\u001B[0m"
-        val c1 = "${e}38;5;214m"   // arany
-        val c2 = "${e}38;5;208m"   // narancs
-        val c3 = "${e}38;5;202m"   // sötét narancs (app accent)
-        val cs = "${e}38;5;244m"   // szürke
-        val ch = "${e}38;5;240m"   // sötét szürke
-        // Figlet art – "Konsole" + "SSH" (art ~49 kar, közép: (80-49)/2 = 15 szóköz)
-        val m = "               " // 15 szóköz középre igazítás
-        val kLines = listOf(
-            """____  __.                         .__          """,
-            """|    |/ _|____   ____   __________ |  |   ____  """,
-            """|      < /  _ \ /    \ /  ___/  _ \|  | _/ __ \ """,
-            """|    |  (  <_> )   |  \\___ (  <_> )  |_\  ___/ """,
-            """|____|__ \____/|___|  /____  >____/|____/\___  >""",
-            """        \/          \/     \/                \/ """
+        binding.terminalView.horizontalScrollEnabled = false
+        binding.terminalView.post { binding.terminalView.setFontSize(16f) }
+        val r  = "\u001B[0m"
+        val c1 = "\u001B[38;5;214m"  // arany
+        val c2 = "\u001B[38;5;208m"  // narancs
+        val c3 = "\u001B[38;5;202m"  // sötét narancs
+        val cs = "\u001B[38;5;244m"  // szürke
+        val ch = "\u001B[38;5;240m"  // sötét szürke
+        // "KonsoleSSH" — minden betű más árnyalat az arany-narancs skálán
+        val title = buildString {
+            val colors = listOf(c1, c1, c1, c1, c1, c1, c1, c2, c2, c3)
+            val word   = "KonsoleSSH"
+            word.forEachIndexed { i, ch2 -> append("${colors[i]}${ch2}") }
+            append(r)
+        }
+        val descLines = listOf(
+            "A KDE Konsole ihlette,",
+            "Androidra alkotva.",
+            "",
+            "SSH terminál emulátor",
+            "több párhuzamos kapcsolat",
+            "kezelésére, füleken.",
+            "",
+            "Jump host támogatással",
+            "belső hálózatok is",
+            "elérhetők.",
+            "",
+            "Új kapcsolat: '+' gomb"
         )
-        val sLines = listOf(
-            """  _________ _________ ___ ___                   """,
-            """ /   _____//   _____//   |   \                  """,
-            """ \_____  \ \_____  \/    ~    \                 """,
-            """ /        \/        \    Y    /                 """,
-            """/_______  /_______  /\___|_  /                  """,
-            """        \/        \/       \/                    """
-        )
-        val colors = listOf(c1, c1, c2, c2, c3, c3)
         val banner = buildString {
+            append("\r\n\r\n")
+            append("  $title\r\n")
             append("\r\n")
-            kLines.forEachIndexed { i, line -> append("${colors[i]}$m$line$r\r\n") }
-            sLines.forEachIndexed { i, line -> append("${colors[i]}$m$line$r\r\n") }
+            descLines.forEach { line ->
+                if (line.isEmpty()) append("\r\n")
+                else append("$cs  $line$r\r\n")
+            }
             append("\r\n")
-            append("$cs${" ".repeat(19)}A KDE Konsole ihlette, Androidra hozva.$r\r\n")
-            append("\r\n")
-            append("$cs  SSH terminál emulátoros alkalmazás, amely lehetővé teszi$r\r\n")
-            append("$cs  több párhuzamos SSH kapcsolat kezelését füleken keresztül.$r\r\n")
-            append("$cs  Belső hálózatok elérhetők jump host (átjáró szerver) segítségével.$r\r\n")
-            append("$cs  A mentett kapcsolatok a '+' gombból érhetők el újra.$r\r\n")
-            append("\r\n")
-            append("$ch${" ".repeat(16)}Új kapcsolat nyitásához nyomd meg a '+' gombot.$r\r\n")
+            append("$ch  Húzz jobbra a súgóért.$r\r\n")
         }
         val bytes = banner.toByteArray(Charsets.UTF_8)
         binding.terminalView.append(bytes, bytes.size)
     }
 
     private fun showCheatSheet() {
+        binding.terminalView.post { binding.terminalView.setFontSize(14f) }
         val r  = "\u001b[0m"
         val b  = "\u001b[1m"
         val h  = "\u001b[38;5;214m"   // narancs — főcím
@@ -538,6 +539,42 @@ class TerminalFragment : Fragment() {
         return null
     }
 
+    private fun friendlyError(err: Throwable): String {
+        // Collect all messages in the cause chain
+        val parts = buildList {
+            var t: Throwable? = err
+            while (t != null) { t.message?.let { add(it) }; t = t.cause }
+        }
+        val full = parts.joinToString(" ").lowercase()
+        return when {
+            "connection refused"     in full -> "A kapcsolat elutasítva — a szerver nem fogad kapcsolatot ezen a porton."
+            "connection timed out"   in full ||
+            "connect timed out"      in full ||
+            "timed out"              in full ||
+            "timeout"                in full -> "Időtúllépés — a szerver nem válaszol (tűzfal vagy helytelen cím?)."
+            "no route to host"       in full -> "Nem érhető el a szerver — ellenőrizd a hálózatot és az IP-t."
+            "network is unreachable" in full ||
+            "unreachable"            in full -> "A hálózat nem érhető el."
+            "unknown host"           in full ||
+            "nodename nor servname"  in full -> "Ismeretlen hostnév — DNS hiba vagy elgépelés."
+            "auth fail"              in full ||
+            "authentication"         in full -> "Hitelesítés sikertelen — helytelen jelszó vagy kulcs."
+            "userauth fail"          in full -> "Hitelesítés sikertelen — a szerver visszautasította."
+            "connection is closed"   in full ||
+            "closed by foreign host" in full -> "A kapcsolat váratlanul lezárult."
+            "broken pipe"            in full -> "A kapcsolat megszakadt (broken pipe)."
+            "port forwarding"        in full -> "Port forwarding hiba — a jump szerver nem engedélyezi."
+            "channel"                in full -> "SSH csatorna hiba — a szerver lezárta a munkamenetet."
+            else -> {
+                // Strip JSch/java class name prefixes for a cleaner fallback
+                parts.firstOrNull()
+                    ?.replace(Regex("^session\\.connect:\\s*"), "")
+                    ?.replace(Regex("^[a-zA-Z]+(\\.[a-zA-Z]+)+:\\s*"), "")
+                    ?: err.javaClass.simpleName
+            }
+        }
+    }
+
     private fun connectSsh(cfg: ConnectionConfig) {
         val jumpConfig = resolveJumpConfig(cfg)
         if (cfg.jumpConnectionId.isNotBlank() && jumpConfig == null) {
@@ -594,7 +631,7 @@ class TerminalFragment : Fragment() {
                 onError = { err ->
                     emitStatus(ConnectionStatus.DISCONNECTED)
                     binding.statusBar.text = "Kapcsolat sikertelen"
-                    val msg = "Hiba: ${err.message}\r\n"
+                    val msg = "Hiba: ${friendlyError(err)}\r\n"
                     binding.terminalView.append(msg.toByteArray(), msg.length)
                 }
             )

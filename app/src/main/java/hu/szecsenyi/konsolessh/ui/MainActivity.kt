@@ -1,6 +1,11 @@
 package hu.szecsenyi.konsolessh.ui
 
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import android.graphics.Color
 import android.os.Bundle
 import android.view.KeyEvent
@@ -36,15 +41,37 @@ class MainActivity : AppCompatActivity(), TabStatusListener {
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayShowTitleEnabled(false)
+        requestNotificationPermissionIfNeeded()
 
         setupViewPager()
         binding.btnNewTab.setOnClickListener { showTabPicker() }
-        binding.btnZoomOut.setOnClickListener { currentTerminalView()?.zoom(-1f) }
-        binding.btnZoomIn.setOnClickListener  { currentTerminalView()?.zoom(+1f) }
+        binding.btnZoomOut.setOnClickListener { currentTerminalView()?.let { it.zoom(-1f); saveZoom(it.fontSize) } }
+        binding.btnZoomIn.setOnClickListener  { currentTerminalView()?.let { it.zoom(+1f); saveZoom(it.fontSize) } }
     }
 
     private fun currentTerminalView() =
         pagerAdapter.getFragment(binding.viewPager.currentItem)?.terminalView
+
+    private fun requestNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this,
+                    arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1)
+            }
+        }
+    }
+
+    private fun saveZoom(sp: Float) {
+        getSharedPreferences("settings", Context.MODE_PRIVATE)
+            .edit().putFloat("font_size", sp).apply()
+    }
+
+    companion object {
+        fun savedFontSize(context: Context): Float =
+            context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+                .getFloat("font_size", 0f)   // 0 = auto (nincs mentve)
+    }
 
     // ── TabStatusListener ─────────────────────────────────────────────────────
 

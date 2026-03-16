@@ -40,6 +40,17 @@ class TabPickerSheet : BottomSheetDialogFragment() {
         return binding.root
     }
 
+    override fun onStart() {
+        super.onStart()
+        val sheet = dialog?.findViewById<android.view.View>(com.google.android.material.R.id.design_bottom_sheet)
+        sheet?.let {
+            val behavior = com.google.android.material.bottomsheet.BottomSheetBehavior.from(it)
+            it.layoutParams.height = android.view.ViewGroup.LayoutParams.MATCH_PARENT
+            behavior.state = com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
+            behavior.skipCollapsed = true
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         buildOpenTabs()

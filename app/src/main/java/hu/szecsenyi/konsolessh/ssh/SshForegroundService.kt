@@ -88,6 +88,7 @@ class SshForegroundService : Service() {
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle("KonsoleSSH")
             .setContentText(text)
+            .setNumber(count)
             .setOngoing(true)
             .setSilent(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)

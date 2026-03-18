@@ -1,30 +1,22 @@
 package hu.szecsenyi.konsolessh.ui
 
-import android.animation.ObjectAnimator
-import android.animation.ValueAnimator
+import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
 import android.graphics.Color
 import android.os.Bundle
+import android.os.IBinder
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.InputMethodManager
-import android.widget.Button
-import android.widget.HorizontalScrollView
-import androidx.core.content.ContextCompat
-import androidx.core.content.getSystemService
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import hu.szecsenyi.konsolessh.R
 import hu.szecsenyi.konsolessh.databinding.FragmentTerminalBinding
 import hu.szecsenyi.konsolessh.model.ConnectionConfig
 import hu.szecsenyi.konsolessh.model.SavedConnections
-import hu.szecsenyi.konsolessh.ssh.SshSession
+import hu.szecsenyi.konsolessh.ssh.SshForegroundService
 import hu.szecsenyi.konsolessh.terminal.AppClipboard
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 
 enum class ConnectionStatus { NONE, CONNECTING, CONNECTED, DISCONNECTED }
 
@@ -68,18 +60,27 @@ class TerminalFragment : Fragment() {
     private val binding get() = _binding!!
     val terminalView get() = _binding?.terminalView
 
-    private var sshSession: SshSession? = null
-    private var readJob: Job? = null
     private var config: ConnectionConfig? = null
     var tabId: String = ""; private set
 
     private var statusListener: TabStatusListener? = null
 
-    // ── Sticky modifier state ─────────────────────────────────────────────────
-    private var modCtrl  = false
-    private var modShift = false
-    private var modAlt   = false
-    private var modAltGr = false
+    // ── Service binding ───────────────────────────────────────────────────────
+
+    private var sshService: SshForegroundService? = null
+    private var serviceBound = false
+
+    private val serviceConnection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName, binder: IBinder) {
+            sshService = (binder as SshForegroundService.LocalBinder).getService()
+            serviceBound = true
+            onServiceBound()
+        }
+        override fun onServiceDisconnected(name: ComponentName) {
+            sshService = null
+            serviceBound = false
+        }
+    }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -106,461 +107,165 @@ class TerminalFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Keyboard input: apply modifiers then reset them (one-shot)
         binding.terminalView.onKeyInput = { bytes ->
-            sshSession?.sendBytes(applyModifiers(bytes))
-            resetModifiers()
+            val main = activity as? MainActivity
+            sshService?.sendBytes(tabId, main?.applyModifiers(bytes) ?: bytes)
+            main?.resetModifiers()
         }
 
-        // Forward terminal resize to SSH PTY
         binding.terminalView.onTerminalResize = { cols, rows ->
-            sshSession?.resize(cols, rows)
+            sshService?.resize(tabId, cols, rows)
         }
 
-        // Keyboard toggle
-        binding.btnKeyboard.setOnClickListener { toggleKeyboard() }
-
-        // Sticky modifier toggles
-        binding.btnModCtrl.setOnClickListener  { toggleMod(binding.btnModCtrl,  ::modCtrl) }
-        binding.btnModShift.setOnClickListener { toggleMod(binding.btnModShift, ::modShift) }
-        binding.btnModAlt.setOnClickListener   { toggleMod(binding.btnModAlt,   ::modAlt) }
-        binding.btnModAltGr.setOnClickListener { toggleMod(binding.btnModAltGr, ::modAltGr) }
-
-        // Action keys (apply+reset modifiers)
-        binding.btnEscape.setOnClickListener   { flashButton(binding.btnEscape);    sendKey(byteArrayOf(27)) }
-        binding.btnTab.setOnClickListener      { flashButton(binding.btnTab);       sendKey(byteArrayOf(9)) }
-        binding.btnCtrlC.setOnClickListener {
-            flashButton(binding.btnCtrlC)
-            val sel = binding.terminalView.getSelectedText()
-            if (sel.isNotEmpty()) {
-                AppClipboard.text = sel
-                KonsoleToast.show(binding.root, "Másolva")
-            } else {
-                sendKey(byteArrayOf(3))
-            }
-        }
-        binding.btnCtrlD.setOnClickListener {
-            flashButton(binding.btnCtrlD)
-            sendKey(byteArrayOf(4))
-        }
-        binding.btnCtrlV.setOnClickListener {
-            flashButton(binding.btnCtrlV)
-            val clip = AppClipboard.text
-            if (!clip.isNullOrEmpty()) {
-                binding.terminalView.pasteText(clip)
-                KonsoleToast.show(binding.root, "Beillesztve")
-            }
-        }
-        binding.btnCtrlZ.setOnClickListener {
-            flashButton(binding.btnCtrlZ)
-            sendKey(byteArrayOf(26))
-        }
-        binding.btnArrowUp.setOnClickListener    { flashButton(binding.btnArrowUp);    sendKey(binding.terminalView.cursorKeyBytes('A')) }
-        binding.btnArrowDown.setOnClickListener  { flashButton(binding.btnArrowDown);  sendKey(binding.terminalView.cursorKeyBytes('B')) }
-        binding.btnArrowLeft.setOnClickListener  { flashButton(binding.btnArrowLeft);  sendKey(binding.terminalView.cursorKeyBytes('D')) }
-        binding.btnArrowRight.setOnClickListener { flashButton(binding.btnArrowRight); sendKey(binding.terminalView.cursorKeyBytes('C')) }
-
-        // F-keys
-        binding.btnF1.setOnClickListener  { flashButton(binding.btnF1);  sendKey(fnKey("OP")) }
-        binding.btnF2.setOnClickListener  { flashButton(binding.btnF2);  sendKey(fnKey("OQ")) }
-        binding.btnF3.setOnClickListener  { flashButton(binding.btnF3);  sendKey(fnKey("OR")) }
-        binding.btnF4.setOnClickListener  { flashButton(binding.btnF4);  sendKey(fnKey("OS")) }
-        binding.btnF5.setOnClickListener  { flashButton(binding.btnF5);  sendKey(fnKey("[15~")) }
-        binding.btnF6.setOnClickListener  { flashButton(binding.btnF6);  sendKey(fnKey("[17~")) }
-        binding.btnF7.setOnClickListener  { flashButton(binding.btnF7);  sendKey(fnKey("[18~")) }
-        binding.btnF8.setOnClickListener  { flashButton(binding.btnF8);  sendKey(fnKey("[19~")) }
-        binding.btnF9.setOnClickListener  { flashButton(binding.btnF9);  sendKey(fnKey("[20~")) }
-        binding.btnF10.setOnClickListener { flashButton(binding.btnF10); sendKey(fnKey("[21~")) }
-        binding.btnF11.setOnClickListener { flashButton(binding.btnF11); sendKey(fnKey("[23~")) }
-        binding.btnF12.setOnClickListener { flashButton(binding.btnF12); sendKey(fnKey("[24~")) }
-
-        setupKeybarScrollHint()
-        setupFnbarScrollHint()
+        binding.btnReconnect.setOnClickListener { reconnect() }
 
         val cfg = config
         when {
-            cfg != null && cfg.host.isNotBlank() -> connectSsh(cfg)
-            arguments?.getString(ARG_MODE) == MODE_CHEAT -> showCheatSheet()
-            else -> showLocalShellPrompt()
+            cfg == null && arguments?.getString(ARG_MODE) == MODE_CHEAT -> showCheatSheet()
+            cfg == null -> showLocalShellPrompt()
+            else -> { /* connection started in onServiceBound */ }
         }
     }
 
-    // ── Keybar scroll hint ────────────────────────────────────────────────────
-
-    private var hintAnimatorRight: ObjectAnimator? = null
-    private var hintAnimatorLeft: ObjectAnimator? = null
-    private var fnHintAnimatorRight: ObjectAnimator? = null
-    private var fnHintAnimatorLeft: ObjectAnimator? = null
-
-    private fun setupKeybarScrollHint() {
-        val scrollView = binding.keybarScrollView
-        val hintRight = binding.keybarScrollHint
-        val hintLeft = binding.keybarScrollHintLeft
-        val interp = android.view.animation.AccelerateDecelerateInterpolator()
-
-        hintAnimatorRight = ObjectAnimator.ofFloat(hintRight, "translationX", 0f, -8f).apply {
-            duration = 900
-            repeatMode = ValueAnimator.REVERSE
-            repeatCount = ValueAnimator.INFINITE
-            interpolator = interp
-        }
-        hintAnimatorLeft = ObjectAnimator.ofFloat(hintLeft, "translationX", 0f, 8f).apply {
-            duration = 900
-            repeatMode = ValueAnimator.REVERSE
-            repeatCount = ValueAnimator.INFINITE
-            interpolator = interp
-        }
-
-        fun updateHints() {
-            val canRight = scrollView.canScrollHorizontally(1)
-            val canLeft  = scrollView.canScrollHorizontally(-1)
-
-            if (canRight && hintRight.visibility != View.VISIBLE) {
-                hintRight.visibility = View.VISIBLE
-                hintAnimatorRight?.start()
-            } else if (!canRight && hintRight.visibility == View.VISIBLE) {
-                hintRight.visibility = View.GONE
-                hintAnimatorRight?.cancel()
-                hintRight.translationX = 0f
-            }
-
-            if (canLeft && hintLeft.visibility != View.VISIBLE) {
-                hintLeft.visibility = View.VISIBLE
-                hintAnimatorLeft?.start()
-            } else if (!canLeft && hintLeft.visibility == View.VISIBLE) {
-                hintLeft.visibility = View.GONE
-                hintAnimatorLeft?.cancel()
-                hintLeft.translationX = 0f
-            }
-        }
-
-        hintRight.setOnClickListener { scrollView.smoothScrollBy(scrollView.width / 2, 0) }
-        hintLeft.setOnClickListener  { scrollView.smoothScrollBy(-(scrollView.width / 2), 0) }
-
-        scrollView.viewTreeObserver.addOnGlobalLayoutListener { updateHints() }
-        scrollView.setOnScrollChangeListener { _, _, _, _, _ -> updateHints() }
-    }
-
-    private fun setupFnbarScrollHint() {
-        val scrollView = binding.fnbarScrollView
-        val hintRight  = binding.fnbarScrollHint
-        val hintLeft   = binding.fnbarScrollHintLeft
-        val interp = android.view.animation.AccelerateDecelerateInterpolator()
-
-        fnHintAnimatorRight = ObjectAnimator.ofFloat(hintRight, "translationX", 0f, -8f).apply {
-            duration = 900
-            repeatMode = ValueAnimator.REVERSE
-            repeatCount = ValueAnimator.INFINITE
-            interpolator = interp
-        }
-        fnHintAnimatorLeft = ObjectAnimator.ofFloat(hintLeft, "translationX", 0f, 8f).apply {
-            duration = 900
-            repeatMode = ValueAnimator.REVERSE
-            repeatCount = ValueAnimator.INFINITE
-            interpolator = interp
-        }
-
-        fun updateHints() {
-            val canRight = scrollView.canScrollHorizontally(1)
-            val canLeft  = scrollView.canScrollHorizontally(-1)
-
-            if (canRight && hintRight.visibility != View.VISIBLE) {
-                hintRight.visibility = View.VISIBLE; fnHintAnimatorRight?.start()
-            } else if (!canRight && hintRight.visibility == View.VISIBLE) {
-                hintRight.visibility = View.GONE; fnHintAnimatorRight?.cancel(); hintRight.translationX = 0f
-            }
-            if (canLeft && hintLeft.visibility != View.VISIBLE) {
-                hintLeft.visibility = View.VISIBLE; fnHintAnimatorLeft?.start()
-            } else if (!canLeft && hintLeft.visibility == View.VISIBLE) {
-                hintLeft.visibility = View.GONE; fnHintAnimatorLeft?.cancel(); hintLeft.translationX = 0f
-            }
-        }
-
-        hintRight.setOnClickListener { scrollView.smoothScrollBy(scrollView.width / 2, 0) }
-        hintLeft.setOnClickListener  { scrollView.smoothScrollBy(-(scrollView.width / 2), 0) }
-
-        scrollView.viewTreeObserver.addOnGlobalLayoutListener { updateHints() }
-        scrollView.setOnScrollChangeListener { _, _, _, _, _ -> updateHints() }
-    }
-
-    // ── Modifier logic ────────────────────────────────────────────────────────
-
-    private fun toggleMod(button: Button, prop: kotlin.reflect.KMutableProperty0<Boolean>) {
-        prop.set(!prop.get())
-        updateModButton(button, prop.get())
-        binding.terminalView.focusInput()
-    }
-
-    private fun updateModButton(button: Button, active: Boolean) {
-        if (active) {
-            button.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.keybar_mod_active))
-        } else {
-            button.setBackgroundColor(Color.TRANSPARENT)
-        }
-    }
-
-    private fun flashButton(button: Button) {
-        val accent = ContextCompat.getColor(requireContext(), R.color.accent)
-        button.setTextColor(accent)
-        button.postDelayed({
-            button.setTextColor(ContextCompat.getColor(requireContext(), R.color.keybar_key_text))
-        }, 300)
-    }
-
-    private fun applyModifiers(bytes: ByteArray): ByteArray {
-        if (!modCtrl && !modShift && !modAlt && !modAltGr) return bytes
-
-        var result = bytes
-
-        // Ctrl: convert single letter to control code
-        if (modCtrl && result.size == 1) {
-            val b = result[0].toInt() and 0xFF
-            result = when (b) {
-                in 'a'.code..'z'.code -> byteArrayOf((b - 'a'.code + 1).toByte())
-                in 'A'.code..'Z'.code -> byteArrayOf((b - 'A'.code + 1).toByte())
-                ' '.code              -> byteArrayOf(0)
-                '['.code              -> byteArrayOf(27)
-                else                  -> result
-            }
-        }
-
-        // Shift: uppercase single lowercase letter (keyboard usually handles this)
-        if (modShift && result.size == 1) {
-            val b = result[0].toInt() and 0xFF
-            if (b in 'a'.code..'z'.code) result = byteArrayOf((b - 32).toByte())
-        }
-
-        // Alt / AltGr: prepend ESC
-        if (modAlt || modAltGr) result = byteArrayOf(27) + result
-
-        return result
-    }
-
-    private fun resetModifiers() {
-        if (modCtrl)  { modCtrl  = false; _binding?.let { updateModButton(it.btnModCtrl,  false) } }
-        if (modShift) { modShift = false; _binding?.let { updateModButton(it.btnModShift, false) } }
-        if (modAlt)   { modAlt   = false; _binding?.let { updateModButton(it.btnModAlt,   false) } }
-        if (modAltGr) { modAltGr = false; _binding?.let { updateModButton(it.btnModAltGr, false) } }
-    }
-
-    // ── Key sending ───────────────────────────────────────────────────────────
-
-    private var keyboardVisible = false
-
-    private fun toggleKeyboard() {
-        val imm = requireContext().getSystemService<InputMethodManager>() ?: return
-        if (keyboardVisible) {
-            imm.hideSoftInputFromWindow(binding.terminalView.windowToken, 0)
-            keyboardVisible = false
-        } else {
-            binding.terminalView.focusInput()
-            keyboardVisible = true
-        }
-    }
-
-    private fun fnKey(seq: String) = byteArrayOf(27) + seq.toByteArray(Charsets.US_ASCII)
-
-    /** Send bytes from a key-bar button: apply modifiers, reset, refocus. */
-    private fun sendKey(bytes: ByteArray) {
-        sshSession?.sendBytes(applyModifiers(bytes))
-        resetModifiers()
-        binding.terminalView.focusInput()
-        binding.terminalView.scrollToBottom()
-    }
-
-    // ── SSH ───────────────────────────────────────────────────────────────────
-
-    private fun showLocalShellPrompt() {
-        emitStatus(ConnectionStatus.NONE)
-        binding.statusBar.text = "Nincs kapcsolat"
-        binding.terminalView.horizontalScrollEnabled = false
-        binding.terminalView.post { binding.terminalView.setFontSize(16f) }
-        val r  = "\u001B[0m"
-        val c1 = "\u001B[38;5;214m"  // arany
-        val c2 = "\u001B[38;5;208m"  // narancs
-        val c3 = "\u001B[38;5;202m"  // sötét narancs
-        val cs = "\u001B[38;5;244m"  // szürke
-        val ch = "\u001B[38;5;240m"  // sötét szürke
-        // "KonsoleSSH" — minden betű más árnyalat az arany-narancs skálán
-        val title = buildString {
-            val colors = listOf(c1, c1, c1, c1, c1, c1, c1, c2, c2, c3)
-            val word   = "KonsoleSSH"
-            word.forEachIndexed { i, ch2 -> append("${colors[i]}${ch2}") }
-            append(r)
-        }
-        val descLines = listOf(
-            "A KDE Konsole ihlette,",
-            "Androidra alkotva.",
-            "",
-            "SSH terminál emulátor",
-            "több párhuzamos kapcsolat",
-            "kezelésére, füleken.",
-            "",
-            "Jump host támogatással",
-            "belső hálózatok is",
-            "elérhetők.",
-            "",
-            "Új kapcsolat: '+' gomb"
+    override fun onStart() {
+        super.onStart()
+        SshForegroundService.start(requireContext())
+        requireContext().bindService(
+            Intent(requireContext(), SshForegroundService::class.java),
+            serviceConnection,
+            Context.BIND_AUTO_CREATE
         )
-        val banner = buildString {
-            append("\r\n\r\n")
-            append("  $title\r\n")
-            append("\r\n")
-            descLines.forEach { line ->
-                if (line.isEmpty()) append("\r\n")
-                else append("$cs  $line$r\r\n")
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if (serviceBound) {
+            sshService?.setDataListener(tabId, null)
+            sshService?.setStatusListener(tabId, null)
+            sshService?.setPasswordPrompter(tabId, null)
+            requireContext().unbindService(serviceConnection)
+            serviceBound = false
+            sshService = null
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Do NOT disconnect — service owns the session and keeps it alive
+    }
+
+    // ── Service bound ─────────────────────────────────────────────────────────
+
+    private fun onServiceBound() {
+        val service = sshService ?: return
+        val cfg = config ?: return  // no SSH on welcome/cheatsheet tabs
+
+        val savedSp = MainActivity.savedFontSize(requireContext())
+        if (savedSp > 0f) _binding?.terminalView?.post { _binding?.terminalView?.setFontSize(savedSp) }
+
+        service.setPasswordPrompter(tabId, buildPasswordPrompter())
+
+        when (service.getStatus(tabId)) {
+            ConnectionStatus.NONE -> {
+                // First time — start connection (setStatusListener after connect() so new SessionState exists)
+                startConnection(cfg, service)
+                service.setStatusListener(tabId) { status -> updateStatusUI(status) }
             }
-            append("\r\n")
-            append("$ch  Húzz jobbra a súgóért.$r\r\n")
+            ConnectionStatus.CONNECTED, ConnectionStatus.CONNECTING, ConnectionStatus.DISCONNECTED -> {
+                // Existing session — register listeners and replay buffer
+                service.setStatusListener(tabId) { status -> updateStatusUI(status) }
+                replayBuffer(service)
+                service.setDataListener(tabId) { bytes ->
+                    _binding?.terminalView?.append(bytes, bytes.size)
+                }
+                updateStatusUI(service.getStatus(tabId))
+            }
         }
-        val bytes = banner.toByteArray(Charsets.UTF_8)
-        binding.terminalView.append(bytes, bytes.size)
     }
 
-    private fun showCheatSheet() {
-        binding.terminalView.post { binding.terminalView.setFontSize(14f) }
-        val r  = "\u001b[0m"
-        val b  = "\u001b[1m"
-        val h  = "\u001b[38;5;214m"   // narancs — főcím
-        val t  = "\u001b[38;5;117m"   // kék — parancs neve
-        val e  = "\u001b[38;5;222m"   // sárga — példa
-        val d  = "\u001b[38;5;245m"   // szürke — leírás
-        val w  = "\u001b[38;5;203m"   // piros — figyelmeztetés
-        val s  = "\u001b[38;5;71m"    // zöld — szekció
-        fun sec(name: String) = "\r\n $s$b▸ $name$r\r\n"
-        fun cmd(c: String) = "  $t$b$c$r"
-        fun desc(text: String) = "    $d$text$r\r\n"
-        fun ex(text: String) = "    $e$ $text$r\r\n"
-        fun warn(text: String) = "    $w⚠  $text$r\r\n"
-        val text = buildString {
-            append("\r\n $h$b── Linux parancssori kézikönyv ──$r\r\n")
-
-            append(sec("top — folyamatok és rendszerterhelés"))
-            append(cmd("top")); append("\r\n")
-            append(desc("Valós idejű nézet: CPU, memória, futó folyamatok."))
-            append(desc("Billentyűk: q=kilép  k=kill (PID megadás)  h=súgó"))
-            append(desc("           M=mem szerint rendez  P=CPU szerint"))
-            append(ex("top -b -n1 | head -30   # egyszeri kimenet (scripthez)"))
-
-            append(sec("df — fájlrendszer lemezhasználat"))
-            append(cmd("df -h")); append("\r\n")
-            append(desc("Partíciók mérete, foglalt/szabad hely, csatolási pont."))
-            append(desc("-h: emberbarát egységek (G, M)  -i: inode használat"))
-            append(ex("df -h /home              # csak /home partíció"))
-            append(ex("df -h | grep -v tmpfs    # ideiglen. fs kiszűrve"))
-
-            append(sec("du — könyvtár/fájl mérete"))
-            append(cmd("du -sh *")); append("\r\n")
-            append(desc("Megmutatja az összes elem méretét az aktuális könyvtárban."))
-            append(desc("-s: összesített  -h: emberbarát  --max-depth=1"))
-            append(ex("du -sh /var/*             # /var alkönyvtárai"))
-            append(ex("du -sh * | sort -rh | head -10  # top 10 legnagyobb"))
-
-            append(sec("dd — nyers blokk-szintű adatmásolás"))
-            append(cmd("dd if=forrás of=cél bs=4M status=progress")); append("\r\n")
-            append(desc("if=bemeneti fájl/eszköz  of=kimeneti fájl/eszköz"))
-            append(desc("bs=blokk méret  count=blokkok száma  status=progress"))
-            append(ex("dd if=/dev/sda of=/dev/sdb bs=4M status=progress"))
-            append(ex("dd if=/dev/zero of=teszt.img bs=1M count=100"))
-            append(ex("dd if=/dev/urandom of=véletlen.bin bs=1M count=10"))
-            append(warn("Nincs visszavonás. A of= tartalma véglegesen felülíródik!"))
-
-            append(sec("tail — fájl vége"))
-            append(cmd("tail fájl")); append("\r\n")
-            append(desc("Alapból az utolsó 10 sort írja ki."))
-            append(desc("-n N: utolsó N sor  -f: valós idejű figyelés  -F: rotate-t is követ"))
-            append(ex("tail -n 50 /var/log/syslog"))
-            append(ex("tail -f /var/log/nginx/access.log"))
-            append(ex("tail -f /var/log/syslog | grep -i error"))
-
-            append(sec("head — fájl eleje"))
-            append(cmd("head fájl")); append("\r\n")
-            append(desc("Alapból az első 10 sort írja ki."))
-            append(desc("-n N: első N sor  -c N: első N bájt"))
-            append(ex("head -n 5 /etc/passwd"))
-            append(ex("head -c 512 bináris.bin | xxd"))
-
-            append(sec("tee — kimenet elágaztatása"))
-            append(cmd("cmd | tee fájl")); append("\r\n")
-            append(desc("A kimenet egyszerre megjelenik a képernyőn ÉS kerül a fájlba."))
-            append(desc("-a: hozzáfűzés (felülírás helyett)"))
-            append(ex("make 2>&1 | tee build.log"))
-            append(ex("apt upgrade 2>&1 | tee -a upgrade.log"))
-
-            append(sec("wc — sorok, szavak, bájtok számlálása"))
-            append(cmd("wc fájl")); append("\r\n")
-            append(desc("Kimenet: sorok  szavak  bájtok  fájlnév"))
-            append(desc("-l: csak sorok  -w: csak szavak  -c: csak bájtok"))
-            append(ex("wc -l /etc/passwd          # hány felhasználó?"))
-            append(ex("ls /etc | wc -l            # hány fájl van /etc-ben?"))
-            append(ex("cat fájl | grep hiba | wc -l"))
-
-            append(sec("grep — szöveg keresése (alap regex)"))
-            append(cmd("grep 'minta' fájl")); append("\r\n")
-            append(desc("-i: kis/nagybetű független  -v: negálás (ami NEM illeszkedik)"))
-            append(desc("-n: sorszámmal  -r: rekurzív  -l: csak fájlnév  -c: darabszám"))
-            append(ex("grep -rn 'TODO' /home/projekt/"))
-            append(ex("grep -v '^#' /etc/ssh/sshd_config  # komment nélkül"))
-            append(ex("grep -i 'error\\|warn' /var/log/syslog"))
-
-            append(sec("egrep — kiterjesztett regex (= grep -E)"))
-            append(cmd("egrep 'minta' fájl")); append("\r\n")
-            append(desc("Ugyanaz mint grep -E. |, +, ?, (), {} extra karakterek."))
-            append(ex("egrep '(error|warn|crit)' /var/log/syslog"))
-            append(ex("egrep '^[0-9]{4}-[0-9]{2}' access.log"))
-            append(ex("egrep -v '^\\s*(#|$)' /etc/fstab   # érdemi sorok"))
-
-            append(sec("mc — Midnight Commander fájlkezelő"))
-            append(cmd("mc")); append("\r\n")
-            append(desc("Kétpaneles Norton Commander-stílusú fájlkezelő."))
-            append(desc("F5=másol  F6=mozgat  F8=töröl  F9=menü  F10=kilép"))
-            append(desc("Tab=panel váltás  Ins=jelöl  Ctrl+O=terminál előtér"))
-            append(ex("mc -b                      # fekete-fehér mód"))
-            append(ex("mc /var/log /tmp           # könyvtárak megnyitva"))
-            append(desc("Ctrl+O után a mc fut háttérben; 'exit' visszahoz."))
-
-            append(sec("tr — karaktercsere és szűrés"))
-            append(cmd("tr 'abc' 'ABC'")); append("\r\n")
-            append(desc("Karaktereket cserél, töröl vagy összevon a bemeneten."))
-            append(desc("-d: törlés  -s: ismétlődő char összevonása  -c: komplement"))
-            append(ex("echo 'Hello' | tr 'a-z' 'A-Z'   # kisbetű → nagy"))
-            append(ex("cat fajl | tr -d '\\r'           # Windows sorvég törlés"))
-            append(ex("echo 'a  b   c' | tr -s ' '     # több szóköz → egy"))
-
-            append(sec("awk — mezőalapú szövegfeldolgozás"))
-            append(cmd("awk '{print \$1}' fájl")); append("\r\n")
-            append(desc("Soronként dolgozza fel a bemenetet; \$1..\$N = mezők (szóköz hat.)"))
-            append(desc("FS=mezőelválasztó  NR=sorszám  NF=mezők száma"))
-            append(ex("awk '{print \$1, \$3}' /etc/passwd"))
-            append(ex("awk -F: '{print \$1}' /etc/passwd  # : elválasztóval"))
-            append(ex("awk 'NR>1 && \$3>1000' fajl       # 2. sortól, 3. mező>1000"))
-            append(ex("df -h | awk 'NR>1 {print \$5, \$6}'"))
-
-            append(sec("sed — folyamszerkesztő (regex alapú)"))
-            append(cmd("sed 's/régi/új/g' fájl")); append("\r\n")
-            append(desc("s/régi/új/g = csere (g=összes előfordulás)  -i = helybeni"))
-            append(desc("-n: csendes mód  p=kiír  d=töröl  /minta/=sor szűrő"))
-            append(ex("sed 's/foo/bar/g' in.txt > out.txt"))
-            append(ex("sed -i 's/foo/bar/g' fajl.txt    # helybeni csere"))
-            append(ex("sed -n '5,10p' fajl              # 5-10. sor kiírása"))
-            append(ex("sed '/^#/d' /etc/fstab           # komment sorok törlése"))
-            append(warn("sed -i felülírja a fájlt — előtte készíts biztonsági másolatot!"))
-
-            append(sec("ip — hálózati interfészek és útvonalak"))
-            append(cmd("ip addr")); append("\r\n")
-            append(desc("Interfészek és IP-címek listája (ifconfig utódja)."))
-            append(ex("ip addr show eth0             # egy interfész"))
-            append(ex("ip route                      # útvonaltábla"))
-            append(ex("ip route get 8.8.8.8          # melyik útvonalon megy ki?"))
-            append(ex("ip link set eth0 up/down       # interfész fel/le"))
-            append(ex("ip neigh                       # ARP/szomszédtábla"))
-
-            append("\r\n")
+    private fun replayBuffer(service: SshForegroundService) {
+        val buf = service.getBuffer(tabId)
+        if (buf.isNotEmpty()) {
+            _binding?.terminalView?.post {
+                _binding?.terminalView?.append(buf, buf.size)
+            }
         }
-        val bytes = text.toByteArray(Charsets.UTF_8)
-        binding.terminalView.append(bytes, bytes.size)
-        binding.terminalView.post { binding.terminalView.scrollToTop() }
     }
+
+    private fun startConnection(cfg: ConnectionConfig, service: SshForegroundService) {
+        val jumpConfig = resolveJumpConfig(cfg)
+        if (cfg.jumpConnectionId.isNotBlank() && jumpConfig == null) {
+            val msg = "Hiba: a jump kapcsolat nem található a mentett kapcsolatok között.\r\n"
+            _binding?.terminalView?.append(msg.toByteArray(), msg.length)
+            updateStatusUI(ConnectionStatus.DISCONNECTED)
+            return
+        }
+        val cols = binding.terminalView.currentCols
+        val rows = binding.terminalView.currentRows
+        service.connect(tabId, cfg, jumpConfig, cols, rows)
+        service.setDataListener(tabId) { bytes ->
+            _binding?.terminalView?.append(bytes, bytes.size)
+        }
+        updateStatusUI(ConnectionStatus.CONNECTING)
+        binding.statusBar.text = "Csatlakozás: ${cfg.displayName()}..."
+    }
+
+    private fun reconnect() {
+        val cfg = config ?: return
+        val service = sshService ?: return
+        _binding?.btnReconnect?.visibility = View.GONE
+        val msg = "\r\n[Újracsatlakozás...]\r\n"
+        _binding?.terminalView?.append(msg.toByteArray(), msg.length)
+        startConnection(cfg, service)
+    }
+
+    // ── Public interface for MainActivity keybar ──────────────────────────────
+
+    fun sendBytes(bytes: ByteArray) {
+        sshService?.sendBytes(tabId, bytes)
+        _binding?.terminalView?.scrollToBottom()
+    }
+
+    fun focusTerminal() {
+        _binding?.terminalView?.focusInput()
+    }
+
+    fun getSelectedText(): String = _binding?.terminalView?.getSelectedText() ?: ""
+
+    fun pasteText(text: String) {
+        _binding?.terminalView?.pasteText(text)
+    }
+
+    fun cursorKeyBytes(dir: Char): ByteArray =
+        _binding?.terminalView?.cursorKeyBytes(dir) ?: byteArrayOf()
+
+    /** Called by the adapter when the user explicitly closes this tab. */
+    fun closeTab() {
+        sshService?.disconnectSession(tabId)
+        sshService?.removeTab(tabId)
+    }
+
+    // ── Status UI ─────────────────────────────────────────────────────────────
+
+    private fun updateStatusUI(status: ConnectionStatus) {
+        if (tabId.isNotEmpty()) statusListener?.onTabStatusChanged(tabId, status)
+        val cfg = config
+        _binding?.btnReconnect?.visibility =
+            if (status == ConnectionStatus.DISCONNECTED && cfg != null) View.VISIBLE else View.GONE
+        _binding?.statusBar?.text = when (status) {
+            ConnectionStatus.NONE         -> "Nincs kapcsolat"
+            ConnectionStatus.CONNECTING   -> "Csatlakozás: ${cfg?.displayName()}..."
+            ConnectionStatus.CONNECTED    -> "${cfg?.displayName()} ● Csatlakozva"
+            ConnectionStatus.DISCONNECTED -> "${cfg?.displayName() ?: ""} ○ Lecsatlakozva"
+        }
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private fun resolveJumpConfig(cfg: ConnectionConfig): ConnectionConfig? {
         if (cfg.jumpConnectionId.isNotBlank()) {
@@ -575,160 +280,113 @@ class TerminalFragment : Fragment() {
         return null
     }
 
-    private fun friendlyError(err: Throwable): String {
-        // Collect all messages in the cause chain
-        val parts = buildList {
-            var t: Throwable? = err
-            while (t != null) { t.message?.let { add(it) }; t = t.cause }
+    private fun buildPasswordPrompter(): (String, (String?) -> Unit) -> Unit = { displayHost, callback ->
+        val editText = android.widget.EditText(requireContext()).apply {
+            inputType = android.text.InputType.TYPE_CLASS_TEXT or
+                    android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+            hint = "Jelszó"
+            setTextColor(Color.WHITE)
+            setHintTextColor(Color.GRAY)
+            setBackgroundColor(Color.TRANSPARENT)
+            val p = resources.getDimensionPixelSize(R.dimen.dialog_padding)
+            setPadding(p, p / 2, p, p / 2)
         }
-        val full = parts.joinToString(" ").lowercase()
-        return when {
-            "connection refused"     in full -> "A kapcsolat elutasítva — a szerver nem fogad kapcsolatot ezen a porton."
-            "connection timed out"   in full ||
-            "connect timed out"      in full ||
-            "timed out"              in full ||
-            "timeout"                in full -> "Időtúllépés — a szerver nem válaszol (tűzfal vagy helytelen cím?)."
-            "no route to host"       in full -> "Nem érhető el a szerver — ellenőrizd a hálózatot és az IP-t."
-            "network is unreachable" in full ||
-            "unreachable"            in full -> "A hálózat nem érhető el."
-            "unknown host"           in full ||
-            "nodename nor servname"  in full -> "Ismeretlen hostnév — DNS hiba vagy elgépelés."
-            "auth fail"              in full ||
-            "authentication"         in full -> "Hitelesítés sikertelen — helytelen jelszó vagy kulcs."
-            "userauth fail"          in full -> "Hitelesítés sikertelen — a szerver visszautasította."
-            "connection is closed"   in full ||
-            "closed by foreign host" in full -> "A kapcsolat váratlanul lezárult."
-            "broken pipe"            in full -> "A kapcsolat megszakadt (broken pipe)."
-            "port forwarding"        in full -> "Port forwarding hiba — a jump szerver nem engedélyezi."
-            "channel"                in full -> "SSH csatorna hiba — a szerver lezárta a munkamenetet."
-            else -> {
-                // Strip JSch/java class name prefixes for a cleaner fallback
-                parts.firstOrNull()
-                    ?.replace(Regex("^session\\.connect:\\s*"), "")
-                    ?.replace(Regex("^[a-zA-Z]+(\\.[a-zA-Z]+)+:\\s*"), "")
-                    ?: err.javaClass.simpleName
-            }
-        }
+        androidx.appcompat.app.AlertDialog.Builder(requireContext(), R.style.KonsoleDialog)
+            .setTitle(displayHost)
+            .setMessage("Jelszó megadása szükséges")
+            .setView(editText)
+            .setPositiveButton("OK") { _, _ -> callback(editText.text.toString()) }
+            .setNegativeButton("Mégse") { _, _ -> callback(null) }
+            .setCancelable(false)
+            .show()
     }
 
-    private fun connectSsh(cfg: ConnectionConfig) {
-        val savedSp = MainActivity.savedFontSize(requireContext())
-        if (savedSp > 0f) binding.terminalView.post { binding.terminalView.setFontSize(savedSp) }
-        val jumpConfig = resolveJumpConfig(cfg)
-        if (cfg.jumpConnectionId.isNotBlank() && jumpConfig == null) {
-            binding.terminalView.append(
-                "Hiba: a jump kapcsolat (${cfg.jumpConnectionId}) nem található a mentett kapcsolatok között.\r\n".toByteArray(),
-                0
-            )
-            emitStatus(ConnectionStatus.DISCONNECTED)
-            return
+    // ── Static content ────────────────────────────────────────────────────────
+
+    private fun showLocalShellPrompt() {
+        updateStatusUI(ConnectionStatus.NONE)
+        binding.terminalView.horizontalScrollEnabled = false
+        binding.terminalView.post { binding.terminalView.setFontSize(16f) }
+        val r  = "\u001B[0m"
+        val c1 = "\u001B[38;5;214m"; val c2 = "\u001B[38;5;208m"; val c3 = "\u001B[38;5;202m"
+        val cs = "\u001B[38;5;244m"; val ch = "\u001B[38;5;240m"
+        val title = buildString {
+            val colors = listOf(c1, c1, c1, c1, c1, c1, c1, c2, c2, c3)
+            "KonsoleSSH".forEachIndexed { i, ch2 -> append("${colors[i]}$ch2") }
+            append(r)
         }
-        val session = SshSession(cfg, jumpConfig)
-        session.passwordPrompter = { displayHost, callback ->
-            val editText = android.widget.EditText(requireContext()).apply {
-                inputType = android.text.InputType.TYPE_CLASS_TEXT or
-                        android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
-                hint = "Jelszó"
-                setTextColor(android.graphics.Color.WHITE)
-                setHintTextColor(android.graphics.Color.GRAY)
-                setBackgroundColor(android.graphics.Color.TRANSPARENT)
-                val p = resources.getDimensionPixelSize(R.dimen.dialog_padding)
-                setPadding(p, p / 2, p, p / 2)
-            }
-            androidx.appcompat.app.AlertDialog.Builder(requireContext(), R.style.KonsoleDialog)
-                .setTitle(displayHost)
-                .setMessage("Jelszó megadása szükséges")
-                .setView(editText)
-                .setPositiveButton("OK") { _, _ -> callback(editText.text.toString()) }
-                .setNegativeButton("Mégse") { _, _ -> callback(null) }
-                .setCancelable(false)
-                .show()
+        val descLines = listOf(
+            "A KDE Konsole ihlette,", "Androidra alkotva.", "",
+            "SSH terminál emulátor", "több párhuzamos kapcsolat", "kezelésére, füleken.", "",
+            "Jump host támogatással", "belső hálózatok is", "elérhetők.", "",
+            "Új kapcsolat: '+' gomb"
+        )
+        val banner = buildString {
+            append("\r\n\r\n  $title\r\n\r\n")
+            descLines.forEach { line -> if (line.isEmpty()) append("\r\n") else append("$cs  $line$r\r\n") }
+            append("\r\n$ch  Húzz jobbra a súgóért.$r\r\n")
         }
-        sshSession = session
-        emitStatus(ConnectionStatus.CONNECTING)
-        binding.statusBar.text = "Csatlakozás: ${cfg.displayName()}..."
-        if (jumpConfig == null) {
-            val initMsg = "Csatlakozás: ${cfg.host}:${cfg.port}...\r\n"
-            binding.terminalView.append(initMsg.toByteArray(), initMsg.length)
-        }
-        val initCols = binding.terminalView.currentCols
-        val initRows = binding.terminalView.currentRows
-        lifecycleScope.launch {
-            session.connect(
-                termCols = initCols,
-                termRows = initRows,
-                onProgress = { msg ->
-                    binding.terminalView.append(msg.toByteArray(), msg.length)
-                },
-                onConnected = {
-                    emitStatus(ConnectionStatus.CONNECTED)
-                    binding.statusBar.text = "${cfg.displayName()} ● Csatlakozva"
-                    try {
-                        hu.szecsenyi.konsolessh.ssh.SshForegroundService.start(requireContext())
-                    } catch (_: Exception) {}
-                    startReading(session)
-                    binding.terminalView.focusInput()
-                },
-                onError = { err ->
-                    emitStatus(ConnectionStatus.DISCONNECTED)
-                    binding.statusBar.text = "Kapcsolat sikertelen"
-                    val msg = "Hiba: ${friendlyError(err)}\r\n"
-                    binding.terminalView.append(msg.toByteArray(), msg.length)
-                }
-            )
-        }
+        val bytes = banner.toByteArray(Charsets.UTF_8)
+        binding.terminalView.append(bytes, bytes.size)
     }
 
-    private fun startReading(session: SshSession) {
-        readJob = lifecycleScope.launch(Dispatchers.IO) {
-            val buf = ByteArray(8192)
-            val stream = session.inputStream ?: return@launch
-            try {
-                while (isActive && session.isConnected) {
-                    val n = stream.read(buf)
-                    if (n < 0) break
-                    if (n > 0) {
-                        val copy = buf.copyOf(n)
-                        launch(Dispatchers.Main) { _binding?.terminalView?.append(copy, copy.size) }
-                    }
-                }
-            } catch (_: Exception) {}
-            launch(Dispatchers.Main) {
-                emitStatus(ConnectionStatus.DISCONNECTED)
-                _binding?.statusBar?.text = "${config?.displayName() ?: ""} ○ Lecsatlakozva"
-                _binding?.terminalView?.append("\r\n[Kapcsolat lezárva]\r\n".toByteArray(), "\r\n[Kapcsolat lezárva]\r\n".length)
-                try { context?.let { hu.szecsenyi.konsolessh.ssh.SshForegroundService.stop(it) } } catch (_: Exception) {}
-            }
+    private fun showCheatSheet() {
+        binding.terminalView.post { binding.terminalView.setFontSize(14f) }
+        val r = "\u001b[0m"; val b = "\u001b[1m"
+        val h = "\u001b[38;5;214m"; val t = "\u001b[38;5;117m"; val e = "\u001b[38;5;222m"
+        val d = "\u001b[38;5;245m"; val w = "\u001b[38;5;203m"; val s = "\u001b[38;5;71m"
+        fun sec(name: String) = "\r\n $s$b▸ $name$r\r\n"
+        fun cmd(c: String) = "  $t$b$c$r"
+        fun desc(text: String) = "    $d$text$r\r\n"
+        fun ex(text: String) = "    $e$ $text$r\r\n"
+        fun warn(text: String) = "    $w⚠  $text$r\r\n"
+        val text = buildString {
+            append("\r\n $h$b── Linux parancssori kézikönyv ──$r\r\n")
+            append(sec("top — folyamatok és rendszerterhelés"))
+            append(cmd("top")); append("\r\n")
+            append(desc("Valós idejű nézet: CPU, memória, futó folyamatok."))
+            append(desc("Billentyűk: q=kilép  k=kill  M=mem szerint  P=CPU szerint"))
+            append(ex("top -b -n1 | head -30"))
+            append(sec("df — fájlrendszer lemezhasználat"))
+            append(cmd("df -h")); append("\r\n")
+            append(desc("-h: emberbarát egységek  -i: inode használat"))
+            append(ex("df -h /home")); append(ex("df -h | grep -v tmpfs"))
+            append(sec("du — könyvtár/fájl mérete"))
+            append(cmd("du -sh *")); append("\r\n")
+            append(desc("-s: összesített  -h: emberbarát  --max-depth=1"))
+            append(ex("du -sh * | sort -rh | head -10"))
+            append(sec("dd — nyers blokk-szintű adatmásolás"))
+            append(cmd("dd if=forrás of=cél bs=4M status=progress")); append("\r\n")
+            append(warn("Nincs visszavonás. A of= tartalma véglegesen felülíródik!"))
+            append(sec("tail / head"))
+            append(cmd("tail -f /var/log/syslog")); append("\r\n")
+            append(ex("tail -n 50 fájl")); append(ex("head -n 5 /etc/passwd"))
+            append(sec("grep / egrep"))
+            append(cmd("grep 'minta' fájl")); append("\r\n")
+            append(desc("-i: kis/nagybetű  -v: negálás  -n: sorszám  -r: rekurzív"))
+            append(ex("grep -rn 'TODO' /home/projekt/"))
+            append(ex("egrep '(error|warn|crit)' /var/log/syslog"))
+            append(sec("awk — mezőalapú feldolgozás"))
+            append(cmd("awk '{print \$1}' fájl")); append("\r\n")
+            append(ex("awk -F: '{print \$1}' /etc/passwd"))
+            append(ex("df -h | awk 'NR>1 {print \$5, \$6}'"))
+            append(sec("sed — folyamszerkesztő"))
+            append(cmd("sed 's/régi/új/g' fájl")); append("\r\n")
+            append(ex("sed -i 's/foo/bar/g' fajl.txt"))
+            append(warn("sed -i felülírja a fájlt!"))
+            append(sec("ip — hálózati interfészek"))
+            append(cmd("ip addr")); append("\r\n")
+            append(ex("ip route")); append(ex("ip neigh"))
+            append(sec("mc — Midnight Commander"))
+            append(cmd("mc")); append("\r\n")
+            append(desc("F5=másol  F6=mozgat  F8=töröl  F9=menü  F10=kilép"))
+            append(sec("tr — karaktercsere"))
+            append(cmd("echo 'Hello' | tr 'a-z' 'A-Z'")); append("\r\n")
+            append(ex("cat fajl | tr -d '\\r'"))
+            append("\r\n")
         }
-    }
-
-    private fun emitStatus(status: ConnectionStatus) {
-        if (tabId.isNotEmpty()) statusListener?.onTabStatusChanged(tabId, status)
-    }
-
-    fun disconnectAndClose() {
-        if (sshSession?.isConnected == true) {
-            try { context?.let { hu.szecsenyi.konsolessh.ssh.SshForegroundService.stop(it) } } catch (_: Exception) {}
-        }
-        readJob?.cancel()
-        sshSession?.disconnect()
-    }
-
-    override fun onDestroyView() {
-        hintAnimatorRight?.cancel()
-        hintAnimatorLeft?.cancel()
-        hintAnimatorRight = null
-        hintAnimatorLeft = null
-        fnHintAnimatorRight?.cancel()
-        fnHintAnimatorLeft?.cancel()
-        fnHintAnimatorRight = null
-        fnHintAnimatorLeft = null
-        super.onDestroyView()
-        _binding = null
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        disconnectAndClose()
+        val bytes = text.toByteArray(Charsets.UTF_8)
+        binding.terminalView.append(bytes, bytes.size)
+        binding.terminalView.post { binding.terminalView.scrollToTop() }
     }
 }

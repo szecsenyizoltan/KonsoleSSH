@@ -27,6 +27,7 @@ class TabPickerSheet : BottomSheetDialogFragment() {
         fun onNewConnectionRequested()
         fun onEditConnectionRequested(config: ConnectionConfig)
         fun onDeleteConnectionRequested(config: ConnectionConfig)
+        fun onCloseAppRequested()
     }
 
     var listener: Listener? = null
@@ -58,6 +59,10 @@ class TabPickerSheet : BottomSheetDialogFragment() {
         binding.btnNewConnection.setOnClickListener {
             dismiss()
             listener?.onNewConnectionRequested()
+        }
+        binding.btnCloseApp.setOnClickListener {
+            dismiss()
+            listener?.onCloseAppRequested()
         }
     }
 

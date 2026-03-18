@@ -16,6 +16,42 @@
         android:background="#555555"
         android:layerType="software" />
 
+    <!-- New connection button -->
+    <LinearLayout
+        android:id="@+id/btnNewConnection"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:background="?attr/selectableItemBackground">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Új kapcsolat…"
+            android:textColor="@color/accent"
+            android:textSize="15sp"
+            android:fontFamily="monospace" />
+
+        <TextView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:gravity="center"
+            android:text="+"
+            android:textColor="@color/accent"
+            android:textSize="24sp" />
+
+    </LinearLayout>
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#333333" />
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -66,47 +102,45 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical" />
 
-            <!-- Divider -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="4dp"
-                android:background="#333333" />
-
-            <!-- New connection button -->
-            <LinearLayout
-                android:id="@+id/btnNewConnection"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:background="?attr/selectableItemBackground">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Új kapcsolat…"
-                    android:textColor="@color/accent"
-                    android:textSize="15sp"
-                    android:fontFamily="monospace" />
-
-                <TextView
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:gravity="center"
-                    android:text="+"
-                    android:textColor="@color/accent"
-                    android:textSize="24sp" />
-
-            </LinearLayout>
-
             <View android:layout_width="match_parent" android:layout_height="8dp" />
 
         </LinearLayout>
     </ScrollView>
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#333333" />
+
+    <!-- Close app button -->
+    <LinearLayout
+        android:id="@+id/btnCloseApp"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:background="?attr/selectableItemBackground">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Alkalmazás bezárása"
+            android:textColor="#888888"
+            android:textSize="15sp"
+            android:fontFamily="monospace" />
+
+        <TextView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:gravity="center"
+            android:text="✕"
+            android:textColor="#888888"
+            android:textSize="18sp" />
+
+    </LinearLayout>
 
 </LinearLayout>

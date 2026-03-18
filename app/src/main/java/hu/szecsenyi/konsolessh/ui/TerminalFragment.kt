@@ -31,6 +31,7 @@ class TerminalFragment : Fragment() {
         private const val ARG_TAB_ID = "tab_id"
         private const val ARG_MODE = "mode"
         const val MODE_CHEAT = "cheatsheet"
+        const val MODE_TMUX  = "tmuxsheet"
 
         fun newInstance(config: ConnectionConfig, tabId: String): TerminalFragment {
             val gson = com.google.gson.Gson()
@@ -52,6 +53,14 @@ class TerminalFragment : Fragment() {
                 arguments = Bundle().apply {
                     putString(ARG_TAB_ID, tabId)
                     putString(ARG_MODE, MODE_CHEAT)
+                }
+            }
+
+        fun newTmuxSheet(tabId: String): TerminalFragment =
+            TerminalFragment().apply {
+                arguments = Bundle().apply {
+                    putString(ARG_TAB_ID, tabId)
+                    putString(ARG_MODE, MODE_TMUX)
                 }
             }
     }
@@ -113,15 +122,21 @@ class TerminalFragment : Fragment() {
             main?.resetModifiers()
         }
 
+        val mode = arguments?.getString(ARG_MODE)
         binding.terminalView.onTerminalResize = { cols, rows ->
-            sshService?.resize(tabId, cols, rows)
+            when (mode) {
+                MODE_CHEAT -> { binding.terminalView.clear(); showCheatSheet() }
+                MODE_TMUX  -> { binding.terminalView.clear(); showTmuxSheet() }
+                else       -> sshService?.resize(tabId, cols, rows)
+            }
         }
 
         binding.btnReconnect.setOnClickListener { reconnect() }
 
         val cfg = config
         when {
-            cfg == null && arguments?.getString(ARG_MODE) == MODE_CHEAT -> showCheatSheet()
+            cfg == null && mode == MODE_CHEAT -> showCheatSheet()
+            cfg == null && mode == MODE_TMUX  -> showTmuxSheet()
             cfg == null -> showLocalShellPrompt()
             else -> { /* connection started in onServiceBound */ }
         }
@@ -331,7 +346,6 @@ class TerminalFragment : Fragment() {
     }
 
     private fun showCheatSheet() {
-        binding.terminalView.post { binding.terminalView.setFontSize(14f) }
         val r = "\u001b[0m"; val b = "\u001b[1m"
         val h = "\u001b[38;5;214m"; val t = "\u001b[38;5;117m"; val e = "\u001b[38;5;222m"
         val d = "\u001b[38;5;245m"; val w = "\u001b[38;5;203m"; val s = "\u001b[38;5;71m"
@@ -383,6 +397,89 @@ class TerminalFragment : Fragment() {
             append(sec("tr — karaktercsere"))
             append(cmd("echo 'Hello' | tr 'a-z' 'A-Z'")); append("\r\n")
             append(ex("cat fajl | tr -d '\\r'"))
+            append("\r\n")
+        }
+        val bytes = text.toByteArray(Charsets.UTF_8)
+        binding.terminalView.append(bytes, bytes.size)
+        binding.terminalView.post { binding.terminalView.scrollToTop() }
+    }
+
+    private fun showTmuxSheet() {
+        val r = "\u001b[0m"; val b = "\u001b[1m"
+        val h = "\u001b[38;5;214m"; val t = "\u001b[38;5;117m"; val e = "\u001b[38;5;222m"
+        val d = "\u001b[38;5;245m"; val s = "\u001b[38;5;71m"
+        fun sec(name: String) = "\r\n $s$b▸ $name$r\r\n"
+        fun cmd(c: String) = "  $t$b$c$r\r\n"
+        fun desc(text: String) = "    $d$text$r\r\n"
+        fun ex(text: String) = "    $e$ $text$r\r\n"
+        val text = buildString {
+            append("\r\n $h$b── Tmux kézikönyv ──$r\r\n")
+            append(sec("Mi a tmux"))
+            append(desc("Terminál multiplexer: több ablak és panel egyetlen terminálon belül."))
+            append(desc("Folyamatok futnak kapcsolat megszakadása után is."))
+            append(sec("Alapfogalmak"))
+            append(desc("Session → teljes munkakörnyezet"))
+            append(desc("Window  → fül a sessionön belül"))
+            append(desc("Pane    → ablakon belüli osztás"))
+            append(sec("Session kezelés"))
+            append(cmd("tmux new"))
+            append(ex("tmux new -s munka"))
+            append(ex("tmux ls"))
+            append(ex("tmux attach -t munka"))
+            append(ex("tmux attach -d -t munka"))
+            append(ex("tmux kill-session -t munka"))
+            append(ex("tmux kill-server"))
+            append(sec("Prefix"))
+            append(cmd("Ctrl+b"))
+            append(desc("Minden billentyűparancs ezzel kezdődik."))
+            append(sec("Session műveletek"))
+            append(cmd("Ctrl+b d        # detach"))
+            append(cmd("Ctrl+b \$        # rename session"))
+            append(ex("tmux rename-session -t regi uj"))
+            append(ex("tmux switch-client -t nev"))
+            append(sec("Window műveletek"))
+            append(cmd("Ctrl+b c        # új window"))
+            append(cmd("Ctrl+b w        # window lista"))
+            append(cmd("Ctrl+b n        # következő"))
+            append(cmd("Ctrl+b p        # előző"))
+            append(cmd("Ctrl+b ,        # átnevezés"))
+            append(cmd("Ctrl+b 0..9     # ugrás sorszámra"))
+            append(sec("Pane műveletek"))
+            append(cmd("Ctrl+b %        # vízszintes osztás"))
+            append(cmd("Ctrl+b \"        # függőleges osztás"))
+            append(cmd("Ctrl+b o        # következő pane"))
+            append(cmd("Ctrl+b ;        # előző pane"))
+            append(cmd("Ctrl+b x        # pane bezárása"))
+            append(cmd("Ctrl+b z        # zoom (toggle)"))
+            append(cmd("Ctrl+b {        # mozgatás balra"))
+            append(cmd("Ctrl+b }        # mozgatás jobbra"))
+            append(cmd("Ctrl+b !        # pane → window"))
+            append(sec("Navigáció"))
+            append(cmd("Ctrl+b ←↑→↓    # pane-ek között"))
+            append(sec("Resize"))
+            append(cmd("Ctrl+b Ctrl+←↑→↓"))
+            append(sec("Layout"))
+            append(cmd("Ctrl+b Space    # layout váltás"))
+            append(sec("Scroll"))
+            append(cmd("Ctrl+b [        # scroll mód"))
+            append(cmd("q              # kilépés scroll módból"))
+            append(sec("Paste"))
+            append(cmd("Ctrl+b ]        # beillesztés"))
+            append(sec("Config (~/.tmux.conf)"))
+            append(ex("set -g mouse on"))
+            append(ex("set -g history-limit 100000"))
+            append(ex("setw -g mode-keys vi"))
+            append(sec("Gyors lista"))
+            append(ex("tmux new -s dev"))
+            append(ex("tmux ls"))
+            append(ex("tmux attach -t dev"))
+            append(cmd("Ctrl+b d        # detach"))
+            append(cmd("Ctrl+b c        # új window"))
+            append(cmd("Ctrl+b %        # vízszintes osztás"))
+            append(cmd("Ctrl+b \"        # függőleges osztás"))
+            append(cmd("Ctrl+b o        # váltás pane-ek között"))
+            append(cmd("Ctrl+b z        # zoom"))
+            append(cmd("Ctrl+b [        # scroll"))
             append("\r\n")
         }
         val bytes = text.toByteArray(Charsets.UTF_8)

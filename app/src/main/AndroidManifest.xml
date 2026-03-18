@@ -35,6 +35,7 @@
         <service
             android:name=".ssh.SshForegroundService"
             android:foregroundServiceType="connectedDevice"
+            android:stopWithTask="false"
             android:exported="false" />
 
     </application>

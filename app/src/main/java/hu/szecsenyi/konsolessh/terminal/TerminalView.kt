@@ -63,7 +63,7 @@ class TerminalView @JvmOverloads constructor(
     // ── Cell ──────────────────────────────────────────────────────────────────
 
     private data class Cell(
-        var ch: Char = ' ',
+        var ch: String = " ",
         var fg: Int = DEFAULT_FG,
         var bg: Int = DEFAULT_BG,
         var bold: Boolean = false,
@@ -121,12 +121,15 @@ class TerminalView @JvmOverloads constructor(
     private var fontSizeSp = 12f
     private var firstLayout = true
     private val bgPaint   = Paint()
-    private val normPaint = Paint().apply { typeface = Typeface.MONOSPACE; isAntiAlias = true }
+    private val normPaint = Paint().apply {
+        typeface = loadTypeface(context)
+        isAntiAlias = true
+    }
     private val boldPaint = Paint().apply {
-        typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD); isAntiAlias = true
+        typeface = Typeface.create(loadTypeface(context), Typeface.BOLD)
+        isAntiAlias = true
     }
     private var cellW = 1f; private var cellH = 1f; private var cellBase = 0f
-    private val drawChar = CharArray(1)
     private val cellRect = RectF()
 
     // ── View scroll ───────────────────────────────────────────────────────────
@@ -175,6 +178,14 @@ class TerminalView @JvmOverloads constructor(
 
     private fun newScreen() = Array(termRows) { Array(termCols) { Cell() } }
     private fun blankRow()  = Array(termCols) { Cell() }
+
+    private fun loadTypeface(ctx: Context): Typeface {
+        return try {
+            Typeface.createFromAsset(ctx.assets, "fonts/NerdFont.ttf")
+        } catch (_: Exception) {
+            Typeface.MONOSPACE
+        }
+    }
 
     private fun applyFontMetrics() {
         val px = fontSizeSp * resources.displayMetrics.scaledDensity
@@ -285,11 +296,10 @@ class TerminalView @JvmOverloads constructor(
                 }
 
                 // Character
-                if (cell.ch != ' ') {
+                if (cell.ch != " ") {
                     val p = if (cell.bold) boldPaint else normPaint
                     p.color = effectiveFg
-                    drawChar[0] = cell.ch
-                    canvas.drawText(drawChar, 0, 1, drawX, y + cellBase, p)
+                    canvas.drawText(cell.ch, drawX, y + cellBase, p)
                 }
 
                 // Underline
@@ -359,7 +369,16 @@ class TerminalView @JvmOverloads constructor(
 
     private fun processBytes(bytes: ByteArray, length: Int) {
         val text = String(bytes, 0, length, Charsets.UTF_8)
-        for (ch in text) {
+        var i = 0
+        while (i < text.length) {
+            val ch = text[i]
+            // Supplementary character (emoji, symbols above U+FFFF): store as surrogate pair string
+            if (ch.isHighSurrogate() && i + 1 < text.length && text[i + 1].isLowSurrogate()) {
+                if (ansiState == AnsiState.NORMAL) printChar(text.substring(i, i + 2))
+                i += 2
+                continue
+            }
+            i++
             when (ansiState) {
                 AnsiState.NORMAL -> when (ch) {
                     '\u001B'              -> ansiState = AnsiState.ESCAPE
@@ -418,7 +437,9 @@ class TerminalView @JvmOverloads constructor(
         }
     }
 
-    private fun printChar(ch: Char) {
+    private fun printChar(ch: Char) = printChar(ch.toString())
+
+    private fun printChar(ch: String) {
         if (curCol >= termCols) { curCol = 0; lineFeed() }
         screen[curRow][curCol].apply {
             this.ch = ch

@@ -59,7 +59,6 @@ class TerminalPagerAdapter(
     fun removeTab(internalIdx: Int) {
         if (internalIdx < 0 || internalIdx >= tabs.size) return
         val id = tabs[internalIdx].id
-        fragments[id]?.disconnectAndClose()
         fragments.remove(id)
         tabs.removeAt(internalIdx)
         notifyDataSetChanged()

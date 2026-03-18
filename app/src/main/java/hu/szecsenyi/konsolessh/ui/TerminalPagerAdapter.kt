@@ -19,17 +19,19 @@ class TerminalPagerAdapter(
     companion object {
         const val WELCOME_ID = "welcome"
         const val CHEAT_ID   = "cheatsheet"
+        const val TMUX_ID    = "tmuxsheet"
     }
 
     private val tabs = mutableListOf<TabInfo>()
     private val fragments = mutableMapOf<String, TerminalFragment>()
 
-    // welcome + user tabs + cheatsheet
-    override fun getItemCount(): Int = tabs.size + 2
+    // welcome + user tabs + cheatsheet + tmuxsheet
+    override fun getItemCount(): Int = tabs.size + 3
 
     override fun createFragment(position: Int): Fragment = when {
         position == 0             -> TerminalFragment.newWelcome(WELCOME_ID).also { fragments[WELCOME_ID] = it }
         position == tabs.size + 1 -> TerminalFragment.newCheatSheet(CHEAT_ID).also { fragments[CHEAT_ID] = it }
+        position == tabs.size + 2 -> TerminalFragment.newTmuxSheet(TMUX_ID).also { fragments[TMUX_ID] = it }
         else -> {
             val tab = tabs[position - 1]
             TerminalFragment.newInstance(tab.config!!, tab.id).also { fragments[tab.id] = it }
@@ -39,12 +41,14 @@ class TerminalPagerAdapter(
     override fun getItemId(position: Int): Long = when {
         position == 0             -> WELCOME_ID.hashCode().toLong()
         position == tabs.size + 1 -> CHEAT_ID.hashCode().toLong()
+        position == tabs.size + 2 -> TMUX_ID.hashCode().toLong()
         else                      -> tabs[position - 1].id.hashCode().toLong()
     }
 
     override fun containsItem(itemId: Long): Boolean =
         itemId == WELCOME_ID.hashCode().toLong() ||
         itemId == CHEAT_ID.hashCode().toLong() ||
+        itemId == TMUX_ID.hashCode().toLong() ||
         tabs.any { it.id.hashCode().toLong() == itemId }
 
     fun isFixedPage(viewPos: Int): Boolean = viewPos == 0 || viewPos >= tabs.size + 1
@@ -84,6 +88,7 @@ class TerminalPagerAdapter(
         val id = when {
             viewPos == 0             -> WELCOME_ID
             viewPos == tabs.size + 1 -> CHEAT_ID
+            viewPos == tabs.size + 2 -> TMUX_ID
             else                     -> tabs.getOrNull(viewPos - 1)?.id
         } ?: return null
         return fragments[id]

@@ -1,0 +1,82 @@
+[
+    {
+        "merged": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-debug-38:/drawable_ic_zoom_out.xml.flat",
+        "source": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-main-40:/drawable/ic_zoom_out.xml"
+    },
+    {
+        "merged": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-debug-38:/layout_tab_custom.xml.flat",
+        "source": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-main-40:/layout/tab_custom.xml"
+    },
+    {
+        "merged": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-debug-38:/layout_fragment_terminal.xml.flat",
+        "source": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-main-40:/layout/fragment_terminal.xml"
+    },
+    {
+        "merged": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-debug-38:/layout_activity_main.xml.flat",
+        "source": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-main-40:/layout/activity_main.xml"
+    },
+    {
+        "merged": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-debug-38:/layout_dialog_tab_picker.xml.flat",
+        "source": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-main-40:/layout/dialog_tab_picker.xml"
+    },
+    {
+        "merged": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-debug-38:/xml_adaptive_icon.xml.flat",
+        "source": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-main-40:/xml/adaptive_icon.xml"
+    },
+    {
+        "merged": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-debug-38:/layout_item_saved_connection.xml.flat",
+        "source": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-main-40:/layout/item_saved_connection.xml"
+    },
+    {
+        "merged": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-debug-38:/drawable_bg_reconnect_btn.xml.flat",
+        "source": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-main-40:/drawable/bg_reconnect_btn.xml"
+    },
+    {
+        "merged": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-debug-38:/drawable_ic_launcher_foreground.xml.flat",
+        "source": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-main-40:/drawable/ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-debug-38:/drawable_ic_zoom_in.xml.flat",
+        "source": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-main-40:/drawable/ic_zoom_in.xml"
+    },
+    {
+        "merged": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-debug-38:/layout_activity_connection_edit.xml.flat",
+        "source": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-main-40:/layout/activity_connection_edit.xml"
+    },
+    {
+        "merged": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-debug-38:/drawable_ic_exit.xml.flat",
+        "source": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-main-40:/drawable/ic_exit.xml"
+    },
+    {
+        "merged": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-debug-38:/menu_main_menu.xml.flat",
+        "source": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-main-40:/menu/main_menu.xml"
+    },
+    {
+        "merged": "hu.szecsenyi.konsolessh.app-debug-38:/layout_dialog_new_connection.xml.flat",
+        "source": "hu.szecsenyi.konsolessh.app-main-40:/layout/dialog_new_connection.xml"
+    },
+    {
+        "merged": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-debug-38:/layout_layout_konsole_toast.xml.flat",
+        "source": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-main-40:/layout/layout_konsole_toast.xml"
+    },
+    {
+        "merged": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-debug-38:/drawable_ic_delete.xml.flat",
+        "source": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-main-40:/drawable/ic_delete.xml"
+    },
+    {
+        "merged": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-debug-38:/drawable_ic_edit.xml.flat",
+        "source": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-main-40:/drawable/ic_edit.xml"
+    },
+    {
+        "merged": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-debug-38:/layout_item_picker_row.xml.flat",
+        "source": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-main-40:/layout/item_picker_row.xml"
+    },
+    {
+        "merged": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-debug-38:/drawable_bg_konsole_toast.xml.flat",
+        "source": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-main-40:/drawable/bg_konsole_toast.xml"
+    },
+    {
+        "merged": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-debug-38:/layout_dialog_new_connection.xml.flat",
+        "source": "/home/szecsenyizoltan/.gradle/daemon/9.3.1/hu.szecsenyi.konsolessh.app-main-40:/layout/dialog_new_connection.xml"
+    }
+]

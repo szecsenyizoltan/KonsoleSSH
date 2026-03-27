@@ -201,6 +201,11 @@
                     android:text="TAB" />
 
                 <Button
+                    android:id="@+id/btnCtrlB"
+                    style="@style/KeyBarButton"
+                    android:text="Ctrl+B" />
+
+                <Button
                     android:id="@+id/btnCtrlC"
                     style="@style/KeyBarButton"
                     android:text="Ctrl+C" />

@@ -1,0 +1,172 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="hu.szecsenyi.konsolessh"
+4    android:versionCode="1"
+5    android:versionName="1.0" >
+6
+7    <uses-sdk
+7-->INJECTED
+8        android:minSdkVersion="26"
+8-->INJECTED
+9        android:targetSdkVersion="34" />
+9-->INJECTED
+10
+11    <uses-permission android:name="android.permission.INTERNET" />
+11-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:4:5-67
+11-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:4:22-64
+12    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+12-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:5:5-79
+12-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:5:22-76
+13    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+13-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:6:5-79
+13-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:6:22-76
+14    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+14-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:7:5-77
+14-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:7:22-74
+15    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+15-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:8:5-94
+15-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:8:22-91
+16    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+16-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:9:5-77
+16-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:9:22-74
+17
+18    <permission
+18-->[androidx.core:core:1.13.1] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/8b40dc3b7f448329941ba0794cc6fe7c/transformed/core-1.13.1/AndroidManifest.xml:22:5-24:47
+19        android:name="hu.szecsenyi.konsolessh.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+19-->[androidx.core:core:1.13.1] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/8b40dc3b7f448329941ba0794cc6fe7c/transformed/core-1.13.1/AndroidManifest.xml:23:9-81
+20        android:protectionLevel="signature" />
+20-->[androidx.core:core:1.13.1] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/8b40dc3b7f448329941ba0794cc6fe7c/transformed/core-1.13.1/AndroidManifest.xml:24:9-44
+21
+22    <uses-permission android:name="hu.szecsenyi.konsolessh.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+22-->[androidx.core:core:1.13.1] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/8b40dc3b7f448329941ba0794cc6fe7c/transformed/core-1.13.1/AndroidManifest.xml:26:5-97
+22-->[androidx.core:core:1.13.1] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/8b40dc3b7f448329941ba0794cc6fe7c/transformed/core-1.13.1/AndroidManifest.xml:26:22-94
+23
+24    <application
+24-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:11:5-41:19
+25        android:allowBackup="true"
+25-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:12:9-35
+26        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+26-->[androidx.core:core:1.13.1] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/8b40dc3b7f448329941ba0794cc6fe7c/transformed/core-1.13.1/AndroidManifest.xml:28:18-86
+27        android:debuggable="true"
+28        android:extractNativeLibs="false"
+28-->INJECTED
+29        android:icon="@drawable/ic_launcher_foreground"
+29-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:13:9-56
+30        android:label="@string/app_name"
+30-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:14:9-41
+31        android:supportsRtl="true"
+31-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:15:9-35
+32        android:testOnly="true"
+33        android:theme="@style/Theme.KonsoleSSH" >
+33-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:16:9-48
+34        <activity
+34-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:18:9-28:20
+35            android:name="hu.szecsenyi.konsolessh.ui.MainActivity"
+35-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:19:13-44
+36            android:configChanges="orientation|screenSize|keyboardHidden|keyboard"
+36-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:21:13-83
+37            android:exported="true"
+37-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:20:13-36
+38            android:screenOrientation="fullSensor"
+38-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:23:13-51
+39            android:windowSoftInputMode="adjustResize" >
+39-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:22:13-55
+40            <intent-filter>
+40-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:24:13-27:29
+41                <action android:name="android.intent.action.MAIN" />
+41-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:25:17-69
+41-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:25:25-66
+42
+43                <category android:name="android.intent.category.LAUNCHER" />
+43-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:26:17-77
+43-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:26:27-74
+44            </intent-filter>
+45        </activity>
+46        <activity
+46-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:30:9-33:58
+47            android:name="hu.szecsenyi.konsolessh.ui.ConnectionEditActivity"
+47-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:31:13-54
+48            android:exported="false"
+48-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:32:13-37
+49            android:windowSoftInputMode="adjustResize" />
+49-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:33:13-55
+50
+51        <service
+51-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:35:9-39:40
+52            android:name="hu.szecsenyi.konsolessh.ssh.SshForegroundService"
+52-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:36:13-53
+53            android:exported="false"
+53-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:39:13-37
+54            android:foregroundServiceType="connectedDevice"
+54-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:37:13-60
+55            android:stopWithTask="false" />
+55-->/home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/AndroidManifest.xml:38:13-41
+56
+57        <provider
+57-->[androidx.emoji2:emoji2:1.3.0] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/7c0d91ca98278d01678587b9282f4875/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:24:9-32:20
+58            android:name="androidx.startup.InitializationProvider"
+58-->[androidx.emoji2:emoji2:1.3.0] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/7c0d91ca98278d01678587b9282f4875/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:25:13-67
+59            android:authorities="hu.szecsenyi.konsolessh.androidx-startup"
+59-->[androidx.emoji2:emoji2:1.3.0] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/7c0d91ca98278d01678587b9282f4875/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:26:13-68
+60            android:exported="false" >
+60-->[androidx.emoji2:emoji2:1.3.0] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/7c0d91ca98278d01678587b9282f4875/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:27:13-37
+61            <meta-data
+61-->[androidx.emoji2:emoji2:1.3.0] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/7c0d91ca98278d01678587b9282f4875/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:29:13-31:52
+62                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+62-->[androidx.emoji2:emoji2:1.3.0] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/7c0d91ca98278d01678587b9282f4875/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:30:17-75
+63                android:value="androidx.startup" />
+63-->[androidx.emoji2:emoji2:1.3.0] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/7c0d91ca98278d01678587b9282f4875/transformed/jetified-emoji2-1.3.0/AndroidManifest.xml:31:17-49
+64            <meta-data
+64-->[androidx.lifecycle:lifecycle-process:2.8.2] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/b5a6274ecb54d390f6a97451b3e5cde5/transformed/jetified-lifecycle-process-2.8.2/AndroidManifest.xml:29:13-31:52
+65                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+65-->[androidx.lifecycle:lifecycle-process:2.8.2] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/b5a6274ecb54d390f6a97451b3e5cde5/transformed/jetified-lifecycle-process-2.8.2/AndroidManifest.xml:30:17-78
+66                android:value="androidx.startup" />
+66-->[androidx.lifecycle:lifecycle-process:2.8.2] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/b5a6274ecb54d390f6a97451b3e5cde5/transformed/jetified-lifecycle-process-2.8.2/AndroidManifest.xml:31:17-49
+67            <meta-data
+67-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/71951a040b9ad661d1b897f7fd5dc1b9/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:29:13-31:52
+68                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+68-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/71951a040b9ad661d1b897f7fd5dc1b9/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:30:17-85
+69                android:value="androidx.startup" />
+69-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/71951a040b9ad661d1b897f7fd5dc1b9/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:31:17-49
+70        </provider>
+71
+72        <receiver
+72-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/71951a040b9ad661d1b897f7fd5dc1b9/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:34:9-52:20
+73            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+73-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/71951a040b9ad661d1b897f7fd5dc1b9/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:35:13-76
+74            android:directBootAware="false"
+74-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/71951a040b9ad661d1b897f7fd5dc1b9/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:36:13-44
+75            android:enabled="true"
+75-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/71951a040b9ad661d1b897f7fd5dc1b9/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:37:13-35
+76            android:exported="true"
+76-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/71951a040b9ad661d1b897f7fd5dc1b9/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:38:13-36
+77            android:permission="android.permission.DUMP" >
+77-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/71951a040b9ad661d1b897f7fd5dc1b9/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:39:13-57
+78            <intent-filter>
+78-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/71951a040b9ad661d1b897f7fd5dc1b9/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:40:13-42:29
+79                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+79-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/71951a040b9ad661d1b897f7fd5dc1b9/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:41:17-91
+79-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/71951a040b9ad661d1b897f7fd5dc1b9/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:41:25-88
+80            </intent-filter>
+81            <intent-filter>
+81-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/71951a040b9ad661d1b897f7fd5dc1b9/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:43:13-45:29
+82                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+82-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/71951a040b9ad661d1b897f7fd5dc1b9/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:44:17-85
+82-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/71951a040b9ad661d1b897f7fd5dc1b9/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:44:25-82
+83            </intent-filter>
+84            <intent-filter>
+84-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/71951a040b9ad661d1b897f7fd5dc1b9/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:46:13-48:29
+85                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+85-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/71951a040b9ad661d1b897f7fd5dc1b9/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:47:17-88
+85-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/71951a040b9ad661d1b897f7fd5dc1b9/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:47:25-85
+86            </intent-filter>
+87            <intent-filter>
+87-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/71951a040b9ad661d1b897f7fd5dc1b9/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:49:13-51:29
+88                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+88-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/71951a040b9ad661d1b897f7fd5dc1b9/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:50:17-95
+88-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/szecsenyizoltan/.gradle/caches/9.3.1/transforms/71951a040b9ad661d1b897f7fd5dc1b9/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:50:25-92
+89            </intent-filter>
+90        </receiver>
+91    </application>
+92
+93</manifest>

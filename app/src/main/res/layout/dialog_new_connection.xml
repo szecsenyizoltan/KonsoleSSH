@@ -163,38 +163,59 @@
             android:visibility="gone"
             android:layout_marginBottom="8dp">
 
-            <!-- File picker button -->
-            <Button
-                android:id="@+id/btnPickKeyFile"
-                android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:text="📂 Kulcsfájl választása…"
-                android:textSize="13sp"
-                android:layout_marginBottom="6dp"
-                style="@style/Widget.AppCompat.Button.Borderless"
-                android:textColor="@color/accent"
-                android:paddingStart="0dp" />
-
-            <com.google.android.material.textfield.TextInputLayout
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Private key (PEM tartalom)"
-                style="@style/KonsoleInputLayout">
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/editPrivateKey"
-                    style="@style/KonsoleInputEditText"
-                    android:layout_width="match_parent"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <!-- File picker button -->
+                <Button
+                    android:id="@+id/btnPickKeyFile"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:text="📂 Kulcsfájl választása…"
+                    android:textSize="13sp"
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:textColor="@color/accent"
+                    android:paddingStart="0dp" />
+
+                <TextView
+                    android:id="@+id/textKeyStatus"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:inputType="textMultiLine"
-                    android:minLines="4"
-                    android:gravity="top"
-                    android:fontFamily="monospace"
-                    android:textSize="11sp" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:text="✓"
+                    android:textColor="@color/success_color"
+                    android:textStyle="bold"
+                    android:textSize="18sp"
+                    android:visibility="gone"
+                    android:layout_marginStart="8dp" />
+
+            </LinearLayout>
+
+            <!-- Hidden field to store the key content -->
+            <EditText
+                android:id="@+id/editPrivateKey"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="gone" />
 
         </LinearLayout>
 
-        <!-- Jump host section (visible when internal IP detected) -->
+        <!-- Jump host toggle button (visible when NOT internal IP) -->
+        <Button
+            android:id="@+id/btnToggleJump"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="🌐 Jump host beállítása…"
+            android:textSize="13sp"
+            android:layout_marginBottom="6dp"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:textColor="@color/accent"
+            android:paddingStart="0dp"
+            android:visibility="gone" />
+
+        <!-- Jump host section (visible when internal IP detected OR toggled) -->
         <LinearLayout
             android:id="@+id/jumpSection"
             android:layout_width="match_parent"
@@ -221,7 +242,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Válassz mentett kapcsolatból, vagy add meg a külső szerver elérhetőségét:"
+                android:text="Válassz egy mentett külső kapcsolatot a csatlakozáshoz:"
                 android:textColor="@color/text_secondary"
                 android:textSize="12sp"
                 android:layout_marginBottom="4dp" />

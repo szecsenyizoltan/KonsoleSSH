@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- KONSOLE label above prompt -->
+    <!-- K -->
+    <path android:pathData="M8,15 V30 M8,22.5 L17,15 M8,22.5 L17,30"
+        android:strokeWidth="2.4" android:strokeColor="#444444"
+        android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:fillColor="@android:color/transparent" />
+    <!-- O -->
+    <path android:pathData="M22,15 H31 V30 H22 Z"
+        android:strokeWidth="2.4" android:strokeColor="#444444"
+        android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:fillColor="@android:color/transparent" />
+    <!-- N -->
+    <path android:pathData="M36,30 V15 L45,30 V15"
+        android:strokeWidth="2.4" android:strokeColor="#444444"
+        android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:fillColor="@android:color/transparent" />
+    <!-- S -->
+    <path android:pathData="M59,15 H50 V22.5 H59 V30 H50"
+        android:strokeWidth="2.4" android:strokeColor="#444444"
+        android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:fillColor="@android:color/transparent" />
+    <!-- O -->
+    <path android:pathData="M64,15 H73 V30 H64 Z"
+        android:strokeWidth="2.4" android:strokeColor="#444444"
+        android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:fillColor="@android:color/transparent" />
+    <!-- L -->
+    <path android:pathData="M78,15 V30 H87"
+        android:strokeWidth="2.4" android:strokeColor="#444444"
+        android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:fillColor="@android:color/transparent" />
+    <!-- E -->
+    <path android:pathData="M101,15 H92 V30 H101 M92,22.5 H99"
+        android:strokeWidth="2.4" android:strokeColor="#444444"
+        android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:fillColor="@android:color/transparent" />
+
+    <!-- Terminal > prompt icon -->
+    <path
+        android:fillColor="#E95420"
+        android:pathData="M20,48 L44,54 L20,60 Z" />
+    <path
+        android:fillColor="#E6EDF3"
+        android:pathData="M48,56 L80,56"
+        android:strokeWidth="4"
+        android:strokeColor="#E6EDF3" />
+
+    <!-- SSH label -->
+    <!-- S (left) -->
+    <path
+        android:pathData="M42,83 H33 V89 H42 V95 H33"
+        android:strokeWidth="2.2"
+        android:strokeColor="#E95420"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="@android:color/transparent" />
+    <!-- S (middle) -->
+    <path
+        android:pathData="M59,83 H50 V89 H59 V95 H50"
+        android:strokeWidth="2.2"
+        android:strokeColor="#E95420"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="@android:color/transparent" />
+    <!-- H -->
+    <path
+        android:pathData="M67,83 V95 M76,83 V95 M67,89 H76"
+        android:strokeWidth="2.2"
+        android:strokeColor="#E95420"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="@android:color/transparent" />
+</vector>

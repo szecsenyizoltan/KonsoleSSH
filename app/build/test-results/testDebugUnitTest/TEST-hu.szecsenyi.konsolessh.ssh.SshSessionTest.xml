@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="hu.szecsenyi.konsolessh.ssh.SshSessionTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-03-15T15:33:57.178Z" hostname="home" time="0.001">
+  <properties/>
+  <testcase name="new session has null outputStream" classname="hu.szecsenyi.konsolessh.ssh.SshSessionTest" time="0.0"/>
+  <testcase name="new session is not connected" classname="hu.szecsenyi.konsolessh.ssh.SshSessionTest" time="0.0"/>
+  <testcase name="sendInput before connect does not throw" classname="hu.szecsenyi.konsolessh.ssh.SshSessionTest" time="0.0"/>
+  <testcase name="double disconnect does not throw" classname="hu.szecsenyi.konsolessh.ssh.SshSessionTest" time="0.0"/>
+  <testcase name="sendBytes before connect does not throw" classname="hu.szecsenyi.konsolessh.ssh.SshSessionTest" time="0.0"/>
+  <testcase name="password auth session stores config correctly" classname="hu.szecsenyi.konsolessh.ssh.SshSessionTest" time="0.0"/>
+  <testcase name="private key auth session initialises without error" classname="hu.szecsenyi.konsolessh.ssh.SshSessionTest" time="0.0"/>
+  <testcase name="disconnect on unconnected session does not throw" classname="hu.szecsenyi.konsolessh.ssh.SshSessionTest" time="0.0"/>
+  <testcase name="resize before connect does not throw" classname="hu.szecsenyi.konsolessh.ssh.SshSessionTest" time="0.0"/>
+  <testcase name="new session has null inputStream" classname="hu.szecsenyi.konsolessh.ssh.SshSessionTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

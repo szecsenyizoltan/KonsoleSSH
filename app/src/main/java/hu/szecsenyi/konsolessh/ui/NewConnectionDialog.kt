@@ -45,8 +45,15 @@ class NewConnectionDialog : DialogFragment() {
     private val pickKeyFile = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri ?: return@registerForActivityResult
         try {
+            val fileName = uri.path?.substringAfterLast('/') ?: ""
+            if (fileName.lowercase().endsWith(".pub")) {
+                KonsoleToast.show(binding.root, "Figyelem: Ez egy nyilvános kulcs (.pub). A privát kulcsra van szükség.")
+            }
+
             requireContext().contentResolver.openInputStream(uri)?.use { stream ->
-                _binding?.editPrivateKey?.setText(stream.bufferedReader().readText())
+                val content = stream.bufferedReader().readText()
+                binding.editPrivateKey.setText(content)
+                updateKeyStatus(content)
             }
         } catch (e: Exception) {
             Toast.makeText(context, "Nem sikerült beolvasni: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -77,6 +84,11 @@ class NewConnectionDialog : DialogFragment() {
         setupAuthTypeToggle()
         setupKeyFilePicker()
         setupJumpSpinner()
+        
+        binding.btnToggleJump.setOnClickListener {
+            binding.jumpSection.visibility = View.VISIBLE
+            binding.btnToggleJump.visibility = View.GONE
+        }
 
         val title = if (editConfig != null) "Kapcsolat szerkesztése" else "Új SSH kapcsolat"
         val dialog = AlertDialog.Builder(requireContext(), R.style.KonsoleDialog)
@@ -95,13 +107,17 @@ class NewConnectionDialog : DialogFragment() {
         return dialog
     }
 
+    private fun updateKeyStatus(content: String) {
+        binding.textKeyStatus.visibility = if (content.isNotBlank()) View.VISIBLE else View.GONE
+    }
+
     private fun setupJumpSpinner() {
         val options = SavedConnections.load(requireContext()).filter { it.id != editConfig?.id }
         if (options.isEmpty()) {
             binding.spinnerJumpConnection.visibility = View.GONE
             return
         }
-        val labels = mutableListOf("Mentett kapcsolatból…") + options.map { it.displayName() }
+        val labels = mutableListOf("Nincs jump host (közvetlen)") + options.map { it.displayName() }
         val adapter = android.widget.ArrayAdapter(
             requireContext(), android.R.layout.simple_spinner_item, labels
         ).also { it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
@@ -146,8 +162,9 @@ class NewConnectionDialog : DialogFragment() {
             binding.radioPassword.isChecked = true
         }
         binding.editPrivateKey.setText(config.privateKey)
+        updateKeyStatus(config.privateKey)
         updateAuthTypeVisibility()
-        binding.jumpSection.visibility = if (config.hasJump() || isInternal) View.VISIBLE else View.GONE
+        updateJumpVisibility(isInternal, config.hasJump())
         // Spinner preselection is handled in setupJumpSpinner()
     }
 
@@ -160,9 +177,24 @@ class NewConnectionDialog : DialogFragment() {
                 val host = s?.toString()?.trim() ?: ""
                 val internal = isPrivatePrefix(host)
                 updateHostLabels(internal)
-                binding.jumpSection.visibility = if (internal) View.VISIBLE else View.GONE
+                updateJumpVisibility(internal, selectedJumpConfig != null)
             }
         })
+    }
+
+    private fun updateJumpVisibility(isInternal: Boolean, hasJump: Boolean) {
+        if (isInternal) {
+            binding.jumpSection.visibility = View.VISIBLE
+            binding.btnToggleJump.visibility = View.GONE
+        } else {
+            if (hasJump) {
+                binding.jumpSection.visibility = View.VISIBLE
+                binding.btnToggleJump.visibility = View.GONE
+            } else {
+                binding.jumpSection.visibility = View.GONE
+                binding.btnToggleJump.visibility = View.VISIBLE
+            }
+        }
     }
 
     private fun updateHostLabels(isInternal: Boolean) {

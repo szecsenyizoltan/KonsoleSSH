@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="accent">#E95420</color>
+    <color name="accent_variant">#F7C2B1</color>
+    <color name="black">#000000</color>
+    <color name="card_bg">#161B22</color>
+    <color name="error_color">#F85149</color>
+    <color name="ic_launcher_background">#0D1117</color>
+    <color name="input_bg">#21262D</color>
+    <color name="keybar_bg">#2A3A4E</color>
+    <color name="keybar_key_bg">@android:color/transparent</color>
+    <color name="keybar_key_text">#FFFFFF</color>
+    <color name="keybar_mod_active">#E95420</color>
+    <color name="status_bg">#1C2128</color>
+    <color name="status_text">#7D8590</color>
+    <color name="success_color">#3FB950</color>
+    <color name="tab_bg">#0D1117</color>
+    <color name="tab_selected_text">#E6EDF3</color>
+    <color name="tab_unselected_text">#8B949E</color>
+    <color name="terminal_bg">#0D1117</color>
+    <color name="text_primary">#E6EDF3</color>
+    <color name="text_secondary">#8B949E</color>
+    <color name="toolbar_bg">#161B22</color>
+    <color name="white">#FFFFFF</color>
+    <dimen name="dialog_padding">20dp</dimen>
+    <dimen name="tab_indicator_height">3dp</dimen>
+    <string name="app_name">KonsoleSSH</string>
+    <string name="close_tab">Fül bezárása</string>
+    <string name="connect">Csatlakozás</string>
+    <string name="disconnect">Lecsatlakozás</string>
+    <string name="host">Szerver</string>
+    <string name="manage_connections">Mentett kapcsolatok</string>
+    <string name="new_connection">Új kapcsolat</string>
+    <string name="password">Jelszó</string>
+    <string name="port">Port</string>
+    <string name="private_key">SSH kulcs</string>
+    <string name="save_connection">Kapcsolat mentése</string>
+    <string name="username">Felhasználónév</string>
+    <style name="KeyBarButton" parent="Widget.AppCompat.Button.Borderless">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">36dp</item>
+        <item name="android:minWidth">48dp</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">@color/keybar_key_text</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:paddingStart">10dp</item>
+        <item name="android:paddingEnd">10dp</item>
+        <item name="android:layout_marginStart">2dp</item>
+        <item name="android:layout_marginEnd">2dp</item>
+        <item name="android:background">@color/keybar_key_bg</item>
+        <item name="android:focusable">false</item>
+    </style>
+    <style name="KeyBarDivider">
+        <item name="android:layout_width">1dp</item>
+        <item name="android:layout_height">28dp</item>
+        <item name="android:background">@color/tab_unselected_text</item>
+        <item name="android:layout_marginStart">4dp</item>
+        <item name="android:layout_marginEnd">4dp</item>
+    </style>
+    <style name="KonsoleDialog" parent="Theme.MaterialComponents.DayNight.Dialog.Alert">
+        <item name="colorPrimary">@color/accent</item>
+        <item name="colorSurface">@color/card_bg</item>
+        <item name="colorOnSurface">@color/white</item>
+        <item name="android:colorBackground">@color/card_bg</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textColorPrimary">@color/white</item>
+        <item name="android:textColorSecondary">@color/white</item>
+    </style>
+    <style name="KonsoleInputEditText" parent="Widget.MaterialComponents.TextInputEditText.OutlinedBox">
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+    <style name="KonsoleInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">@color/accent</item>
+        <item name="hintTextColor">@color/text_secondary</item>
+        <item name="android:textColorHint">@color/text_secondary</item>
+        <item name="android:editTextColor">@color/text_primary</item>
+    </style>
+    <style name="Theme.KonsoleSSH" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/accent</item>
+        <item name="colorPrimaryVariant">@color/toolbar_bg</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/accent</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorSurface">@color/card_bg</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="android:colorBackground">@color/terminal_bg</item>
+        <item name="android:windowBackground">@color/terminal_bg</item>
+        <item name="colorOnBackground">@color/text_primary</item>
+        <item name="android:statusBarColor">@color/toolbar_bg</item>
+        <item name="android:navigationBarColor">@color/terminal_bg</item>
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+</resources>

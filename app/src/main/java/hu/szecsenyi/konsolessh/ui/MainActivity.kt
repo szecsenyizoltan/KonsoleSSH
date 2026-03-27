@@ -206,6 +206,7 @@ class MainActivity : AppCompatActivity(), TabStatusListener {
 
         binding.btnEscape.setOnClickListener   { flashButton(binding.btnEscape);   sendKey(byteArrayOf(27)) }
         binding.btnTab.setOnClickListener      { flashButton(binding.btnTab);      sendKey(byteArrayOf(9)) }
+        binding.btnCtrlB.setOnClickListener    { flashButton(binding.btnCtrlB);    sendKey(byteArrayOf(2)) }
         binding.btnCtrlC.setOnClickListener {
             flashButton(binding.btnCtrlC)
             val sel = currentFragment()?.getSelectedText() ?: ""

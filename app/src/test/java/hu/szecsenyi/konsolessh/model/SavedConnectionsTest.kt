@@ -35,6 +35,8 @@ class SavedConnectionsTest {
     private fun clearPrefs() {
         context.getSharedPreferences("konsole_connections", Context.MODE_PRIVATE)
             .edit().clear().commit()
+        context.getSharedPreferences("konsole_connections_enc", Context.MODE_PRIVATE)
+            .edit().clear().commit()
     }
 
     // ---- load ----
@@ -144,14 +146,14 @@ class SavedConnectionsTest {
         SavedConnections.saveOne(context, ConnectionConfig(id = "second", host = "h2", username = "u"))
         SavedConnections.saveOne(context, ConnectionConfig(id = "third", host = "h3", username = "u"))
 
-        // Update the middle one
-        SavedConnections.saveOne(context, ConnectionConfig(id = "second", host = "updated", username = "u"))
+        // Update the middle one — host "h2b" stays alphabetically between "h1" and "h3"
+        SavedConnections.saveOne(context, ConnectionConfig(id = "second", host = "h2b", username = "u"))
 
         val loaded = SavedConnections.load(context)
         assertEquals(3, loaded.size)
         assertEquals("first",   loaded[0].id)
         assertEquals("second",  loaded[1].id)
-        assertEquals("updated", loaded[1].host)
+        assertEquals("h2b",     loaded[1].host)
         assertEquals("third",   loaded[2].id)
     }
 

@@ -3,6 +3,12 @@ package hu.szecsenyi.konsolessh.ssh
 import hu.szecsenyi.konsolessh.model.ConnectionConfig
 import org.junit.Assert.*
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34])
 
 /**
  * Unit tests for SshSession state machine.

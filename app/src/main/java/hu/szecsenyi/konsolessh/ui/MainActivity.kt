@@ -31,7 +31,7 @@ import hu.szecsenyi.konsolessh.R
 import hu.szecsenyi.konsolessh.databinding.ActivityMainBinding
 import hu.szecsenyi.konsolessh.model.ConnectionConfig
 import hu.szecsenyi.konsolessh.ssh.SshForegroundService
-import hu.szecsenyi.konsolessh.terminal.AppClipboard
+import hu.szecsenyi.konsolessh.terminal.TerminalClipboard
 
 class MainActivity : AppCompatActivity(), TabStatusListener {
 
@@ -211,7 +211,7 @@ class MainActivity : AppCompatActivity(), TabStatusListener {
             flashButton(binding.btnCtrlC)
             val sel = currentFragment()?.getSelectedText() ?: ""
             if (sel.isNotEmpty()) {
-                AppClipboard.text = sel
+                TerminalClipboard.text = sel
                 KonsoleToast.show(binding.root, "Másolva")
             } else {
                 sendKey(byteArrayOf(3))
@@ -220,7 +220,7 @@ class MainActivity : AppCompatActivity(), TabStatusListener {
         binding.btnCtrlD.setOnClickListener { flashButton(binding.btnCtrlD); sendKey(byteArrayOf(4)) }
         binding.btnCtrlV.setOnClickListener {
             flashButton(binding.btnCtrlV)
-            val clip = AppClipboard.text
+            val clip = TerminalClipboard.text
             if (!clip.isNullOrEmpty()) {
                 currentFragment()?.pasteText(clip)
                 KonsoleToast.show(binding.root, "Beillesztve")

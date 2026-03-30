@@ -81,6 +81,9 @@ class MainActivity : AppCompatActivity(), TabStatusListener {
     private var fnbarHintAnimRight:  ObjectAnimator? = null
     private var fnbarHintAnimLeft:   ObjectAnimator? = null
 
+    private var keybarLayoutListener: android.view.ViewTreeObserver.OnGlobalLayoutListener? = null
+    private var fnbarLayoutListener:  android.view.ViewTreeObserver.OnGlobalLayoutListener? = null
+
     // ── Lifecycle ─────────────────────────────────────────────────────────────
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -122,6 +125,8 @@ class MainActivity : AppCompatActivity(), TabStatusListener {
         super.onDestroy()
         keybarHintAnimRight?.cancel(); keybarHintAnimLeft?.cancel()
         fnbarHintAnimRight?.cancel();  fnbarHintAnimLeft?.cancel()
+        binding.keybarScrollView.viewTreeObserver.removeOnGlobalLayoutListener(keybarLayoutListener)
+        binding.fnbarScrollView.viewTreeObserver.removeOnGlobalLayoutListener(fnbarLayoutListener)
     }
 
     @Suppress("OVERRIDE_DEPRECATION")
@@ -334,7 +339,8 @@ class MainActivity : AppCompatActivity(), TabStatusListener {
         }
         hr.setOnClickListener { sv.smoothScrollBy(sv.width / 2, 0) }
         hl.setOnClickListener { sv.smoothScrollBy(-(sv.width / 2), 0) }
-        sv.viewTreeObserver.addOnGlobalLayoutListener { update() }
+        keybarLayoutListener = android.view.ViewTreeObserver.OnGlobalLayoutListener { update() }
+        sv.viewTreeObserver.addOnGlobalLayoutListener(keybarLayoutListener)
         sv.setOnScrollChangeListener { _, _, _, _, _ -> update() }
     }
 
@@ -354,7 +360,8 @@ class MainActivity : AppCompatActivity(), TabStatusListener {
         }
         hr.setOnClickListener { sv.smoothScrollBy(sv.width / 2, 0) }
         hl.setOnClickListener { sv.smoothScrollBy(-(sv.width / 2), 0) }
-        sv.viewTreeObserver.addOnGlobalLayoutListener { update() }
+        fnbarLayoutListener = android.view.ViewTreeObserver.OnGlobalLayoutListener { update() }
+        sv.viewTreeObserver.addOnGlobalLayoutListener(fnbarLayoutListener)
         sv.setOnScrollChangeListener { _, _, _, _, _ -> update() }
     }
 

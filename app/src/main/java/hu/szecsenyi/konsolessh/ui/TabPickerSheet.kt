@@ -151,9 +151,11 @@ class TabPickerSheet : BottomSheetDialogFragment() {
         }
     }
 
-    private fun inflateRow(): View =
-        LayoutInflater.from(requireContext())
-            .inflate(R.layout.item_picker_row, binding.containerTabs.parent as ViewGroup, false)
+    private fun inflateRow(): View {
+        val parent = binding.containerTabs.parent as? ViewGroup ?: binding.containerTabs
+        return LayoutInflater.from(requireContext())
+            .inflate(R.layout.item_picker_row, parent, false)
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()

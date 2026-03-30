@@ -71,8 +71,9 @@ class NewConnectionDialog : DialogFragment() {
         // the fields directly; in new-connection mode it's just confusing.
         binding.savedConnectionsSection.visibility = View.GONE
 
-        if (editConfig != null) {
-            populateFromConfig(editConfig!!)
+        val cfg = editConfig
+        if (cfg != null) {
+            populateFromConfig(cfg)
         } else {
             val mostUsed = SavedConnections.load(requireContext())
                 .groupBy { it.username }

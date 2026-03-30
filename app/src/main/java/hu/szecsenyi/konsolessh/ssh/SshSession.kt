@@ -162,6 +162,8 @@ class SshSession(private val config: ConnectionConfig, private val jumpConfig: C
         }
     }
 
+    fun sendInput(text: String) = sendBytes(text.toByteArray(Charsets.UTF_8))
+
     fun sendBytes(bytes: ByteArray) {
         writeHandler.post {
             try {

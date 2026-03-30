@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.security.crypto)
 
     // Unit tests (JVM + Robolectric for Android classes)
     testImplementation(libs.junit4)

@@ -16,7 +16,6 @@ import hu.szecsenyi.konsolessh.databinding.FragmentTerminalBinding
 import hu.szecsenyi.konsolessh.model.ConnectionConfig
 import hu.szecsenyi.konsolessh.model.SavedConnections
 import hu.szecsenyi.konsolessh.ssh.SshForegroundService
-import hu.szecsenyi.konsolessh.terminal.AppClipboard
 
 enum class ConnectionStatus { NONE, CONNECTING, CONNECTED, DISCONNECTED }
 

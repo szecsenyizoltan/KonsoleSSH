@@ -56,6 +56,10 @@ class TerminalView @JvmOverloads constructor(
         private const val MAX_SCROLLBACK = 3000
         private const val MIN_COLS = 80
         private const val LONG_PRESS_MS = 400L
+        private const val CURSOR_ON_MS  = 600L
+        private const val CURSOR_OFF_MS = 300L
+        private const val MIN_FONT_SP = 6f
+        private const val MAX_FONT_SP = 40f
         private const val ID_COPY  = 1
         private const val ID_PASTE = 2
     }
@@ -157,7 +161,7 @@ class TerminalView @JvmOverloads constructor(
         override fun run() {
             cursorOn = !cursorOn
             invalidate()
-            blinkHandler.postDelayed(this, if (cursorOn) 600 else 300)
+            blinkHandler.postDelayed(this, if (cursorOn) CURSOR_ON_MS else CURSOR_OFF_MS)
         }
     }
 
@@ -215,7 +219,7 @@ class TerminalView @JvmOverloads constructor(
             val wantedCellW = w.toFloat() / MIN_COLS
             val ratio = cellW / normPaint.textSize
             fontSizeSp = (wantedCellW / ratio / resources.displayMetrics.scaledDensity)
-                .coerceIn(6f, 40f)
+                .coerceIn(MIN_FONT_SP, MAX_FONT_SP)
             applyFontMetrics()
         }
         resizeTerm(
@@ -330,7 +334,7 @@ class TerminalView @JvmOverloads constructor(
     fun scrollToTop()    { scrollRowOff = scrollback.size; invalidate() }
 
     fun setFontSize(sp: Float) {
-        fontSizeSp = sp.coerceIn(6f, 40f)
+        fontSizeSp = sp.coerceIn(MIN_FONT_SP, MAX_FONT_SP)
         applyFontMetrics()
         if (viewW > 0 && viewH > 0) {
             resizeTerm(
@@ -341,7 +345,7 @@ class TerminalView @JvmOverloads constructor(
     }
 
     fun zoom(delta: Float) {
-        fontSizeSp = (fontSizeSp + delta).coerceIn(6f, 40f)
+        fontSizeSp = (fontSizeSp + delta).coerceIn(MIN_FONT_SP, MAX_FONT_SP)
         applyFontMetrics()
         if (viewW > 0 && viewH > 0) {
             resizeTerm(

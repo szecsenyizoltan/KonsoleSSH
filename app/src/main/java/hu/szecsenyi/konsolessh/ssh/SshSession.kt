@@ -14,8 +14,15 @@ import kotlinx.coroutines.withContext
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.Properties
+import java.util.concurrent.TimeUnit
 
 class SshSession(private val config: ConnectionConfig, private val jumpConfig: ConnectionConfig? = null) {
+
+    companion object {
+        private const val CONNECT_TIMEOUT_MS       = 15_000
+        private const val SHELL_CONNECT_TIMEOUT_MS = 10_000
+        private const val PASSWORD_PROMPT_TIMEOUT_S = 30L
+    }
 
     private var jumpSession: Session? = null
     private var jschSession: Session? = null
@@ -36,7 +43,7 @@ class SshSession(private val config: ConnectionConfig, private val jumpConfig: C
                     latch.countDown()
                 } ?: latch.countDown()
             }
-            latch.await()
+            if (!latch.await(PASSWORD_PROMPT_TIMEOUT_S, TimeUnit.SECONDS)) return null
             return result
         }
 
@@ -96,7 +103,7 @@ class SshSession(private val config: ConnectionConfig, private val jumpConfig: C
                 if (jumpConfig.password.isNotBlank()) js.setPassword(jumpConfig.password)
                 js.userInfo = JschUserInfo("${jumpConfig.username}@${jumpConfig.host}")
                 withContext(Dispatchers.Main) { onProgress("Jump: ${jumpConfig.host}:${jumpConfig.port}...\r\n") }
-                js.connect(15000)
+                js.connect(CONNECT_TIMEOUT_MS)
                 jumpSession = js
                 // Local port forward through jump to target
                 val localPort = js.setPortForwardingL(0, config.host, config.port)
@@ -113,7 +120,7 @@ class SshSession(private val config: ConnectionConfig, private val jumpConfig: C
                 session.setConfig("PreferredAuthentications", buildPreferredAuths(config))
                 if (config.password.isNotBlank()) session.setPassword(config.password)
                 session.userInfo = JschUserInfo("${config.username}@${config.host}")
-                session.connect(15000)
+                session.connect(CONNECT_TIMEOUT_MS)
                 jschSession = session
 
             } else {
@@ -129,7 +136,7 @@ class SshSession(private val config: ConnectionConfig, private val jumpConfig: C
                 session.setConfig(props)
                 if (config.password.isNotBlank()) session.setPassword(config.password)
                 session.userInfo = JschUserInfo("${config.username}@${config.host}")
-                session.connect(15000)
+                session.connect(CONNECT_TIMEOUT_MS)
                 jschSession = session
             }
 
@@ -140,7 +147,7 @@ class SshSession(private val config: ConnectionConfig, private val jumpConfig: C
             inputStream = channel.inputStream
             outputStream = channel.outputStream
 
-            channel.connect(10000)
+            channel.connect(SHELL_CONNECT_TIMEOUT_MS)
             shellChannel = channel
 
             withContext(Dispatchers.Main) { onConnected() }

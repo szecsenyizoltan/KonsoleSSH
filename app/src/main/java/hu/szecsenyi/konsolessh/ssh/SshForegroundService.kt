@@ -244,7 +244,7 @@ class SshForegroundService : Service() {
 
     private fun refreshNotification() {
         val count = sessions.values.count { it.status == ConnectionStatus.CONNECTED }
-        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager ?: return
         nm.notify(NOTIF_ID, buildNotification(count))
     }
 
@@ -275,7 +275,7 @@ class SshForegroundService : Service() {
     }
 
     private fun createChannel() {
-        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager ?: return
         nm.createNotificationChannel(
             NotificationChannel(CHANNEL_ID_IDLE, "SSH háttérszolgáltatás", NotificationManager.IMPORTANCE_LOW)
                 .apply { description = "Fut a háttérben, nincs aktív kapcsolat"; setShowBadge(false) }

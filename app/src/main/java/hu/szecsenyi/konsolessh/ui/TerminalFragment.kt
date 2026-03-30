@@ -180,7 +180,8 @@ class TerminalFragment : Fragment() {
         val cfg = config ?: return  // no SSH on welcome/cheatsheet tabs
 
         val savedSp = MainActivity.savedFontSize(requireContext())
-        if (savedSp > 0f) _binding?.terminalView?.post { _binding?.terminalView?.setFontSize(savedSp) }
+        val termView = _binding?.terminalView
+        if (savedSp > 0f && termView != null) termView.post { termView.setFontSize(savedSp) }
 
         service.setPasswordPrompter(tabId, buildPasswordPrompter())
 
@@ -205,9 +206,8 @@ class TerminalFragment : Fragment() {
     private fun replayBuffer(service: SshForegroundService) {
         val buf = service.getBuffer(tabId)
         if (buf.isNotEmpty()) {
-            _binding?.terminalView?.post {
-                _binding?.terminalView?.append(buf, buf.size)
-            }
+            val view = _binding?.terminalView ?: return
+            view.post { view.append(buf, buf.size) }
         }
     }
 
@@ -232,9 +232,10 @@ class TerminalFragment : Fragment() {
     private fun reconnect() {
         val cfg = config ?: return
         val service = sshService ?: return
-        _binding?.btnReconnect?.visibility = View.GONE
+        val binding = _binding ?: return
+        binding.btnReconnect.visibility = View.GONE
         val msg = "\r\n[Újracsatlakozás...]\r\n"
-        _binding?.terminalView?.append(msg.toByteArray(), msg.length)
+        binding.terminalView.append(msg.toByteArray(), msg.length)
         startConnection(cfg, service)
     }
 

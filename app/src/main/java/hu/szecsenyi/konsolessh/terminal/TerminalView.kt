@@ -755,13 +755,13 @@ class TerminalView @JvmOverloads constructor(
     private fun copyToClipboard() {
         val text = buildSelectedText()
         if (text.isNotEmpty()) {
-            val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager ?: return
             cm.setPrimaryClip(ClipData.newPlainText("terminal", text))
         }
     }
 
     fun pasteFromClipboard() {
-        val cm   = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val cm   = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager ?: return
         val text = cm.primaryClip?.getItemAt(0)?.coerceToText(context)?.toString() ?: return
         pasteText(text)
     }

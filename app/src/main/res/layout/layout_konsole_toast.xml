@@ -24,6 +24,24 @@
         android:fontFamily="monospace" />
 
     <TextView
+        android:id="@+id/btnToastAction"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/accent"
+        android:textSize="13sp"
+        android:textAllCaps="true"
+        android:fontFamily="monospace"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
+        android:layout_marginStart="8dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:visibility="gone" />
+
+    <TextView
         android:id="@+id/btnToastClose"
         android:layout_width="32dp"
         android:layout_height="32dp"

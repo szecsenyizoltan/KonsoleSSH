@@ -4,15 +4,15 @@ plugins {
 }
 
 android {
-    namespace = "hu.szecsenyi.konsolessh"
-    compileSdk = 34
+    namespace = "hu.billman.konsolessh"
+    compileSdk = 35
 
     defaultConfig {
-        applicationId = "hu.szecsenyi.konsolessh"
+        applicationId = "hu.billman.konsolessh"
         minSdk = 26
-        targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        targetSdk = 35
+        versionCode = 2
+        versionName = "1.0.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -24,7 +24,12 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
 

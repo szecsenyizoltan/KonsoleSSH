@@ -23,7 +23,7 @@ Multi-tab SSH terminal for Android — inspired by KDE Konsole.
 - **Jump host support (`ssh -J`)** — reach internal hosts through a saved gateway connection (local port forwarding)
 - **Interactive password prompt** — dialog appears at connect time if no password is stored
 - **Saved connections** — profiles encrypted at rest with AES256 (`EncryptedSharedPreferences`, Android Keystore); alphabetical order
-- **Tree-grouped picker** — connections named with underscores (e.g. `cc_desktop_N`, `cc_laptop_L`) are automatically collapsed into a hierarchy; groups expand/collapse with a ▶/▼ arrow
+- **Tree-grouped picker** — connections named with underscores (e.g. `acme_prod_web`, `acme_prod_db`, `foobar_dev_01`) are automatically collapsed by shared prefix. Here `acme_` → `prod_` groups the first two, while `foobar_dev_01` stays flat because it is alone under its prefix. Groups expand and collapse with a ▶/▼ arrow.
 
 ### Terminal
 

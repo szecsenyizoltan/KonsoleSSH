@@ -2,7 +2,7 @@
 
 Többfüles SSH terminál Androidra — KDE Konsole ihlette.
 
-> **Nyelv:** Magyar · [English](README.md)
+> **Nyelv:** Magyar · [English](README.md) · [Español](README.es.md) · [Deutsch](README.de.md) · [Français](README.fr.md)
 
 ## Képernyőképek
 

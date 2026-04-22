@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">KonsoleSSH</string>
+
+    <!-- Menu / actions -->
+    <string name="new_connection">Nueva conexión</string>
+    <string name="new_connection_dots">Nueva conexión…</string>
+    <string name="connect">Conectar</string>
+    <string name="disconnect">Desconectar</string>
+    <string name="close_tab">Cerrar pestaña</string>
+    <string name="manage_connections">Conexiones guardadas</string>
+    <string name="exit">Salir</string>
+    <string name="action_ok">Aceptar</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_delete">Eliminar</string>
+    <string name="action_close">Cerrar</string>
+    <string name="action_save">Guardar</string>
+    <string name="action_edit">Editar</string>
+    <string name="action_reconnect">Reintentar</string>
+
+    <!-- Form fields -->
+    <string name="host">Servidor</string>
+    <string name="port">Puerto</string>
+    <string name="username">Usuario</string>
+    <string name="password">Contraseña</string>
+    <string name="private_key">Clave SSH</string>
+    <string name="save_connection">Guardar conexión</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_new_connection_title">Nueva conexión SSH</string>
+    <string name="dialog_edit_connection_title">Editar conexión</string>
+    <string name="dialog_rename_tab_title">Renombrar pestaña</string>
+    <string name="tab_name_hint">Nombre / comentario de la pestaña</string>
+    <string name="load_saved_connection">Cargar conexión guardada:</string>
+    <string name="connection_name_hint">Nombre de la conexión (opcional)</string>
+    <string name="host_hint">Servidor (IP o nombre) *</string>
+    <string name="host_internal_hint">Servidor interno (IP o nombre) *</string>
+    <string name="port_hint">Puerto</string>
+    <string name="port_internal_hint">Puerto interno</string>
+    <string name="username_hint">Usuario *</string>
+    <string name="password_hint_optional">Contraseña (opcional)</string>
+    <string name="pick_key_file">📂 Elegir archivo de clave…</string>
+    <string name="configure_jump_host">🌐 Configurar jump host…</string>
+    <string name="jump_host_section_title">Jump host (red externa)</string>
+    <string name="jump_host_pick_hint">Elige una conexión externa guardada para conectar a través de ella:</string>
+    <string name="jump_host_none">Sin jump host (directo)</string>
+
+    <!-- Validation / warnings -->
+    <string name="warning_public_key">Atención: esta es una clave pública (.pub). Se requiere la clave privada.</string>
+    <string name="error_read_file">No se pudo leer: %1$s</string>
+    <string name="error_host_required">Se requiere la dirección del servidor</string>
+    <string name="error_username_required">Se requiere el nombre de usuario</string>
+    <string name="password_required">Se requiere la contraseña</string>
+
+    <!-- Toasts -->
+    <string name="copied">Copiado</string>
+    <string name="pasted">Pegado</string>
+    <string name="upload_done">Subido a %1$s: %2$s</string>
+    <string name="upload_failed">Error al subir: %1$s</string>
+    <string name="upload_title">Subiendo: %1$s</string>
+    <string name="upload_progress_kb">%1$d / %2$d KB</string>
+    <string name="upload_progress_mb">%1$.1f / %2$.1f MB</string>
+    <string name="content_desc_upload">Subir archivo</string>
+    <string name="undo">Deshacer</string>
+    <string name="upload_undone">Subida deshecha: %1$s</string>
+    <string name="upload_undo_failed">No se pudo deshacer: %1$s</string>
+
+    <!-- Tab picker -->
+    <string name="tab_active">activa</string>
+    <string name="open_tabs">Pestañas abiertas</string>
+    <string name="group_n_connections">%1$d conexiones</string>
+
+    <!-- Confirmations -->
+    <string name="delete_connection_confirm">¿Eliminar la conexión \"%1$s\"?</string>
+    <string name="close_tab_confirm">¿Cerrar la pestaña \'%1$s\'?</string>
+    <string name="close_app_confirm">Hay %1$d conexiones activas abiertas. ¿Cerrar la aplicación?</string>
+    <string name="no_saved_connections">No hay conexiones guardadas.</string>
+
+    <!-- Content descriptions -->
+    <string name="content_desc_new_tab">Nueva pestaña</string>
+    <string name="content_desc_zoom_out">Reducir</string>
+    <string name="content_desc_zoom_in">Ampliar</string>
+    <string name="content_desc_add_connection">Añadir nueva conexión</string>
+    <string name="content_desc_edit">Editar</string>
+    <string name="content_desc_delete">Eliminar</string>
+    <string name="content_desc_exit">Salir</string>
+
+    <!-- Status bar / terminal messages -->
+    <string name="status_no_connection">Sin conexión</string>
+    <string name="status_connecting">Conectando: %1$s…</string>
+    <string name="status_connected_suffix">%1$s ● Conectado</string>
+    <string name="status_disconnected_suffix">%1$s ○ Desconectado</string>
+    <string name="terminal_connecting_host">Conectando: %1$s:%2$d…\r\n</string>
+    <string name="terminal_reconnecting">\r\n[Reconectando…]\r\n</string>
+    <string name="terminal_connection_closed">\r\n[Conexión cerrada]\r\n</string>
+    <string name="terminal_jump_progress">Jump: %1$s:%2$d…\r\n</string>
+    <string name="terminal_jump_ok">Jump OK → Conectando: %1$s:%2$d…\r\n</string>
+    <string name="error_jump_not_found">Error: no se encontró la conexión jump entre las guardadas.\r\n</string>
+    <string name="error_generic">Error: %1$s\r\n</string>
+
+    <!-- Password prompt -->
+    <string name="password_prompt_message">Se requiere la contraseña</string>
+
+    <!-- Notification / service -->
+    <string name="service_idle">Ejecutándose en segundo plano</string>
+    <string name="service_one_active">1 conexión SSH activa</string>
+    <string name="service_n_active">%1$d conexiones SSH activas</string>
+    <string name="channel_idle_name">Servicio SSH en segundo plano</string>
+    <string name="channel_idle_desc">Ejecutándose en segundo plano, sin conexión activa</string>
+    <string name="channel_active_name">Conexión SSH activa</string>
+    <string name="channel_active_desc">Mantiene vivas las conexiones SSH activas</string>
+
+    <!-- Default titles -->
+    <string name="default_tab_title">Terminal</string>
+    <string name="default_tab_word">pestaña</string>
+
+    <!-- Friendly errors -->
+    <string name="err_connection_refused">Conexión rechazada — el servidor no acepta conexiones en este puerto.</string>
+    <string name="err_timeout">Tiempo de espera agotado — el servidor no responde.</string>
+    <string name="err_no_route">Servidor inalcanzable — comprueba la red y la dirección IP.</string>
+    <string name="err_network_unreachable">La red no está disponible.</string>
+    <string name="err_unknown_host">Nombre de host desconocido — error de DNS o escritura.</string>
+    <string name="err_auth_failed">Autenticación fallida — contraseña o clave incorrecta.</string>
+    <string name="err_userauth_failed">Autenticación fallida — rechazada por el servidor.</string>
+    <string name="err_conn_closed">La conexión se cerró inesperadamente.</string>
+    <string name="err_broken_pipe">Conexión perdida (broken pipe).</string>
+    <string name="err_port_forwarding">Error de port forwarding — el servidor jump no lo permite.</string>
+    <string name="err_channel">Error en el canal SSH — el servidor cerró la sesión.</string>
+
+    <!-- Welcome banner -->
+    <string name="welcome_line_1">Inspirado en KDE Konsole,</string>
+    <string name="welcome_line_2">creado para Android.</string>
+    <string name="welcome_line_3">Emulador de terminal SSH</string>
+    <string name="welcome_line_4">para gestionar varias</string>
+    <string name="welcome_line_5">conexiones paralelas en pestañas.</string>
+    <string name="welcome_line_6">Con soporte de jump host,</string>
+    <string name="welcome_line_7">las redes internas también</string>
+    <string name="welcome_line_8">son accesibles.</string>
+    <string name="welcome_line_9">Nueva conexión: botón \'+\'</string>
+    <string name="welcome_swipe_hint">Desliza a la derecha para ayuda.</string>
+</resources>

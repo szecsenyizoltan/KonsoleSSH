@@ -1,8 +1,18 @@
 # KonsoleSSH
 
-Multi-tab SSH terminal for Android phones and tablets — inspired by KDE Konsole.
+Multi-tab SSH terminal for Android — inspired by KDE Konsole.
 
 > **Language:** English · [Magyar](README.hu.md)
+
+## Screenshots
+
+| Welcome screen | New SSH connection |
+| --- | --- |
+| ![Welcome](play_screenshot/Screenshot_20260422_094020.png) | ![New connection](play_screenshot/Screenshot_20260422_094447.png) |
+
+| Tmux cheat sheet | Linux cheat sheet |
+| --- | --- |
+| ![Tmux cheat sheet](play_screenshot/Screenshot_20260422_094521.png) | ![Linux cheat sheet](play_screenshot/Screenshot_20260422_094530.png) |
 
 ## Features
 
@@ -48,7 +58,7 @@ The bottom bar exposes everything the Android soft keyboard can't:
 - **Notification badge** — shows the active-connection count
 - **Close-app button** — in the tab picker menu; confirms if active connections exist
 - **Friendly error messages** — human-readable text instead of raw Java exceptions
-- **Edge-to-edge layout** — correct window-insets handling on Android 15; the content stays above the navigation bar on tablets in landscape and is pushed up when the soft keyboard opens
+- **Edge-to-edge layout** — correct window-insets handling on Android 15; the content stays above the navigation bar in landscape and is pushed up when the soft keyboard opens
 
 ### Localisation
 
@@ -149,13 +159,13 @@ No data is collected, shared or uploaded. Credentials stay on the device in the 
 ## Requirements
 
 - Android 8.0 (API 26) or newer
-- Phones and tablets, portrait and landscape both supported
+- Portrait and landscape both supported
 
 ## Release history
 
-- **1.0.2** — package renamed to `hu.billman.konsolessh`, tablet edge-to-edge fixes,
-  soft keyboard only on explicit request, SFTP upload with progress dialog and
-  Undo toast, R8 minification, Gradle 9.4.1 / AGP 9.2.0
+- **1.0.2** — package renamed to `hu.billman.konsolessh`, edge-to-edge insets
+  fix, soft keyboard only on explicit request, SFTP upload with progress dialog
+  and Undo toast, R8 minification, Gradle 9.4.1 / AGP 9.2.0
 - **1.0.1** — `targetSdk = 35`, initial Play submission
 - **1.0.0** — multi-tab SSH, jump host, saved-connection tree, Linux and tmux
   cheat sheets, Hungarian translation

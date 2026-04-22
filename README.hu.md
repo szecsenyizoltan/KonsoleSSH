@@ -1,8 +1,18 @@
 # KonsoleSSH
 
-Többfüles SSH terminál Android telefonhoz és tablethez — KDE Konsole ihlette.
+Többfüles SSH terminál Androidra — KDE Konsole ihlette.
 
 > **Nyelv:** Magyar · [English](README.md)
+
+## Képernyőképek
+
+| Üdvözlő képernyő | Új SSH kapcsolat |
+| --- | --- |
+| ![Üdvözlő](play_screenshot/Screenshot_20260422_094020.png) | ![Új kapcsolat](play_screenshot/Screenshot_20260422_094447.png) |
+
+| Tmux cheat sheet | Linux cheat sheet |
+| --- | --- |
+| ![Tmux cheat sheet](play_screenshot/Screenshot_20260422_094521.png) | ![Linux cheat sheet](play_screenshot/Screenshot_20260422_094530.png) |
 
 ## Funkciók
 
@@ -48,7 +58,7 @@ A billentyűsor lefed mindent, ami a rendszer-billentyűzetből hiányzik:
 - **Értesítő badge** — az aktív kapcsolatok száma
 - **Alkalmazás bezárása gomb** — a fülválasztó menü alján; aktív kapcsolatnál megerősítés kér
 - **Barátságos hibaüzenetek** — nyers Java exception helyett magyar nyelvű szöveg
-- **Edge-to-edge elrendezés** — Android 15-en is helyes window-insets kezelés; tableten fekvő nézetben a tartalom a navigációs sáv fölött marad, szoftveres billentyű megnyitásakor feljebb csúszik
+- **Edge-to-edge elrendezés** — Android 15-en is helyes window-insets kezelés; fekvő nézetben a tartalom a navigációs sáv fölött marad, szoftveres billentyű megnyitásakor feljebb csúszik
 
 ### Lokalizáció
 
@@ -150,12 +160,12 @@ Adatot nem gyűjtünk, nem továbbítunk. A hitelesítő adatok titkosítva mara
 ## Rendszerkövetelmények
 
 - Android 8.0+ (API 26+)
-- Telefon és tablet egyaránt támogatott, álló és fekvő módban
+- Álló és fekvő mód egyaránt támogatott
 
 ## Verziótörténet
 
-- **1.0.2** — package átnevezés `hu.billman.konsolessh`-re, tablet edge-to-edge
-  javítások, szoftveres bill csak kérésre, SFTP-fájlfeltöltés progress-szel és
+- **1.0.2** — package átnevezés `hu.billman.konsolessh`-re, edge-to-edge insets
+  javítás, szoftveres bill csak kérésre, SFTP-fájlfeltöltés progress-szel és
   Vissza-toasttal, R8 minimalizáció, Gradle 9.4.1 / AGP 9.2.0
 - **1.0.1** — `targetSdk = 35`, első Play-feltöltés
 - **1.0.0** — többfüles SSH, jump host, mentett kapcsolatok fa-szerkezete,

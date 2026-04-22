@@ -55,6 +55,15 @@
     <!-- Toasts -->
     <string name="copied">Másolva</string>
     <string name="pasted">Beillesztve</string>
+    <string name="upload_done">Feltöltve ide: %1$s — %2$s</string>
+    <string name="upload_failed">Feltöltés sikertelen: %1$s</string>
+    <string name="upload_title">Feltöltés: %1$s</string>
+    <string name="upload_progress_kb">%1$d / %2$d KB</string>
+    <string name="upload_progress_mb">%1$.1f / %2$.1f MB</string>
+    <string name="content_desc_upload">Fájl feltöltése</string>
+    <string name="undo">Vissza</string>
+    <string name="upload_undone">Feltöltés visszavonva: %1$s</string>
+    <string name="upload_undo_failed">Visszavonás sikertelen: %1$s</string>
 
     <!-- Tab picker -->
     <string name="tab_active">aktív</string>

@@ -28,7 +28,7 @@
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <hu.szecsenyi.konsolessh.terminal.TerminalView
+        <hu.billman.konsolessh.terminal.TerminalView
             android:id="@+id/terminalView"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />

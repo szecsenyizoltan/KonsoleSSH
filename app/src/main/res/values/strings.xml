@@ -55,6 +55,15 @@
     <!-- Toasts -->
     <string name="copied">Copied</string>
     <string name="pasted">Pasted</string>
+    <string name="upload_done">Uploaded to %1$s: %2$s</string>
+    <string name="upload_failed">Upload failed: %1$s</string>
+    <string name="upload_title">Uploading: %1$s</string>
+    <string name="upload_progress_kb">%1$d / %2$d KB</string>
+    <string name="upload_progress_mb">%1$.1f / %2$.1f MB</string>
+    <string name="content_desc_upload">Upload file</string>
+    <string name="undo">Undo</string>
+    <string name="upload_undone">Upload undone: %1$s</string>
+    <string name="upload_undo_failed">Undo failed: %1$s</string>
 
     <!-- Tab picker -->
     <string name="tab_active">active</string>

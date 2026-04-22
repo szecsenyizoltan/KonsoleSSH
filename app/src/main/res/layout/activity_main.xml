@@ -305,6 +305,14 @@
                     style="@style/KeyBarButton"
                     android:text="↑" />
 
+                <View style="@style/KeyBarDivider" />
+
+                <Button
+                    android:id="@+id/btnUpload"
+                    style="@style/KeyBarButton"
+                    android:text="📁"
+                    android:contentDescription="@string/content_desc_upload" />
+
             </LinearLayout>
         </HorizontalScrollView>
 

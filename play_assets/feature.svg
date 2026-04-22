@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="500" viewBox="0 0 1024 500">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#161B22"/>
+      <stop offset="1" stop-color="#0D1117"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="500" fill="url(#bg)"/>
+
+  <!-- Left column: title + tagline -->
+  <g font-family="DejaVu Sans Mono, monospace">
+    <text x="60" y="175" font-size="78" font-weight="800" fill="#E6EDF3">KonsoleSSH</text>
+    <text x="60" y="225" font-size="26" fill="#E95420">KDE-Konsole-inspired · Android</text>
+
+    <text x="60" y="305" font-size="22" fill="#8B949E">• Multi-tab SSH sessions</text>
+    <text x="60" y="338" font-size="22" fill="#8B949E">• Jump host · SFTP upload</text>
+    <text x="60" y="371" font-size="22" fill="#8B949E">• Linux &amp; tmux cheat sheets</text>
+  </g>
+
+  <!-- Right column: terminal mockup -->
+  <g>
+    <rect x="590" y="70" width="390" height="360" rx="12" ry="12" fill="#0D1117" stroke="#30363D" stroke-width="2"/>
+    <rect x="590" y="70" width="390" height="34" rx="12" ry="12" fill="#161B22"/>
+    <circle cx="614" cy="87" r="6" fill="#F85149"/>
+    <circle cx="636" cy="87" r="6" fill="#F0B400"/>
+    <circle cx="658" cy="87" r="6" fill="#3FB950"/>
+    <text x="800" y="92" font-family="DejaVu Sans Mono, monospace" font-size="14" fill="#8B949E" text-anchor="middle">user@server</text>
+
+    <g font-family="DejaVu Sans Mono, monospace" font-size="17">
+      <text x="608" y="148" fill="#3FB950">user@server</text>
+      <text x="730" y="148" fill="#8B949E">:</text>
+      <text x="738" y="148" fill="#58A6FF">~</text>
+      <text x="752" y="148" fill="#E6EDF3">$ ls -la</text>
+
+      <text x="608" y="178" fill="#8B949E">drwxr-xr-x  projects/</text>
+      <text x="608" y="206" fill="#8B949E">-rw-r--r--  README.md</text>
+
+      <text x="608" y="244" fill="#3FB950">user@server</text>
+      <text x="730" y="244" fill="#8B949E">:</text>
+      <text x="738" y="244" fill="#58A6FF">~</text>
+      <text x="752" y="244" fill="#E6EDF3">$ tmux a</text>
+
+      <text x="608" y="282" fill="#E95420">▸ session 1 · prod</text>
+      <text x="608" y="310" fill="#E95420">▸ session 2 · dev</text>
+
+      <text x="608" y="348" fill="#3FB950">user@server</text>
+      <text x="730" y="348" fill="#8B949E">:</text>
+      <text x="738" y="348" fill="#58A6FF">~</text>
+      <text x="752" y="348" fill="#E6EDF3">$</text>
+    </g>
+
+    <rect x="770" y="335" width="10" height="18" fill="#E95420">
+      <animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite"/>
+    </rect>
+  </g>
+</svg>

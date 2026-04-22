@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">KonsoleSSH</string>
+
+    <!-- Menu / actions -->
+    <string name="new_connection">Conexiune nouă</string>
+    <string name="new_connection_dots">Conexiune nouă…</string>
+    <string name="connect">Conectare</string>
+    <string name="disconnect">Deconectare</string>
+    <string name="close_tab">Închide fila</string>
+    <string name="manage_connections">Conexiuni salvate</string>
+    <string name="exit">Ieșire</string>
+    <string name="action_ok">OK</string>
+    <string name="action_cancel">Anulare</string>
+    <string name="action_delete">Șterge</string>
+    <string name="action_close">Închide</string>
+    <string name="action_save">Salvează</string>
+    <string name="action_edit">Editează</string>
+    <string name="action_reconnect">Reîncearcă</string>
+
+    <!-- Form fields -->
+    <string name="host">Server</string>
+    <string name="port">Port</string>
+    <string name="username">Utilizator</string>
+    <string name="password">Parolă</string>
+    <string name="private_key">Cheie SSH</string>
+    <string name="save_connection">Salvează conexiunea</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_new_connection_title">Conexiune SSH nouă</string>
+    <string name="dialog_edit_connection_title">Editare conexiune</string>
+    <string name="dialog_rename_tab_title">Redenumire filă</string>
+    <string name="tab_name_hint">Nume / comentariu pentru filă</string>
+    <string name="load_saved_connection">Încarcă o conexiune salvată:</string>
+    <string name="connection_name_hint">Nume conexiune (opțional)</string>
+    <string name="host_hint">Gazdă (IP sau nume) *</string>
+    <string name="host_internal_hint">Gazdă internă (IP sau nume) *</string>
+    <string name="port_hint">Port</string>
+    <string name="port_internal_hint">Port intern</string>
+    <string name="username_hint">Utilizator *</string>
+    <string name="password_hint_optional">Parolă (opțional)</string>
+    <string name="pick_key_file">📂 Alege fișier de cheie…</string>
+    <string name="configure_jump_host">🌐 Configurare jump host…</string>
+    <string name="jump_host_section_title">Jump host (rețea externă)</string>
+    <string name="jump_host_pick_hint">Alege o conexiune externă salvată pentru a o folosi ca gazdă intermediară:</string>
+    <string name="jump_host_none">Fără jump host (direct)</string>
+
+    <!-- Validation / warnings -->
+    <string name="warning_public_key">Atenție: aceasta este o cheie publică (.pub). Este necesară cheia privată.</string>
+    <string name="error_read_file">Nu s-a putut citi: %1$s</string>
+    <string name="error_host_required">Adresa serverului este necesară</string>
+    <string name="error_username_required">Numele de utilizator este necesar</string>
+    <string name="password_required">Este necesară parola</string>
+
+    <!-- Toasts -->
+    <string name="copied">Copiat</string>
+    <string name="pasted">Lipit</string>
+    <string name="upload_done">Încărcat în %1$s: %2$s</string>
+    <string name="upload_failed">Încărcarea a eșuat: %1$s</string>
+    <string name="upload_title">Se încarcă: %1$s</string>
+    <string name="upload_progress_kb">%1$d / %2$d KB</string>
+    <string name="upload_progress_mb">%1$.1f / %2$.1f MB</string>
+    <string name="content_desc_upload">Încarcă fișier</string>
+    <string name="undo">Anulează</string>
+    <string name="upload_undone">Încărcare anulată: %1$s</string>
+    <string name="upload_undo_failed">Anularea a eșuat: %1$s</string>
+
+    <!-- Tab picker -->
+    <string name="tab_active">activă</string>
+    <string name="open_tabs">File deschise</string>
+    <string name="group_n_connections">%1$d conexiuni</string>
+
+    <!-- Confirmations -->
+    <string name="delete_connection_confirm">Ștergi conexiunea \"%1$s\"?</string>
+    <string name="close_tab_confirm">Închizi fila \'%1$s\'?</string>
+    <string name="close_app_confirm">Sunt deschise %1$d conexiuni active. Închizi aplicația?</string>
+    <string name="no_saved_connections">Nu există conexiuni salvate.</string>
+
+    <!-- Content descriptions -->
+    <string name="content_desc_new_tab">Filă nouă</string>
+    <string name="content_desc_zoom_out">Micșorare</string>
+    <string name="content_desc_zoom_in">Mărire</string>
+    <string name="content_desc_add_connection">Adaugă o conexiune nouă</string>
+    <string name="content_desc_edit">Editează</string>
+    <string name="content_desc_delete">Șterge</string>
+    <string name="content_desc_exit">Ieșire</string>
+
+    <!-- Status bar / terminal messages -->
+    <string name="status_no_connection">Neconectat</string>
+    <string name="status_connecting">Se conectează: %1$s…</string>
+    <string name="status_connected_suffix">%1$s ● Conectat</string>
+    <string name="status_disconnected_suffix">%1$s ○ Deconectat</string>
+    <string name="terminal_connecting_host">Se conectează: %1$s:%2$d…\r\n</string>
+    <string name="terminal_reconnecting">\r\n[Reconectare…]\r\n</string>
+    <string name="terminal_connection_closed">\r\n[Conexiune închisă]\r\n</string>
+    <string name="terminal_jump_progress">Jump: %1$s:%2$d…\r\n</string>
+    <string name="terminal_jump_ok">Jump OK → Se conectează: %1$s:%2$d…\r\n</string>
+    <string name="error_jump_not_found">Eroare: conexiunea jump nu a fost găsită printre cele salvate.\r\n</string>
+    <string name="error_generic">Eroare: %1$s\r\n</string>
+
+    <!-- Password prompt -->
+    <string name="password_prompt_message">Este necesară parola</string>
+
+    <!-- Notification / service -->
+    <string name="service_idle">Rulează în fundal</string>
+    <string name="service_one_active">1 conexiune SSH activă</string>
+    <string name="service_n_active">%1$d conexiuni SSH active</string>
+    <string name="channel_idle_name">Serviciu SSH în fundal</string>
+    <string name="channel_idle_desc">Rulează în fundal, nicio conexiune activă</string>
+    <string name="channel_active_name">Conexiune SSH activă</string>
+    <string name="channel_active_desc">Păstrează conexiunile SSH active vii</string>
+
+    <!-- Default titles -->
+    <string name="default_tab_title">Terminal</string>
+    <string name="default_tab_word">filă</string>
+
+    <!-- Friendly errors -->
+    <string name="err_connection_refused">Conexiune refuzată — serverul nu acceptă conexiuni pe acest port.</string>
+    <string name="err_timeout">Timp expirat — serverul nu răspunde.</string>
+    <string name="err_no_route">Server inaccesibil — verifică rețeaua și adresa IP.</string>
+    <string name="err_network_unreachable">Rețeaua este inaccesibilă.</string>
+    <string name="err_unknown_host">Nume de gazdă necunoscut — eroare DNS sau greșeală de scriere.</string>
+    <string name="err_auth_failed">Autentificare eșuată — parolă sau cheie greșită.</string>
+    <string name="err_userauth_failed">Autentificare eșuată — respinsă de server.</string>
+    <string name="err_conn_closed">Conexiunea s-a închis neașteptat.</string>
+    <string name="err_broken_pipe">Conexiune pierdută (broken pipe).</string>
+    <string name="err_port_forwarding">Eroare de port forwarding — serverul jump nu o permite.</string>
+    <string name="err_channel">Eroare de canal SSH — serverul a închis sesiunea.</string>
+
+    <!-- Welcome banner -->
+    <string name="welcome_line_1">Inspirat de KDE Konsole,</string>
+    <string name="welcome_line_2">făcut pentru Android.</string>
+    <string name="welcome_line_3">Emulator de terminal SSH</string>
+    <string name="welcome_line_4">pentru gestionarea mai multor</string>
+    <string name="welcome_line_5">conexiuni paralele în file.</string>
+    <string name="welcome_line_6">Cu suport pentru jump host,</string>
+    <string name="welcome_line_7">rețelele interne sunt</string>
+    <string name="welcome_line_8">de asemenea accesibile.</string>
+    <string name="welcome_line_9">Conexiune nouă: butonul \'+\'</string>
+    <string name="welcome_swipe_hint">Glisează la dreapta pentru ajutor.</string>
+</resources>

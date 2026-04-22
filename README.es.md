@@ -2,7 +2,7 @@
 
 Terminal SSH multi-pestaña para Android — inspirado en KDE Konsole.
 
-> **Idioma:** Español · [English](README.md) · [Magyar](README.hu.md) · [Deutsch](README.de.md) · [Français](README.fr.md)
+> **Idioma:** Español · [English](README.md) · [Magyar](README.hu.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Slovenčina](README.sk.md) · [Română](README.ro.md)
 
 ## Capturas de pantalla
 

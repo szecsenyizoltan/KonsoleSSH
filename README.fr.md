@@ -2,7 +2,7 @@
 
 Terminal SSH multi-onglets pour Android — inspiré par KDE Konsole.
 
-> **Langue :** Français · [English](README.md) · [Magyar](README.hu.md) · [Español](README.es.md) · [Deutsch](README.de.md)
+> **Langue :** Français · [English](README.md) · [Magyar](README.hu.md) · [Español](README.es.md) · [Deutsch](README.de.md) · [Slovenčina](README.sk.md) · [Română](README.ro.md)
 
 ## Captures d'écran
 

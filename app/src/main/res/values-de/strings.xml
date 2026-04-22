@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">KonsoleSSH</string>
+
+    <!-- Menu / actions -->
+    <string name="new_connection">Neue Verbindung</string>
+    <string name="new_connection_dots">Neue Verbindung…</string>
+    <string name="connect">Verbinden</string>
+    <string name="disconnect">Trennen</string>
+    <string name="close_tab">Tab schließen</string>
+    <string name="manage_connections">Gespeicherte Verbindungen</string>
+    <string name="exit">Beenden</string>
+    <string name="action_ok">OK</string>
+    <string name="action_cancel">Abbrechen</string>
+    <string name="action_delete">Löschen</string>
+    <string name="action_close">Schließen</string>
+    <string name="action_save">Speichern</string>
+    <string name="action_edit">Bearbeiten</string>
+    <string name="action_reconnect">Erneut versuchen</string>
+
+    <!-- Form fields -->
+    <string name="host">Server</string>
+    <string name="port">Port</string>
+    <string name="username">Benutzername</string>
+    <string name="password">Passwort</string>
+    <string name="private_key">SSH-Schlüssel</string>
+    <string name="save_connection">Verbindung speichern</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_new_connection_title">Neue SSH-Verbindung</string>
+    <string name="dialog_edit_connection_title">Verbindung bearbeiten</string>
+    <string name="dialog_rename_tab_title">Tab umbenennen</string>
+    <string name="tab_name_hint">Tab-Name / Kommentar</string>
+    <string name="load_saved_connection">Gespeicherte Verbindung laden:</string>
+    <string name="connection_name_hint">Verbindungsname (optional)</string>
+    <string name="host_hint">Host (IP oder Hostname) *</string>
+    <string name="host_internal_hint">Interner Host (IP oder Hostname) *</string>
+    <string name="port_hint">Port</string>
+    <string name="port_internal_hint">Interner Port</string>
+    <string name="username_hint">Benutzername *</string>
+    <string name="password_hint_optional">Passwort (optional)</string>
+    <string name="pick_key_file">📂 Schlüsseldatei auswählen…</string>
+    <string name="configure_jump_host">🌐 Jump-Host einrichten…</string>
+    <string name="jump_host_section_title">Jump-Host (externes Netzwerk)</string>
+    <string name="jump_host_pick_hint">Wähle eine gespeicherte externe Verbindung als Jump-Host:</string>
+    <string name="jump_host_none">Kein Jump-Host (direkt)</string>
+
+    <!-- Validation / warnings -->
+    <string name="warning_public_key">Achtung: Dies ist ein öffentlicher Schlüssel (.pub). Benötigt wird der private Schlüssel.</string>
+    <string name="error_read_file">Konnte nicht gelesen werden: %1$s</string>
+    <string name="error_host_required">Server-Adresse erforderlich</string>
+    <string name="error_username_required">Benutzername erforderlich</string>
+    <string name="password_required">Passwort erforderlich</string>
+
+    <!-- Toasts -->
+    <string name="copied">Kopiert</string>
+    <string name="pasted">Eingefügt</string>
+    <string name="upload_done">Hochgeladen nach %1$s: %2$s</string>
+    <string name="upload_failed">Upload fehlgeschlagen: %1$s</string>
+    <string name="upload_title">Lade hoch: %1$s</string>
+    <string name="upload_progress_kb">%1$d / %2$d KB</string>
+    <string name="upload_progress_mb">%1$.1f / %2$.1f MB</string>
+    <string name="content_desc_upload">Datei hochladen</string>
+    <string name="undo">Rückgängig</string>
+    <string name="upload_undone">Upload rückgängig gemacht: %1$s</string>
+    <string name="upload_undo_failed">Rückgängig fehlgeschlagen: %1$s</string>
+
+    <!-- Tab picker -->
+    <string name="tab_active">aktiv</string>
+    <string name="open_tabs">Offene Tabs</string>
+    <string name="group_n_connections">%1$d Verbindungen</string>
+
+    <!-- Confirmations -->
+    <string name="delete_connection_confirm">Verbindung \"%1$s\" löschen?</string>
+    <string name="close_tab_confirm">Tab \'%1$s\' schließen?</string>
+    <string name="close_app_confirm">Es sind %1$d aktive Verbindungen geöffnet. App wirklich beenden?</string>
+    <string name="no_saved_connections">Keine gespeicherten Verbindungen.</string>
+
+    <!-- Content descriptions -->
+    <string name="content_desc_new_tab">Neuer Tab</string>
+    <string name="content_desc_zoom_out">Verkleinern</string>
+    <string name="content_desc_zoom_in">Vergrößern</string>
+    <string name="content_desc_add_connection">Neue Verbindung hinzufügen</string>
+    <string name="content_desc_edit">Bearbeiten</string>
+    <string name="content_desc_delete">Löschen</string>
+    <string name="content_desc_exit">Beenden</string>
+
+    <!-- Status bar / terminal messages -->
+    <string name="status_no_connection">Keine Verbindung</string>
+    <string name="status_connecting">Verbinde: %1$s…</string>
+    <string name="status_connected_suffix">%1$s ● Verbunden</string>
+    <string name="status_disconnected_suffix">%1$s ○ Getrennt</string>
+    <string name="terminal_connecting_host">Verbinde: %1$s:%2$d…\r\n</string>
+    <string name="terminal_reconnecting">\r\n[Verbinde erneut…]\r\n</string>
+    <string name="terminal_connection_closed">\r\n[Verbindung geschlossen]\r\n</string>
+    <string name="terminal_jump_progress">Jump: %1$s:%2$d…\r\n</string>
+    <string name="terminal_jump_ok">Jump OK → Verbinde: %1$s:%2$d…\r\n</string>
+    <string name="error_jump_not_found">Fehler: Die Jump-Verbindung wurde nicht in den gespeicherten Verbindungen gefunden.\r\n</string>
+    <string name="error_generic">Fehler: %1$s\r\n</string>
+
+    <!-- Password prompt -->
+    <string name="password_prompt_message">Passwort erforderlich</string>
+
+    <!-- Notification / service -->
+    <string name="service_idle">Läuft im Hintergrund</string>
+    <string name="service_one_active">1 aktive SSH-Verbindung</string>
+    <string name="service_n_active">%1$d aktive SSH-Verbindungen</string>
+    <string name="channel_idle_name">SSH-Hintergrunddienst</string>
+    <string name="channel_idle_desc">Läuft im Hintergrund, keine aktive Verbindung</string>
+    <string name="channel_active_name">Aktive SSH-Verbindung</string>
+    <string name="channel_active_desc">Hält aktive SSH-Verbindungen am Leben</string>
+
+    <!-- Default titles -->
+    <string name="default_tab_title">Terminal</string>
+    <string name="default_tab_word">Tab</string>
+
+    <!-- Friendly errors -->
+    <string name="err_connection_refused">Verbindung abgelehnt — der Server akzeptiert auf diesem Port keine Verbindungen.</string>
+    <string name="err_timeout">Zeitüberschreitung — der Server antwortet nicht.</string>
+    <string name="err_no_route">Server nicht erreichbar — prüfe Netzwerk und IP-Adresse.</string>
+    <string name="err_network_unreachable">Das Netzwerk ist nicht erreichbar.</string>
+    <string name="err_unknown_host">Unbekannter Hostname — DNS-Fehler oder Tippfehler.</string>
+    <string name="err_auth_failed">Authentifizierung fehlgeschlagen — falsches Passwort oder Schlüssel.</string>
+    <string name="err_userauth_failed">Authentifizierung fehlgeschlagen — vom Server abgelehnt.</string>
+    <string name="err_conn_closed">Die Verbindung wurde unerwartet geschlossen.</string>
+    <string name="err_broken_pipe">Verbindung verloren (broken pipe).</string>
+    <string name="err_port_forwarding">Port-Forwarding-Fehler — der Jump-Server erlaubt es nicht.</string>
+    <string name="err_channel">SSH-Kanal-Fehler — der Server hat die Sitzung geschlossen.</string>
+
+    <!-- Welcome banner -->
+    <string name="welcome_line_1">Inspiriert von KDE Konsole,</string>
+    <string name="welcome_line_2">gemacht für Android.</string>
+    <string name="welcome_line_3">SSH-Terminal-Emulator</string>
+    <string name="welcome_line_4">zum Verwalten mehrerer</string>
+    <string name="welcome_line_5">paralleler Verbindungen in Tabs.</string>
+    <string name="welcome_line_6">Mit Jump-Host-Unterstützung</string>
+    <string name="welcome_line_7">sind auch interne Netzwerke</string>
+    <string name="welcome_line_8">erreichbar.</string>
+    <string name="welcome_line_9">Neue Verbindung: \'+\'-Taste</string>
+    <string name="welcome_swipe_hint">Nach rechts wischen für Hilfe.</string>
+</resources>

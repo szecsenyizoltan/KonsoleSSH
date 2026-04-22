@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">KonsoleSSH</string>
+
+    <!-- Menu / actions -->
+    <string name="new_connection">Nové pripojenie</string>
+    <string name="new_connection_dots">Nové pripojenie…</string>
+    <string name="connect">Pripojiť</string>
+    <string name="disconnect">Odpojiť</string>
+    <string name="close_tab">Zavrieť kartu</string>
+    <string name="manage_connections">Uložené pripojenia</string>
+    <string name="exit">Ukončiť</string>
+    <string name="action_ok">OK</string>
+    <string name="action_cancel">Zrušiť</string>
+    <string name="action_delete">Odstrániť</string>
+    <string name="action_close">Zavrieť</string>
+    <string name="action_save">Uložiť</string>
+    <string name="action_edit">Upraviť</string>
+    <string name="action_reconnect">Skúsiť znova</string>
+
+    <!-- Form fields -->
+    <string name="host">Server</string>
+    <string name="port">Port</string>
+    <string name="username">Používateľ</string>
+    <string name="password">Heslo</string>
+    <string name="private_key">SSH kľúč</string>
+    <string name="save_connection">Uložiť pripojenie</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_new_connection_title">Nové SSH pripojenie</string>
+    <string name="dialog_edit_connection_title">Upraviť pripojenie</string>
+    <string name="dialog_rename_tab_title">Premenovať kartu</string>
+    <string name="tab_name_hint">Názov / poznámka karty</string>
+    <string name="load_saved_connection">Načítať uložené pripojenie:</string>
+    <string name="connection_name_hint">Názov pripojenia (voliteľné)</string>
+    <string name="host_hint">Hostiteľ (IP alebo názov) *</string>
+    <string name="host_internal_hint">Interný hostiteľ (IP alebo názov) *</string>
+    <string name="port_hint">Port</string>
+    <string name="port_internal_hint">Interný port</string>
+    <string name="username_hint">Používateľ *</string>
+    <string name="password_hint_optional">Heslo (voliteľné)</string>
+    <string name="pick_key_file">📂 Vybrať súbor kľúča…</string>
+    <string name="configure_jump_host">🌐 Nastaviť jump host…</string>
+    <string name="jump_host_section_title">Jump host (externá sieť)</string>
+    <string name="jump_host_pick_hint">Vyber uložené externé pripojenie ako bránu:</string>
+    <string name="jump_host_none">Bez jump hosta (priamo)</string>
+
+    <!-- Validation / warnings -->
+    <string name="warning_public_key">Pozor: toto je verejný kľúč (.pub). Potrebný je súkromný kľúč.</string>
+    <string name="error_read_file">Nedá sa prečítať: %1$s</string>
+    <string name="error_host_required">Adresa servera je povinná</string>
+    <string name="error_username_required">Meno používateľa je povinné</string>
+    <string name="password_required">Je potrebné heslo</string>
+
+    <!-- Toasts -->
+    <string name="copied">Skopírované</string>
+    <string name="pasted">Vložené</string>
+    <string name="upload_done">Nahrané do %1$s: %2$s</string>
+    <string name="upload_failed">Nahrávanie zlyhalo: %1$s</string>
+    <string name="upload_title">Nahrávanie: %1$s</string>
+    <string name="upload_progress_kb">%1$d / %2$d KB</string>
+    <string name="upload_progress_mb">%1$.1f / %2$.1f MB</string>
+    <string name="content_desc_upload">Nahrať súbor</string>
+    <string name="undo">Späť</string>
+    <string name="upload_undone">Nahranie zrušené: %1$s</string>
+    <string name="upload_undo_failed">Zrušenie sa nepodarilo: %1$s</string>
+
+    <!-- Tab picker -->
+    <string name="tab_active">aktívna</string>
+    <string name="open_tabs">Otvorené karty</string>
+    <string name="group_n_connections">%1$d pripojení</string>
+
+    <!-- Confirmations -->
+    <string name="delete_connection_confirm">Odstrániť pripojenie \"%1$s\"?</string>
+    <string name="close_tab_confirm">Zavrieť kartu \'%1$s\'?</string>
+    <string name="close_app_confirm">Je otvorených %1$d aktívnych pripojení. Naozaj zavrieť aplikáciu?</string>
+    <string name="no_saved_connections">Žiadne uložené pripojenia.</string>
+
+    <!-- Content descriptions -->
+    <string name="content_desc_new_tab">Nová karta</string>
+    <string name="content_desc_zoom_out">Zmenšiť</string>
+    <string name="content_desc_zoom_in">Zväčšiť</string>
+    <string name="content_desc_add_connection">Pridať nové pripojenie</string>
+    <string name="content_desc_edit">Upraviť</string>
+    <string name="content_desc_delete">Odstrániť</string>
+    <string name="content_desc_exit">Ukončiť</string>
+
+    <!-- Status bar / terminal messages -->
+    <string name="status_no_connection">Nepripojené</string>
+    <string name="status_connecting">Pripájanie: %1$s…</string>
+    <string name="status_connected_suffix">%1$s ● Pripojené</string>
+    <string name="status_disconnected_suffix">%1$s ○ Odpojené</string>
+    <string name="terminal_connecting_host">Pripájanie: %1$s:%2$d…\r\n</string>
+    <string name="terminal_reconnecting">\r\n[Opätovné pripájanie…]\r\n</string>
+    <string name="terminal_connection_closed">\r\n[Pripojenie bolo zatvorené]\r\n</string>
+    <string name="terminal_jump_progress">Jump: %1$s:%2$d…\r\n</string>
+    <string name="terminal_jump_ok">Jump OK → Pripájanie: %1$s:%2$d…\r\n</string>
+    <string name="error_jump_not_found">Chyba: jump pripojenie sa v uložených pripojeniach nenašlo.\r\n</string>
+    <string name="error_generic">Chyba: %1$s\r\n</string>
+
+    <!-- Password prompt -->
+    <string name="password_prompt_message">Je potrebné heslo</string>
+
+    <!-- Notification / service -->
+    <string name="service_idle">Beží na pozadí</string>
+    <string name="service_one_active">1 aktívne SSH pripojenie</string>
+    <string name="service_n_active">%1$d aktívnych SSH pripojení</string>
+    <string name="channel_idle_name">SSH služba na pozadí</string>
+    <string name="channel_idle_desc">Beží na pozadí, žiadne aktívne pripojenie</string>
+    <string name="channel_active_name">Aktívne SSH pripojenie</string>
+    <string name="channel_active_desc">Udržiava aktívne SSH pripojenia pri živote</string>
+
+    <!-- Default titles -->
+    <string name="default_tab_title">Terminál</string>
+    <string name="default_tab_word">karta</string>
+
+    <!-- Friendly errors -->
+    <string name="err_connection_refused">Pripojenie odmietnuté — server na tomto porte nepríma pripojenia.</string>
+    <string name="err_timeout">Čas vypršal — server neodpovedá.</string>
+    <string name="err_no_route">Server je nedostupný — skontroluj sieť a IP adresu.</string>
+    <string name="err_network_unreachable">Sieť je nedostupná.</string>
+    <string name="err_unknown_host">Neznámy názov hostiteľa — chyba DNS alebo preklep.</string>
+    <string name="err_auth_failed">Overenie zlyhalo — nesprávne heslo alebo kľúč.</string>
+    <string name="err_userauth_failed">Overenie zlyhalo — server odmietol.</string>
+    <string name="err_conn_closed">Pripojenie bolo neočakávane zatvorené.</string>
+    <string name="err_broken_pipe">Pripojenie stratené (broken pipe).</string>
+    <string name="err_port_forwarding">Chyba port forwardingu — jump server to nepovoľuje.</string>
+    <string name="err_channel">Chyba SSH kanála — server zatvoril reláciu.</string>
+
+    <!-- Welcome banner -->
+    <string name="welcome_line_1">Inšpirované KDE Konsole,</string>
+    <string name="welcome_line_2">vytvorené pre Android.</string>
+    <string name="welcome_line_3">SSH terminálový emulátor</string>
+    <string name="welcome_line_4">na správu viacerých</string>
+    <string name="welcome_line_5">paralelných pripojení v kartách.</string>
+    <string name="welcome_line_6">S podporou jump hosta</string>
+    <string name="welcome_line_7">sú dostupné aj</string>
+    <string name="welcome_line_8">interné siete.</string>
+    <string name="welcome_line_9">Nové pripojenie: tlačidlo \'+\'</string>
+    <string name="welcome_swipe_hint">Potiahni doprava pre pomoc.</string>
+</resources>

@@ -2,7 +2,7 @@
 
 SSH-Terminal mit mehreren Tabs für Android — inspiriert von KDE Konsole.
 
-> **Sprache:** Deutsch · [English](README.md) · [Magyar](README.hu.md) · [Español](README.es.md) · [Français](README.fr.md)
+> **Sprache:** Deutsch · [English](README.md) · [Magyar](README.hu.md) · [Español](README.es.md) · [Français](README.fr.md) · [Slovenčina](README.sk.md) · [Română](README.ro.md)
 
 ## Screenshots
 

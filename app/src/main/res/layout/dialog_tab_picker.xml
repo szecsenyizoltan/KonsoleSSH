@@ -31,7 +31,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Új kapcsolat…"
+            android:text="@string/new_connection_dots"
             android:textColor="@color/accent"
             android:textSize="15sp"
             android:fontFamily="monospace" />
@@ -67,7 +67,7 @@
                 android:id="@+id/labelOpenTabs"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Nyitott fülek"
+                android:text="@string/open_tabs"
                 android:textColor="@color/text_secondary"
                 android:textSize="11sp"
                 android:textAllCaps="true"
@@ -87,7 +87,7 @@
                 android:id="@+id/labelSaved"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Mentett kapcsolatok"
+                android:text="@string/manage_connections"
                 android:textColor="@color/text_secondary"
                 android:textSize="11sp"
                 android:textAllCaps="true"
@@ -128,7 +128,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Kilépés"
+            android:text="@string/exit"
             android:textColor="#888888"
             android:textSize="15sp"
             android:fontFamily="monospace" />
@@ -138,7 +138,7 @@
             android:layout_height="40dp"
             android:padding="8dp"
             android:src="@drawable/ic_exit"
-            android:contentDescription="Kilépés" />
+            android:contentDescription="@string/content_desc_exit" />
 
     </LinearLayout>
 

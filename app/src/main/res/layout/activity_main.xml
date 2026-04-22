@@ -51,7 +51,7 @@
                 android:src="@android:drawable/ic_input_add"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:tint="@color/accent"
-                android:contentDescription="Új fül"
+                android:contentDescription="@string/content_desc_new_tab"
                 android:layout_gravity="center_vertical" />
 
             <ImageButton
@@ -62,7 +62,7 @@
                 android:src="@drawable/ic_zoom_out"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:tint="#AAAAAA"
-                android:contentDescription="Kicsinyítés"
+                android:contentDescription="@string/content_desc_zoom_out"
                 android:layout_gravity="center_vertical" />
 
             <ImageButton
@@ -73,7 +73,7 @@
                 android:src="@drawable/ic_zoom_in"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:tint="#AAAAAA"
-                android:contentDescription="Nagyítás"
+                android:contentDescription="@string/content_desc_zoom_in"
                 android:layout_gravity="center_vertical" />
 
         </LinearLayout>
@@ -88,8 +88,10 @@
 
     <!-- F-key row -->
     <FrameLayout
+        android:id="@+id/fnbarContainer"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:visibility="gone">
 
         <HorizontalScrollView
             android:id="@+id/fnbarScrollView"
@@ -143,6 +145,97 @@
 
     </FrameLayout>
 
+    <!-- Ctrl+X combo row (shown while Ctrl is active) -->
+    <FrameLayout
+        android:id="@+id/ctrlbarContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone">
+
+        <HorizontalScrollView
+            android:id="@+id/ctrlbarScrollView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/keybar_bg"
+            android:scrollbars="none">
+            <LinearLayout
+                android:id="@+id/ctrlbarButtons"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical" />
+        </HorizontalScrollView>
+
+        <TextView
+            android:id="@+id/ctrlbarScrollHintLeft"
+            android:layout_width="32dp"
+            android:layout_height="36dp"
+            android:layout_gravity="start|center_vertical"
+            android:text="◀"
+            android:textColor="@color/accent"
+            android:textSize="13sp"
+            android:gravity="center"
+            android:background="@color/keybar_bg"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/ctrlbarScrollHint"
+            android:layout_width="32dp"
+            android:layout_height="36dp"
+            android:layout_gravity="end|center_vertical"
+            android:text="▶"
+            android:textColor="@color/accent"
+            android:textSize="13sp"
+            android:gravity="center"
+            android:background="@color/keybar_bg"
+            android:visibility="gone" />
+
+    </FrameLayout>
+
+    <!-- Arrow keys row (toggled with ↑ button in keybar) -->
+    <FrameLayout
+        android:id="@+id/arrowbarContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone">
+
+        <HorizontalScrollView
+            android:id="@+id/arrowbarScrollView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/keybar_bg"
+            android:scrollbars="none">
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <Button
+                    android:id="@+id/btnArrowLeft"
+                    style="@style/KeyBarButton"
+                    android:text="←" />
+
+                <Button
+                    android:id="@+id/btnArrowUp"
+                    style="@style/KeyBarButton"
+                    android:text="↑" />
+
+                <Button
+                    android:id="@+id/btnArrowDown"
+                    style="@style/KeyBarButton"
+                    android:text="↓" />
+
+                <Button
+                    android:id="@+id/btnArrowRight"
+                    style="@style/KeyBarButton"
+                    android:text="→" />
+
+            </LinearLayout>
+        </HorizontalScrollView>
+
+    </FrameLayout>
+
     <!-- Extra key toolbar -->
     <FrameLayout
         android:layout_width="match_parent"
@@ -165,6 +258,11 @@
                     android:id="@+id/btnKeyboard"
                     style="@style/KeyBarButton"
                     android:text="⌨" />
+
+                <Button
+                    android:id="@+id/btnFn"
+                    style="@style/KeyBarButton"
+                    android:text="Fn" />
 
                 <View style="@style/KeyBarDivider" />
 
@@ -200,52 +298,12 @@
                     style="@style/KeyBarButton"
                     android:text="TAB" />
 
-                <Button
-                    android:id="@+id/btnCtrlB"
-                    style="@style/KeyBarButton"
-                    android:text="Ctrl+B" />
-
-                <Button
-                    android:id="@+id/btnCtrlC"
-                    style="@style/KeyBarButton"
-                    android:text="Ctrl+C" />
-
-                <Button
-                    android:id="@+id/btnCtrlD"
-                    style="@style/KeyBarButton"
-                    android:text="Ctrl+D" />
-
-                <Button
-                    android:id="@+id/btnCtrlV"
-                    style="@style/KeyBarButton"
-                    android:text="Ctrl+V" />
-
-                <Button
-                    android:id="@+id/btnCtrlZ"
-                    style="@style/KeyBarButton"
-                    android:text="Ctrl+Z" />
-
                 <View style="@style/KeyBarDivider" />
 
                 <Button
-                    android:id="@+id/btnArrowUp"
+                    android:id="@+id/btnArrowToggle"
                     style="@style/KeyBarButton"
                     android:text="↑" />
-
-                <Button
-                    android:id="@+id/btnArrowDown"
-                    style="@style/KeyBarButton"
-                    android:text="↓" />
-
-                <Button
-                    android:id="@+id/btnArrowLeft"
-                    style="@style/KeyBarButton"
-                    android:text="←" />
-
-                <Button
-                    android:id="@+id/btnArrowRight"
-                    style="@style/KeyBarButton"
-                    android:text="→" />
 
             </LinearLayout>
         </HorizontalScrollView>

@@ -30,6 +30,23 @@ class TabPickerSheet : BottomSheetDialogFragment() {
         fun onCloseAppRequested()
     }
 
+    /** Persist expanded groups across reopens of the sheet. */
+    companion object {
+        private val expandedPaths: MutableSet<String> = mutableSetOf()
+    }
+
+    private sealed class TreeNode {
+        data class Group(
+            val label: String,         // e.g. "cc_"
+            val fullPath: String,      // e.g. "cc_desktop_"
+            val children: List<TreeNode>
+        ) : TreeNode()
+        data class Leaf(
+            val config: ConnectionConfig,
+            val label: String          // remaining name after stripping parent prefixes
+        ) : TreeNode()
+    }
+
     var listener: Listener? = null
     var openTabs: List<TabEntry> = emptyList()
 
@@ -93,7 +110,7 @@ class TabPickerSheet : BottomSheetDialogFragment() {
 
             if (entry.isActive) {
                 row.findViewById<TextView>(R.id.itemBadge).apply {
-                    text = "aktív"
+                    text = getString(R.string.tab_active)
                     setTextColor(android.graphics.Color.WHITE)
                     visibility = View.VISIBLE
                 }
@@ -108,47 +125,143 @@ class TabPickerSheet : BottomSheetDialogFragment() {
     }
 
     private fun buildSavedConnections() {
+        binding.containerSaved.removeAllViews()
         val saved = SavedConnections.load(requireContext())
         if (saved.isEmpty()) {
             binding.labelSaved.visibility = View.GONE
             return
         }
-        saved.forEach { config ->
-            val row = inflateRow()
-            row.findViewById<TextView>(R.id.itemIcon).text = "⚡"
-            row.findViewById<TextView>(R.id.itemTitle).text = config.displayName()
-            row.findViewById<TextView>(R.id.itemSubtitle).apply {
-                text = "${config.username}@${config.host}:${config.port}"
-                visibility = View.VISIBLE
-            }
-            row.findViewById<ImageButton>(R.id.btnEditRow).apply {
-                visibility = View.VISIBLE
-                setOnClickListener {
-                    dismiss()
-                    listener?.onEditConnectionRequested(config)
-                }
-            }
-            row.findViewById<ImageButton>(R.id.btnDeleteRow).apply {
-                visibility = View.VISIBLE
-                setOnClickListener {
-                    androidx.appcompat.app.AlertDialog.Builder(requireContext(), hu.szecsenyi.konsolessh.R.style.KonsoleDialog)
-                        .setMessage("Törlöd a \"${config.displayName()}\" kapcsolatot?")
-                        .setPositiveButton("Törlés") { _, _ ->
-                            SavedConnections.delete(requireContext(), config.id)
-                            listener?.onDeleteConnectionRequested(config)
-                            binding.containerSaved.removeAllViews()
-                            buildSavedConnections()
-                        }
-                        .setNegativeButton("Mégse", null)
-                        .show()
-                }
-            }
-            row.setOnClickListener {
-                dismiss()
-                listener?.onSavedConnectionSelected(config)
-            }
-            binding.containerSaved.addView(row)
+        binding.labelSaved.visibility = View.VISIBLE
+        val tree = buildTree(saved.map { it to it.displayName() }, "")
+        renderNodes(tree, 0)
+    }
+
+    private fun buildTree(
+        items: List<Pair<ConnectionConfig, String>>,
+        currentPath: String
+    ): List<TreeNode> {
+        // Group by first token before '_'; null means "no underscore left".
+        val grouped = items.groupBy { (_, name) ->
+            val idx = name.indexOf('_')
+            if (idx <= 0) null else name.substring(0, idx)
         }
+        val result = mutableListOf<TreeNode>()
+        grouped.forEach { (prefix, group) ->
+            if (prefix == null || group.size == 1) {
+                group.forEach { (cfg, remaining) ->
+                    result.add(TreeNode.Leaf(cfg, remaining))
+                }
+            } else {
+                val childItems = group.map { (cfg, name) ->
+                    cfg to name.substring(prefix.length + 1)
+                }
+                val newPath = "${currentPath}${prefix}_"
+                result.add(
+                    TreeNode.Group(
+                        label = "${prefix}_",
+                        fullPath = newPath,
+                        children = buildTree(childItems, newPath)
+                    )
+                )
+            }
+        }
+        // Groups first, then leaves; inside each kind sort alphabetically.
+        return result.sortedWith(
+            compareBy<TreeNode> { it is TreeNode.Leaf }.thenBy {
+                when (it) {
+                    is TreeNode.Group -> it.label.lowercase()
+                    is TreeNode.Leaf  -> it.label.lowercase()
+                }
+            }
+        )
+    }
+
+    private fun renderNodes(nodes: List<TreeNode>, depth: Int) {
+        nodes.forEach { node ->
+            when (node) {
+                is TreeNode.Group -> renderGroupRow(node, depth)
+                is TreeNode.Leaf  -> renderLeafRow(node, depth)
+            }
+        }
+    }
+
+    private fun renderGroupRow(group: TreeNode.Group, depth: Int) {
+        val row = inflateRow()
+        applyDepthPadding(row, depth)
+        val expanded = expandedPaths.contains(group.fullPath)
+        row.findViewById<TextView>(R.id.itemIcon).text = if (expanded) "📂" else "📁"
+        row.findViewById<TextView>(R.id.itemTitle).text = group.label.trimEnd('_')
+        row.findViewById<TextView>(R.id.itemSubtitle).apply {
+            text = getString(R.string.group_n_connections, countLeaves(group))
+            visibility = View.VISIBLE
+        }
+        row.findViewById<TextView>(R.id.itemBadge).apply {
+            text = if (expanded) "▼" else "▶"
+            setTextColor(android.graphics.Color.WHITE)
+            visibility = View.VISIBLE
+        }
+        row.setOnClickListener {
+            if (!expandedPaths.add(group.fullPath)) {
+                expandedPaths.remove(group.fullPath)
+            }
+            buildSavedConnections()
+        }
+        binding.containerSaved.addView(row)
+
+        if (expanded) renderNodes(group.children, depth + 1)
+    }
+
+    private fun renderLeafRow(leaf: TreeNode.Leaf, depth: Int) {
+        val config = leaf.config
+        val row = inflateRow()
+        applyDepthPadding(row, depth)
+        row.findViewById<TextView>(R.id.itemIcon).text = "⚡"
+        row.findViewById<TextView>(R.id.itemTitle).text =
+            leaf.label.ifBlank { config.displayName() }
+        row.findViewById<TextView>(R.id.itemSubtitle).apply {
+            text = "${config.username}@${config.host}:${config.port}"
+            visibility = View.VISIBLE
+        }
+        row.findViewById<ImageButton>(R.id.btnEditRow).apply {
+            visibility = View.VISIBLE
+            setOnClickListener {
+                dismiss()
+                listener?.onEditConnectionRequested(config)
+            }
+        }
+        row.findViewById<ImageButton>(R.id.btnDeleteRow).apply {
+            visibility = View.VISIBLE
+            setOnClickListener {
+                androidx.appcompat.app.AlertDialog.Builder(
+                    requireContext(), hu.szecsenyi.konsolessh.R.style.KonsoleDialog
+                )
+                    .setMessage(getString(R.string.delete_connection_confirm, config.displayName()))
+                    .setPositiveButton(R.string.action_delete) { _, _ ->
+                        SavedConnections.delete(requireContext(), config.id)
+                        listener?.onDeleteConnectionRequested(config)
+                        buildSavedConnections()
+                    }
+                    .setNegativeButton(R.string.action_cancel, null)
+                    .show()
+            }
+        }
+        row.setOnClickListener {
+            dismiss()
+            listener?.onSavedConnectionSelected(config)
+        }
+        binding.containerSaved.addView(row)
+    }
+
+    private fun countLeaves(node: TreeNode): Int = when (node) {
+        is TreeNode.Leaf  -> 1
+        is TreeNode.Group -> node.children.sumOf { countLeaves(it) }
+    }
+
+    private fun applyDepthPadding(row: View, depth: Int) {
+        val density = resources.displayMetrics.density
+        val basePad = (16 * density).toInt()
+        val stepPad = (20 * density).toInt()
+        row.setPadding(basePad + depth * stepPad, 0, basePad, 0)
     }
 
     private fun inflateRow(): View {

@@ -40,7 +40,7 @@
         android:src="@drawable/ic_edit"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:tint="@color/accent"
-        android:contentDescription="Szerkesztés" />
+        android:contentDescription="@string/content_desc_edit" />
 
     <ImageButton
         android:id="@+id/btnDelete"
@@ -49,6 +49,6 @@
         android:src="@android:drawable/ic_menu_delete"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:tint="@color/error_color"
-        android:contentDescription="Törlés" />
+        android:contentDescription="@string/content_desc_delete" />
 
 </LinearLayout>

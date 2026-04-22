@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">KonsoleSSH</string>
+
+    <!-- Menu / actions -->
+    <string name="new_connection">Új kapcsolat</string>
+    <string name="new_connection_dots">Új kapcsolat…</string>
+    <string name="connect">Csatlakozás</string>
+    <string name="disconnect">Lecsatlakozás</string>
+    <string name="close_tab">Fül bezárása</string>
+    <string name="manage_connections">Mentett kapcsolatok</string>
+    <string name="exit">Kilépés</string>
+    <string name="action_ok">OK</string>
+    <string name="action_cancel">Mégse</string>
+    <string name="action_delete">Törlés</string>
+    <string name="action_close">Bezárás</string>
+    <string name="action_save">Mentés</string>
+    <string name="action_edit">Szerkesztés</string>
+    <string name="action_reconnect">Újra</string>
+
+    <!-- Form fields -->
+    <string name="host">Szerver</string>
+    <string name="port">Port</string>
+    <string name="username">Felhasználónév</string>
+    <string name="password">Jelszó</string>
+    <string name="private_key">SSH kulcs</string>
+    <string name="save_connection">Kapcsolat mentése</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_new_connection_title">Új SSH kapcsolat</string>
+    <string name="dialog_edit_connection_title">Kapcsolat szerkesztése</string>
+    <string name="dialog_rename_tab_title">Fül átnevezése</string>
+    <string name="tab_name_hint">Fül neve / komment</string>
+    <string name="load_saved_connection">Mentett kapcsolat betöltése:</string>
+    <string name="connection_name_hint">Kapcsolat neve (opcionális)</string>
+    <string name="host_hint">Host (IP vagy hostname) *</string>
+    <string name="host_internal_hint">Belső host (IP vagy hostname) *</string>
+    <string name="port_hint">Port</string>
+    <string name="port_internal_hint">Belső port</string>
+    <string name="username_hint">Felhasználónév *</string>
+    <string name="password_hint_optional">Jelszó (opcionális)</string>
+    <string name="pick_key_file">📂 Kulcsfájl választása…</string>
+    <string name="configure_jump_host">🌐 Jump host beállítása…</string>
+    <string name="jump_host_section_title">Jump host (külső hálózat)</string>
+    <string name="jump_host_pick_hint">Válassz egy mentett külső kapcsolatot a csatlakozáshoz:</string>
+    <string name="jump_host_none">Nincs jump host (közvetlen)</string>
+
+    <!-- Validation / warnings -->
+    <string name="warning_public_key">Figyelem: Ez egy nyilvános kulcs (.pub). A privát kulcsra van szükség.</string>
+    <string name="error_read_file">Nem sikerült beolvasni: %1$s</string>
+    <string name="error_host_required">Szerver cím szükséges</string>
+    <string name="error_username_required">Felhasználónév szükséges</string>
+    <string name="password_required">Jelszó megadása szükséges</string>
+
+    <!-- Toasts -->
+    <string name="copied">Másolva</string>
+    <string name="pasted">Beillesztve</string>
+
+    <!-- Tab picker -->
+    <string name="tab_active">aktív</string>
+    <string name="open_tabs">Nyitott fülek</string>
+    <string name="group_n_connections">%1$d kapcsolat</string>
+
+    <!-- Confirmations -->
+    <string name="delete_connection_confirm">Törlöd a \"%1$s\" kapcsolatot?</string>
+    <string name="close_tab_confirm">Bezárod a \'%1$s\' fület?</string>
+    <string name="close_app_confirm">%1$d aktív kapcsolat van nyitva. Biztosan bezárod az alkalmazást?</string>
+    <string name="no_saved_connections">Nincsenek mentett kapcsolatok.</string>
+
+    <!-- Content descriptions -->
+    <string name="content_desc_new_tab">Új fül</string>
+    <string name="content_desc_zoom_out">Kicsinyítés</string>
+    <string name="content_desc_zoom_in">Nagyítás</string>
+    <string name="content_desc_add_connection">Új kapcsolat hozzáadása</string>
+    <string name="content_desc_edit">Szerkesztés</string>
+    <string name="content_desc_delete">Törlés</string>
+    <string name="content_desc_exit">Kilépés</string>
+
+    <!-- Status bar / terminal messages -->
+    <string name="status_no_connection">Nincs kapcsolat</string>
+    <string name="status_connecting">Csatlakozás: %1$s…</string>
+    <string name="status_connected_suffix">%1$s ● Csatlakozva</string>
+    <string name="status_disconnected_suffix">%1$s ○ Lecsatlakozva</string>
+    <string name="terminal_connecting_host">Csatlakozás: %1$s:%2$d…\r\n</string>
+    <string name="terminal_reconnecting">\r\n[Újracsatlakozás…]\r\n</string>
+    <string name="terminal_connection_closed">\r\n[Kapcsolat lezárva]\r\n</string>
+    <string name="terminal_jump_progress">Jump: %1$s:%2$d…\r\n</string>
+    <string name="terminal_jump_ok">Jump OK → Csatlakozás: %1$s:%2$d…\r\n</string>
+    <string name="error_jump_not_found">Hiba: a jump kapcsolat nem található a mentett kapcsolatok között.\r\n</string>
+    <string name="error_generic">Hiba: %1$s\r\n</string>
+
+    <!-- Password prompt -->
+    <string name="password_prompt_message">Jelszó megadása szükséges</string>
+
+    <!-- Notification / service -->
+    <string name="service_idle">Fut a háttérben</string>
+    <string name="service_one_active">1 aktív SSH kapcsolat</string>
+    <string name="service_n_active">%1$d aktív SSH kapcsolat</string>
+    <string name="channel_idle_name">SSH háttérszolgáltatás</string>
+    <string name="channel_idle_desc">Fut a háttérben, nincs aktív kapcsolat</string>
+    <string name="channel_active_name">SSH aktív kapcsolat</string>
+    <string name="channel_active_desc">Aktív SSH kapcsolatok életben tartása</string>
+
+    <!-- Default titles -->
+    <string name="default_tab_title">Terminál</string>
+    <string name="default_tab_word">fül</string>
+
+    <!-- Friendly errors -->
+    <string name="err_connection_refused">A kapcsolat elutasítva — a szerver nem fogad kapcsolatot ezen a porton.</string>
+    <string name="err_timeout">Időtúllépés — a szerver nem válaszol.</string>
+    <string name="err_no_route">Nem érhető el a szerver — ellenőrizd a hálózatot és az IP-t.</string>
+    <string name="err_network_unreachable">A hálózat nem érhető el.</string>
+    <string name="err_unknown_host">Ismeretlen hostnév — DNS hiba vagy elgépelés.</string>
+    <string name="err_auth_failed">Hitelesítés sikertelen — helytelen jelszó vagy kulcs.</string>
+    <string name="err_userauth_failed">Hitelesítés sikertelen — a szerver visszautasította.</string>
+    <string name="err_conn_closed">A kapcsolat váratlanul lezárult.</string>
+    <string name="err_broken_pipe">A kapcsolat megszakadt (broken pipe).</string>
+    <string name="err_port_forwarding">Port forwarding hiba — a jump szerver nem engedélyezi.</string>
+    <string name="err_channel">SSH csatorna hiba — a szerver lezárta a munkamenetet.</string>
+
+    <!-- Welcome banner -->
+    <string name="welcome_line_1">A KDE Konsole ihlette,</string>
+    <string name="welcome_line_2">Androidra alkotva.</string>
+    <string name="welcome_line_3">SSH terminál emulátor</string>
+    <string name="welcome_line_4">több párhuzamos kapcsolat</string>
+    <string name="welcome_line_5">kezelésére, füleken.</string>
+    <string name="welcome_line_6">Jump host támogatással</string>
+    <string name="welcome_line_7">belső hálózatok is</string>
+    <string name="welcome_line_8">elérhetők.</string>
+    <string name="welcome_line_9">Új kapcsolat: \'+\' gomb</string>
+    <string name="welcome_swipe_hint">Húzz jobbra a súgóért.</string>
+</resources>

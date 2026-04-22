@@ -21,7 +21,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Mentett kapcsolat betöltése:"
+                android:text="@string/load_saved_connection"
                 android:textColor="@color/text_secondary"
                 android:textSize="12sp"
                 android:layout_marginBottom="4dp" />
@@ -38,7 +38,7 @@
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Kapcsolat neve (opcionális)"
+            android:hint="@string/connection_name_hint"
             style="@style/KonsoleInputLayout"
             android:layout_marginBottom="8dp">
             <com.google.android.material.textfield.TextInputEditText
@@ -55,7 +55,7 @@
             android:id="@+id/layoutHost"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Host (IP vagy hostname) *"
+            android:hint="@string/host_hint"
             style="@style/KonsoleInputLayout"
             android:layout_marginBottom="8dp">
             <com.google.android.material.textfield.TextInputEditText
@@ -79,7 +79,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:hint="Port"
+                android:hint="@string/port_hint"
                 style="@style/KonsoleInputLayout"
                 android:layout_marginEnd="8dp">
                 <com.google.android.material.textfield.TextInputEditText
@@ -96,7 +96,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
-                android:hint="Felhasználónév *"
+                android:hint="@string/username_hint"
                 style="@style/KonsoleInputLayout">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editUsername"
@@ -121,7 +121,7 @@
                 android:id="@+id/radioPassword"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Jelszó"
+                android:text="@string/password"
                 android:checked="true"
                 android:textColor="@color/text_primary"
                 android:layout_marginEnd="16dp" />
@@ -130,7 +130,7 @@
                 android:id="@+id/radioPrivateKey"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="SSH kulcs"
+                android:text="@string/private_key"
                 android:textColor="@color/text_primary" />
 
         </RadioGroup>
@@ -140,7 +140,7 @@
             android:id="@+id/layoutPassword"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Jelszó (opcionális)"
+            android:hint="@string/password_hint_optional"
             style="@style/KonsoleInputLayout"
             app:passwordToggleEnabled="true"
             android:layout_marginBottom="8dp"
@@ -174,7 +174,7 @@
                     android:id="@+id/btnPickKeyFile"
                     android:layout_width="wrap_content"
                     android:layout_height="36dp"
-                    android:text="📂 Kulcsfájl választása…"
+                    android:text="@string/pick_key_file"
                     android:textSize="13sp"
                     style="@style/Widget.AppCompat.Button.Borderless"
                     android:textColor="@color/accent"
@@ -207,7 +207,7 @@
             android:id="@+id/btnToggleJump"
             android:layout_width="wrap_content"
             android:layout_height="36dp"
-            android:text="🌐 Jump host beállítása…"
+            android:text="@string/configure_jump_host"
             android:textSize="13sp"
             android:layout_marginBottom="6dp"
             style="@style/Widget.AppCompat.Button.Borderless"
@@ -233,7 +233,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Jump host (külső hálózat)"
+                android:text="@string/jump_host_section_title"
                 android:textColor="@color/accent"
                 android:textSize="12sp"
                 android:textStyle="bold"
@@ -242,7 +242,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Válassz egy mentett külső kapcsolatot a csatlakozáshoz:"
+                android:text="@string/jump_host_pick_hint"
                 android:textColor="@color/text_secondary"
                 android:textSize="12sp"
                 android:layout_marginBottom="4dp" />

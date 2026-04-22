@@ -139,7 +139,13 @@ class SshForegroundService : Service() {
     ) {
         disconnectSession(tabId)
 
-        val session = SshSession(config, jumpConfig)
+        val session = SshSession(
+            config, jumpConfig,
+            SshSession.Messages(
+                jumpProgress = { h, p -> getString(R.string.terminal_jump_progress, h, p) },
+                jumpOk       = { h, p -> getString(R.string.terminal_jump_ok, h, p) }
+            )
+        )
         val state = SessionState(config = config, session = session)
         sessions[tabId] = state
 
@@ -147,7 +153,8 @@ class SshForegroundService : Service() {
             state.passwordPrompter?.invoke(displayHost, callback) ?: callback(null)
         }
 
-        val initMsg = if (jumpConfig == null) "Csatlakozás: ${config.host}:${config.port}...\r\n" else ""
+        val initMsg = if (jumpConfig == null)
+            getString(R.string.terminal_connecting_host, config.host, config.port) else ""
         if (initMsg.isNotEmpty()) emitData(state, initMsg.toByteArray())
 
         serviceScope.launch {
@@ -163,7 +170,7 @@ class SshForegroundService : Service() {
                 onError = { err ->
                     updateStatus(tabId, ConnectionStatus.DISCONNECTED)
                     refreshNotification()
-                    emitData(state, "Hiba: ${friendlyError(err)}\r\n".toByteArray())
+                    emitData(state, getString(R.string.error_generic, friendlyError(err)).toByteArray())
                 }
             )
         }
@@ -235,7 +242,7 @@ class SshForegroundService : Service() {
             launch(Dispatchers.Main) {
                 updateStatus(tabId, ConnectionStatus.DISCONNECTED)
                 refreshNotification()
-                val msg = "\r\n[Kapcsolat lezárva]\r\n".toByteArray()
+                val msg = getString(R.string.terminal_connection_closed).toByteArray()
                 state.outputBuffer.append(msg)
                 state.dataListener?.invoke(msg)
             }
@@ -250,9 +257,9 @@ class SshForegroundService : Service() {
 
     private fun buildNotification(count: Int): Notification {
         val text = when (count) {
-            0    -> "Fut a háttérben"
-            1    -> "1 aktív SSH kapcsolat"
-            else -> "$count aktív SSH kapcsolat"
+            0    -> getString(R.string.service_idle)
+            1    -> getString(R.string.service_one_active)
+            else -> getString(R.string.service_n_active, count)
         }
         val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
             ?.apply { flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP }
@@ -277,12 +284,12 @@ class SshForegroundService : Service() {
     private fun createChannel() {
         val nm = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager ?: return
         nm.createNotificationChannel(
-            NotificationChannel(CHANNEL_ID_IDLE, "SSH háttérszolgáltatás", NotificationManager.IMPORTANCE_LOW)
-                .apply { description = "Fut a háttérben, nincs aktív kapcsolat"; setShowBadge(false) }
+            NotificationChannel(CHANNEL_ID_IDLE, getString(R.string.channel_idle_name), NotificationManager.IMPORTANCE_LOW)
+                .apply { description = getString(R.string.channel_idle_desc); setShowBadge(false) }
         )
         nm.createNotificationChannel(
-            NotificationChannel(CHANNEL_ID_ACTIVE, "SSH aktív kapcsolat", NotificationManager.IMPORTANCE_LOW)
-                .apply { description = "Aktív SSH kapcsolatok életben tartása"; setShowBadge(true) }
+            NotificationChannel(CHANNEL_ID_ACTIVE, getString(R.string.channel_active_name), NotificationManager.IMPORTANCE_LOW)
+                .apply { description = getString(R.string.channel_active_desc); setShowBadge(true) }
         )
     }
 
@@ -293,24 +300,24 @@ class SshForegroundService : Service() {
         }
         val full = parts.joinToString(" ").lowercase()
         return when {
-            "connection refused"     in full -> "A kapcsolat elutasítva — a szerver nem fogad kapcsolatot ezen a porton."
+            "connection refused"     in full -> getString(R.string.err_connection_refused)
             "connection timed out"   in full ||
             "connect timed out"      in full ||
             "timed out"              in full ||
-            "timeout"                in full -> "Időtúllépés — a szerver nem válaszol."
-            "no route to host"       in full -> "Nem érhető el a szerver — ellenőrizd a hálózatot és az IP-t."
+            "timeout"                in full -> getString(R.string.err_timeout)
+            "no route to host"       in full -> getString(R.string.err_no_route)
             "network is unreachable" in full ||
-            "unreachable"            in full -> "A hálózat nem érhető el."
+            "unreachable"            in full -> getString(R.string.err_network_unreachable)
             "unknown host"           in full ||
-            "nodename nor servname"  in full -> "Ismeretlen hostnév — DNS hiba vagy elgépelés."
+            "nodename nor servname"  in full -> getString(R.string.err_unknown_host)
             "auth fail"              in full ||
-            "authentication"         in full -> "Hitelesítés sikertelen — helytelen jelszó vagy kulcs."
-            "userauth fail"          in full -> "Hitelesítés sikertelen — a szerver visszautasította."
+            "authentication"         in full -> getString(R.string.err_auth_failed)
+            "userauth fail"          in full -> getString(R.string.err_userauth_failed)
             "connection is closed"   in full ||
-            "closed by foreign host" in full -> "A kapcsolat váratlanul lezárult."
-            "broken pipe"            in full -> "A kapcsolat megszakadt (broken pipe)."
-            "port forwarding"        in full -> "Port forwarding hiba — a jump szerver nem engedélyezi."
-            "channel"                in full -> "SSH csatorna hiba — a szerver lezárta a munkamenetet."
+            "closed by foreign host" in full -> getString(R.string.err_conn_closed)
+            "broken pipe"            in full -> getString(R.string.err_broken_pipe)
+            "port forwarding"        in full -> getString(R.string.err_port_forwarding)
+            "channel"                in full -> getString(R.string.err_channel)
             else -> parts.firstOrNull()
                 ?.replace(Regex("^session\\.connect:\\s*"), "")
                 ?.replace(Regex("^[a-zA-Z]+(\\.[a-zA-Z]+)+:\\s*"), "")

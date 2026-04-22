@@ -47,7 +47,7 @@ class NewConnectionDialog : DialogFragment() {
         try {
             val fileName = uri.path?.substringAfterLast('/') ?: ""
             if (fileName.lowercase().endsWith(".pub")) {
-                KonsoleToast.show(binding.root, "Figyelem: Ez egy nyilvános kulcs (.pub). A privát kulcsra van szükség.")
+                KonsoleToast.show(binding.root, getString(R.string.warning_public_key))
             }
 
             requireContext().contentResolver.openInputStream(uri)?.use { stream ->
@@ -56,7 +56,7 @@ class NewConnectionDialog : DialogFragment() {
                 updateKeyStatus(content)
             }
         } catch (e: Exception) {
-            Toast.makeText(context, "Nem sikerült beolvasni: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, getString(R.string.error_read_file, e.message ?: ""), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -91,12 +91,15 @@ class NewConnectionDialog : DialogFragment() {
             binding.btnToggleJump.visibility = View.GONE
         }
 
-        val title = if (editConfig != null) "Kapcsolat szerkesztése" else "Új SSH kapcsolat"
+        val title = if (editConfig != null)
+            getString(R.string.dialog_edit_connection_title)
+        else
+            getString(R.string.dialog_new_connection_title)
         val dialog = AlertDialog.Builder(requireContext(), R.style.KonsoleDialog)
             .setTitle(title)
             .setView(binding.root)
-            .setPositiveButton("Mentés", null)
-            .setNegativeButton("Mégse", null)
+            .setPositiveButton(R.string.action_save, null)
+            .setNegativeButton(R.string.action_cancel, null)
             .create()
 
         dialog.setOnShowListener {
@@ -118,7 +121,7 @@ class NewConnectionDialog : DialogFragment() {
             binding.spinnerJumpConnection.visibility = View.GONE
             return
         }
-        val labels = mutableListOf("Nincs jump host (közvetlen)") + options.map { it.displayName() }
+        val labels = mutableListOf(getString(R.string.jump_host_none)) + options.map { it.displayName() }
         val adapter = android.widget.ArrayAdapter(
             requireContext(), android.R.layout.simple_spinner_item, labels
         ).also { it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
@@ -199,8 +202,12 @@ class NewConnectionDialog : DialogFragment() {
     }
 
     private fun updateHostLabels(isInternal: Boolean) {
-        binding.layoutHost.hint = if (isInternal) "Belső host (IP vagy hostname) *" else "Host (IP vagy hostname) *"
-        binding.layoutPort.hint = if (isInternal) "Belső port" else "Port"
+        binding.layoutHost.hint = getString(
+            if (isInternal) R.string.host_internal_hint else R.string.host_hint
+        )
+        binding.layoutPort.hint = getString(
+            if (isInternal) R.string.port_internal_hint else R.string.port_hint
+        )
     }
 
     /** True as soon as the first octet reveals a private range (10/172/192). */
@@ -221,8 +228,8 @@ class NewConnectionDialog : DialogFragment() {
     private fun validateAndConnect(): Boolean {
         val host     = binding.editHost.text.toString().trim()
         val username = binding.editUsername.text.toString().trim()
-        if (host.isEmpty())     { KonsoleToast.show(binding.root, "Szerver cím szükséges"); return false }
-        if (username.isEmpty()) { KonsoleToast.show(binding.root, "Felhasználónév szükséges"); return false }
+        if (host.isEmpty())     { KonsoleToast.show(binding.root, getString(R.string.error_host_required)); return false }
+        if (username.isEmpty()) { KonsoleToast.show(binding.root, getString(R.string.error_username_required)); return false }
 
         val port     = binding.editPort.text.toString().toIntOrNull()?.coerceIn(1, 65535) ?: 22
         val authType = if (binding.radioPrivateKey.isChecked)

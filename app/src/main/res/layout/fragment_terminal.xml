@@ -20,7 +20,7 @@
         android:ellipsize="end"
         android:gravity="center_vertical"
         android:fontFamily="monospace"
-        android:text="Nem csatlakoztatott" />
+        android:text="@string/status_no_connection" />
 
     <!-- Terminal output -->
     <FrameLayout
@@ -55,7 +55,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="Újra"
+                android:text="@string/action_reconnect"
                 android:textSize="13sp"
                 android:textColor="@color/accent"
                 android:fontFamily="monospace" />

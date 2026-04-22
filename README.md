@@ -1,32 +1,63 @@
 # KonsoleSSH
 
-Multi-tab SSH terminal for Android tablets — inspired by KDE Konsole.
+Multi-tab SSH terminal for Android phones and tablets — inspired by KDE Konsole.
+
+> **Language:** English · [Magyar](README.hu.md)
 
 ## Features
 
-- **Multi-tab UI** — TabLayout + ViewPager2, each tab has its own independent SSH session
-- **SSH connections** — JSch library, password + private key (PEM) authentication
-- **Jump host support** — reach internal networks via a gateway server (port forwarding)
+### Connections
+
+- **Multi-tab UI** — TabLayout + ViewPager2, each tab owns an independent SSH session
+- **SSH connections** — JSch library, password **or** private-key (PEM) authentication with optional passphrase
+- **Jump host support (`ssh -J`)** — reach internal hosts through a saved gateway connection (local port forwarding)
 - **Interactive password prompt** — dialog appears at connect time if no password is stored
-- **Saved connections** — profiles stored as JSON in SharedPreferences (alphabetical order)
-- **Canvas terminal emulator** — 256-color + truecolor, bold, underline, reverse video, scrollback buffer
+- **Saved connections** — profiles encrypted at rest with AES256 (`EncryptedSharedPreferences`, Android Keystore); alphabetical order
+- **Tree-grouped picker** — connections named with underscores (e.g. `cc_desktop_N`, `cc_laptop_L`) are automatically collapsed into a hierarchy; groups expand/collapse with a ▶/▼ arrow
+
+### Terminal
+
+- **Canvas terminal emulator** — 256 colour + truecolor, bold, underline, reverse video, scrollback buffer
 - **ANSI/VT100 + xterm-256color PTY** — bash/zsh/fish prompts render correctly
 - **NerdFont support** — JetBrainsMono Nerd Font bundled; emoji and surrogate-pair characters display correctly
-- **Extra key bar** — ESC, TAB, Ctrl+C, Ctrl+D, Ctrl+V, Ctrl+Z, arrows, Shift, Alt, AltGr, F1–F12
-- **Connection status indicators** — green/yellow/red dots on tabs and in the tab picker
-- **Font size zoom** — zoom buttons on toolbar, setting persists across restarts
-- **Welcome page** — swipeable intro screen without horizontal scroll
-- **Linux cheatsheet** — detailed command reference (top, df, du, dd, tail, head, grep, egrep, awk, sed, tr, ip, mc)
-- **Background persistence** — active SSH sessions stay alive on screen lock and swipe-away via Foreground Service
+- **Copy on selection** (long-press + drag) and **paste from the clipboard**
+- **Font size zoom** — zoom buttons on the toolbar, setting persists
 - **Reconnect button** — appears in the center of the terminal when a connection drops
-- **Notification badge** — shows active connection count on the app icon; tapping opens the app
-- **Close app button** — in the tab picker menu; confirms if active connections exist
+
+### On-screen key bar
+
+The bottom bar exposes everything the Android soft keyboard can't:
+
+- **⌨** — toggles the system soft keyboard. _The soft keyboard only opens for this button or when you tap the terminal itself; no other key-bar button pops it up._
+- **Fn** — toggles a row of **F1 – F12** function keys
+- **CTRL / SHIFT / ALT / ALTGR** — sticky one-shot modifiers (auto-reset after the next key press)
+- **CTRL** also opens a Ctrl-combo row with `Ctrl+A`, `Ctrl+B`, `Ctrl+C`, `Ctrl+D`, `Ctrl+V`, `Ctrl+Z`
+  - `Ctrl+C` copies the current selection if any, otherwise sends `ETX`
+  - `Ctrl+V` pastes from the clipboard
+- **ESC, TAB** — one-tap keys
+- **↑** — toggles an arrow-key row (← ↑ ↓ →)
+- **📁** — pick a local file and **upload it over SFTP** to the remote home directory. A progress dialog shows transferred / total MB. After success, a 3-second confirmation toast offers an **Undo** button that deletes the just-uploaded file from the server.
+
+### Status / UX
+
+- **Connection status indicators** — green/yellow/red dots on tabs and in the tab picker
+- **Welcome page** — swipeable intro; swipe right for the cheat sheets
+- **Linux cheat sheet** — inline reference for `top`, `df`, `du`, `dd`, `tail`, `head`, `grep`, `egrep`, `awk`, `sed`, `tr`, `ip`, `mc`
+- **Tmux cheat sheet** — sessions, windows, panes, layouts, prefix bindings
+- **Background persistence** — active SSH sessions stay alive on screen lock and task removal via Foreground Service
+- **Notification badge** — shows the active-connection count
+- **Close-app button** — in the tab picker menu; confirms if active connections exist
 - **Friendly error messages** — human-readable text instead of raw Java exceptions
-- **App icon** — KONSOLE + SSH labels, dark background, terminal `> _` prompt graphic
+- **Edge-to-edge layout** — correct window-insets handling on Android 15; the content stays above the navigation bar on tablets in landscape and is pushed up when the soft keyboard opens
+
+### Localisation
+
+- English by default, **Hungarian translation** included (`values-hu/`). The app follows the system language; `Locale.getDefault().language == "hu"` switches the cheat-sheet body to Hungarian too.
 
 ## Architecture
 
 Sessions are owned by `SshForegroundService`, not by fragments. This means:
+
 - Connections survive activity recreation (rotation, back press, task removal)
 - `TerminalFragment` binds/unbinds the service on `onStart`/`onStop` and replays the output buffer on reconnect
 - `OutputBuffer` keeps the last 256 KB of output per session for replay
@@ -34,168 +65,97 @@ Sessions are owned by `SshForegroundService`, not by fragments. This means:
 ## Project structure
 
 ```
-app/src/main/java/hu/szecsenyi/konsolessh/
+app/src/main/java/hu/billman/konsolessh/
 ├── model/
 │   ├── ConnectionConfig.kt       — SSH connection data (host, port, user, auth, jump)
-│   └── SavedConnections.kt       — SharedPreferences-based profile manager
+│   └── SavedConnections.kt       — EncryptedSharedPreferences-backed profile manager
 ├── ssh/
-│   ├── SshSession.kt             — JSch SSH wrapper (connect/read/write/resize/jump)
-│   └── SshForegroundService.kt   — Foreground service; owns all sessions and output buffers
+│   ├── SshSession.kt             — JSch wrapper (connect/read/write/resize/jump, SFTP upload, remote rm)
+│   └── SshForegroundService.kt   — Foreground service; owns sessions, output buffers and upload progress
 ├── terminal/
-│   └── TerminalView.kt           — Canvas-based terminal emulator (VT100/xterm-256color)
+│   ├── TerminalView.kt           — Canvas-based terminal emulator (VT100/xterm-256color)
+│   ├── AnsiParser.kt             — ANSI/VT state machine
+│   └── TerminalClipboard.kt      — Shared in-app clipboard
 └── ui/
-    ├── MainActivity.kt            — Main Activity; TabLayout + ViewPager2 coordination, key bar
-    ├── TerminalFragment.kt        — Terminal Fragment (SSH / cheatsheet / welcome)
-    ├── TerminalPagerAdapter.kt    — ViewPager2 adapter (fixed pages + SSH tabs)
-    ├── TabPickerSheet.kt          — Tab picker bottom sheet
-    ├── NewConnectionDialog.kt     — New / edit SSH connection dialog
-    └── ConnectionEditActivity.kt  — Saved connections management
+    ├── MainActivity.kt           — Tab coordination, key bar, upload flow, window insets
+    ├── TerminalFragment.kt       — Terminal / cheat-sheet / welcome
+    ├── TerminalPagerAdapter.kt   — ViewPager2 adapter (fixed pages + SSH tabs)
+    ├── TabPickerSheet.kt         — Tab + saved-connection picker with tree grouping
+    ├── NewConnectionDialog.kt    — Create / edit connection dialog
+    ├── ConnectionEditActivity.kt — Saved connections management
+    └── KonsoleToast.kt           — In-app toast with optional action button
 ```
 
 ## Build
 
-```bash
-# Android Studio: File → Open → KonsoleSSH → Run
-# or command line (JDK 21 required):
-JAVA_HOME=/usr/lib/jvm/java-1.21.0-openjdk-amd64 ./gradlew assembleDebug
 ```
+Kotlin       2.2.10
+AGP          9.2.0
+Gradle       9.4.1
+Java target  17
+namespace    hu.billman.konsolessh
+minSdk       26   (Android 8.0)
+targetSdk    35   (Android 15)
+```
+
+```bash
+# Debug build + unit tests
+./gradlew :app:testDebugUnitTest
+
+# Signed release App Bundle (requires a configured keystore)
+./gradlew :app:bundleRelease
+```
+
+The **release** build is R8-minified and resource-shrunk. Reflection-heavy
+code (JSch, Gson model classes) is preserved via `app/proguard-rules.pro`.
+A `mapping.txt` is produced so the Play Console can deobfuscate stack traces.
 
 ## Usage
 
-1. **New connection**: tap `+` → select a saved connection or create a new one
-2. **Connect**: enter host, port (22), username, password / SSH key
-3. **Jump host**: fill in the gateway server details to reach internal machines
-4. **Close tab**: tap `✕` on the tab label (confirmation required if connection is active)
-5. **Rename tab**: long-press the tab
-6. **Zoom**: `+` / `−` buttons on the toolbar (setting persists)
-7. **Cheatsheet**: swipe left to the last page — Linux command reference
-8. **Close app**: tap `+` → *Alkalmazás bezárása* at the bottom of the menu
+1. **New connection**: tap `+` → *New connection…* → enter host, port (22), username, password or SSH key.
+2. **Jump host**: if the target is on an internal range (10./172./192.) the jump section appears automatically; pick a saved gateway connection.
+3. **Close tab**: tap `✕` on the tab label (confirmation if a connection is active).
+4. **Rename tab**: long-press the tab.
+5. **Zoom**: `+` / `−` on the toolbar (setting persists).
+6. **Cheat sheets**: swipe right past the welcome page — Linux, then tmux.
+7. **SFTP upload**: 📁 in the key bar → pick a file → uploads to the remote home (`~`), confirmation toast with an Undo.
+8. **Close app**: `+` → *Exit* at the bottom of the menu.
 
 ## Dependencies
 
-| Library | Version | Purpose |
-|---|---|---|
-| JSch (mwiede fork) | 0.2.16 | SSH protocol |
-| kotlinx-coroutines | 1.8.1 | Async SSH I/O |
-| ViewPager2 | 1.1.0 | Tab navigation |
-| Material Design 3 | 1.12.0 | UI components |
-| Gson | 2.10.1 | Connection profiles |
-| AndroidX Core | 1.13+ | ServiceCompat (foreground service) |
+| Library            | Version           | Purpose                                   |
+| ------------------ | ----------------- | ----------------------------------------- |
+| JSch (mwiede fork) | 0.2.16            | SSH + SFTP                                |
+| kotlinx-coroutines | 1.8.1             | Async SSH I/O                             |
+| ViewPager2         | 1.1.0             | Tab navigation                            |
+| Material Design    | 1.12.0            | UI components                             |
+| Gson               | 2.10.1            | Connection profile (de)serialisation      |
+| androidx.security  | 1.1.0-alpha06     | EncryptedSharedPreferences                |
+| AndroidX Core      | 1.13+             | ServiceCompat, WindowInsetsCompat         |
 
 ## Permissions
 
-| Permission | Reason |
-|---|---|
-| `INTERNET` | SSH connection |
-| `ACCESS_NETWORK_STATE` | Network state check |
-| `CHANGE_NETWORK_STATE` | Foreground service (connectedDevice type) |
-| `FOREGROUND_SERVICE` | Background service startup |
-| `FOREGROUND_SERVICE_CONNECTED_DEVICE` | Network foreground service (API 34+) |
-| `POST_NOTIFICATIONS` | Notification for active connections (API 33+) |
+| Permission                            | Reason                                                  |
+| ------------------------------------- | ------------------------------------------------------- |
+| `INTERNET`                            | SSH connection                                          |
+| `ACCESS_NETWORK_STATE`                | Network reachability checks                             |
+| `CHANGE_NETWORK_STATE`                | Foreground service (connectedDevice type)               |
+| `FOREGROUND_SERVICE`                  | Background service startup                              |
+| `FOREGROUND_SERVICE_CONNECTED_DEVICE` | Network foreground service (API 34+)                    |
+| `POST_NOTIFICATIONS`                  | Persistent session-keeper notification (API 33+)        |
+
+No data is collected, shared or uploaded. Credentials stay on the device in the encrypted keystore-backed store.
 
 ## Requirements
 
-- Android 8.0+ (API 26+)
-- Tablet recommended (landscape mode)
+- Android 8.0 (API 26) or newer
+- Phones and tablets, portrait and landscape both supported
 
----
+## Release history
 
-# KonsoleSSH — Magyar dokumentáció
-
-Többfüles SSH terminál Android tablethez — KDE Konsole ihlette.
-
-## Funkciók
-
-- **Többfüles UI** — TabLayout + ViewPager2, minden fülön külön SSH session
-- **SSH kapcsolatok** — JSch könyvtár, jelszó + privát kulcs (PEM) autentikáció
-- **Jump host támogatás** — belső hálózatok elérése átjáró szerveren át (port forwarding)
-- **Interaktív jelszókérés** — ha nincs mentett jelszó, dialógus kér be egyet kapcsolódáskor
-- **Mentett kapcsolatok** — profilok JSON-ban, SharedPreferences tárolással (ABC sorrend)
-- **Canvas terminál emulátor** — 256 szín + truecolor, bold, underline, reverse video, scrollback
-- **ANSI/VT100 + xterm-256color PTY** — bash/zsh/fish prompt helyesen jelenik meg
-- **NerdFont támogatás** — JetBrainsMono Nerd Font beépítve; emoji és surrogate-pair karakterek helyesen jelennek meg
-- **Extra billentyűsor** — ESC, TAB, Ctrl+C, Ctrl+D, Ctrl+V, Ctrl+Z, nyilak, Shift, Alt, AltGr, F1–F12
-- **Kapcsolat státusz jelzők** — zöld/sárga/piros jelölők a füleken és a fülválasztóban
-- **Betűméret zoom** — nagyítógombok, beállítás megmarad újraindítás után
-- **Üdvözlő oldal** — swipe-olható, vízszintes scroll nélkül
-- **Linux cheatsheet** — részletes parancs referencia (top, df, du, dd, tail, head, grep, egrep, awk, sed, tr, ip, mc)
-- **Háttérben tartás** — aktív SSH kapcsolatok életben maradnak képernyőzároláskor és felfelé húzáskor (Foreground Service)
-- **Újracsatlakozás gomb** — a terminál közepén jelenik meg, ha a kapcsolat megszakad
-- **Értesítő badge** — aktív kapcsolatok száma az app ikonon; koppintásra az app előjön
-- **Alkalmazás bezárása gomb** — a fülválasztó menü alján; aktív kapcsolat esetén megerősítést kér
-- **Barátságos hibaüzenetek** — nyers Java exception helyett érthető szöveg
-- **App ikon** — KONSOLE + SSH felirat, sötét háttér, terminál `> _` prompt grafika
-
-## Architektúra
-
-A sessionöket a `SshForegroundService` kezeli, nem a fragmentek. Ez azt jelenti:
-- A kapcsolatok túlélik az activity újraindítását (forgatás, vissza gomb, task removal)
-- A `TerminalFragment` az `onStart`/`onStop`-ban bindet/unbindet, és újracsatlakozáskor visszajátssza az output buffert
-- Az `OutputBuffer` sessionönként 256 KB kimenetet tárol visszajátszáshoz
-
-## Projekt struktúra
-
-```
-app/src/main/java/hu/szecsenyi/konsolessh/
-├── model/
-│   ├── ConnectionConfig.kt       — SSH kapcsolat adatok (host, port, user, auth, jump)
-│   └── SavedConnections.kt       — SharedPreferences alapú profil kezelés
-├── ssh/
-│   ├── SshSession.kt             — JSch SSH wrapper (connect/read/write/resize/jump)
-│   └── SshForegroundService.kt   — Foreground service; minden sessiont és output buffert kezel
-├── terminal/
-│   └── TerminalView.kt           — Canvas alapú terminál emulátor (VT100/xterm-256color)
-└── ui/
-    ├── MainActivity.kt            — Fő Activity, TabLayout + ViewPager2 koordináció, billentyűsor
-    ├── TerminalFragment.kt        — Terminal Fragment (SSH + cheatsheet + üdvözlő oldal)
-    ├── TerminalPagerAdapter.kt    — ViewPager2 adapter (fix lapok + SSH fülek)
-    ├── TabPickerSheet.kt          — Fülválasztó bottom sheet
-    ├── NewConnectionDialog.kt     — Új/szerkesztett SSH kapcsolat dialógus
-    └── ConnectionEditActivity.kt  — Mentett kapcsolatok kezelése
-```
-
-## Build
-
-```bash
-# Android Studio: File → Open → KonsoleSSH → Run
-# vagy parancssori (JDK 21 szükséges):
-JAVA_HOME=/usr/lib/jvm/java-1.21.0-openjdk-amd64 ./gradlew assembleDebug
-```
-
-## Használat
-
-1. **Új kapcsolat**: `+` gomb → mentett kapcsolat kiválasztása vagy új létrehozása
-2. **Csatlakozás**: host, port (22), felhasználó, jelszó / SSH kulcs megadása
-3. **Jump host**: belső gép elérésekor add meg az átjáró szerver adatait
-4. **Fül bezárása**: `✕` a fül nevén (aktív kapcsolatnál megerősítés kér)
-5. **Átnevezés**: hosszú nyomás a fülön
-6. **Zoom**: `+` / `−` gombok a toolbar-on (beállítás megmarad)
-7. **Cheatsheet**: húzz balra az utolsó lapra — Linux parancs referencia
-8. **Alkalmazás bezárása**: `+` gomb → *Alkalmazás bezárása* a menü alján
-
-## Függőségek
-
-| Library | Verzió | Célra |
-|---|---|---|
-| JSch (mwiede fork) | 0.2.16 | SSH protokoll |
-| kotlinx-coroutines | 1.8.1 | Async SSH I/O |
-| ViewPager2 | 1.1.0 | Fül navigáció |
-| Material Design 3 | 1.12.0 | UI komponensek |
-| Gson | 2.10.1 | Kapcsolat profilok |
-| AndroidX Core | 1.13+ | ServiceCompat (foreground service) |
-
-## Engedélyek
-
-| Engedély | Miért szükséges |
-|---|---|
-| `INTERNET` | SSH kapcsolat |
-| `ACCESS_NETWORK_STATE` | Hálózat állapot ellenőrzés |
-| `CHANGE_NETWORK_STATE` | Foreground service (connectedDevice típus) |
-| `FOREGROUND_SERVICE` | Háttér service indítás |
-| `FOREGROUND_SERVICE_CONNECTED_DEVICE` | Hálózati foreground service (API 34+) |
-| `POST_NOTIFICATIONS` | Értesítés aktív kapcsolatokról (API 33+) |
-
-## Rendszerkövetelmények
-
-- Android 8.0+ (API 26+)
-- Tablet ajánlott (landscape mód)
+- **1.0.2** — package renamed to `hu.billman.konsolessh`, tablet edge-to-edge fixes,
+  soft keyboard only on explicit request, SFTP upload with progress dialog and
+  Undo toast, R8 minification, Gradle 9.4.1 / AGP 9.2.0
+- **1.0.1** — `targetSdk = 35`, initial Play submission
+- **1.0.0** — multi-tab SSH, jump host, saved-connection tree, Linux and tmux
+  cheat sheets, Hungarian translation

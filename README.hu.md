@@ -23,7 +23,7 @@ Többfüles SSH terminál Androidra — KDE Konsole ihlette.
 - **Jump host támogatás (`ssh -J`)** — belső hálózatok elérése mentett átjáró-kapcsolaton át (lokális port-forward)
 - **Interaktív jelszókérés** — ha nincs mentett jelszó, dialógus kér be egyet csatlakozáskor
 - **Mentett kapcsolatok** — profilok AES256-tal titkosítva (`EncryptedSharedPreferences`, Android Keystore); ABC sorrend
-- **Fa-struktúrájú lista** — az `_`-lel tagolt nevek (pl. `cc_desktop_N`, `cc_laptop_L`) automatikusan csoportba kerülnek a kiválasztóban; ▶/▼ nyíllal nyílnak/csukódnak
+- **Fa-struktúrájú lista** — az `_`-lel tagolt nevek (pl. `acme_prod_web`, `acme_prod_db`, `foobar_dev_01`) automatikusan közös prefix szerint csoportosulnak. Itt `acme_` → `prod_` alá kerül az első kettő, a `foobar_dev_01` pedig önálló marad, mert egyedül van a saját prefixén. ▶/▼ nyíllal nyílnak/csukódnak.
 
 ### Terminál
 

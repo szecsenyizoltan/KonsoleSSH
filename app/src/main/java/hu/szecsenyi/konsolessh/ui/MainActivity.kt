@@ -138,9 +138,9 @@ class MainActivity : AppCompatActivity(), TabStatusListener {
         val activeCount = tabStatusMap.values.count { it == ConnectionStatus.CONNECTED }
         if (activeCount > 0) {
             androidx.appcompat.app.AlertDialog.Builder(this, R.style.KonsoleDialog)
-                .setMessage("$activeCount aktív kapcsolat van nyitva. Biztosan bezárod az alkalmazást?")
-                .setPositiveButton("Bezárás") { _, _ -> doCloseApp() }
-                .setNegativeButton("Mégse", null)
+                .setMessage(getString(R.string.close_app_confirm, activeCount))
+                .setPositiveButton(R.string.action_close) { _, _ -> doCloseApp() }
+                .setNegativeButton(R.string.action_cancel, null)
                 .show()
         } else {
             doCloseApp()
@@ -203,35 +203,20 @@ class MainActivity : AppCompatActivity(), TabStatusListener {
 
     private fun setupKeybar() {
         binding.btnKeyboard.setOnClickListener { toggleKeyboard() }
+        binding.btnFn.setOnClickListener { toggleFnbar() }
+        binding.btnArrowToggle.setOnClickListener { toggleArrowbar() }
 
-        binding.btnModCtrl.setOnClickListener  { toggleMod(binding.btnModCtrl,  ::modCtrl) }
+        binding.btnModCtrl.setOnClickListener  {
+            toggleMod(binding.btnModCtrl,  ::modCtrl)
+            binding.ctrlbarContainer.visibility = if (modCtrl) View.VISIBLE else View.GONE
+        }
+        setupCtrlbar()
         binding.btnModShift.setOnClickListener { toggleMod(binding.btnModShift, ::modShift) }
         binding.btnModAlt.setOnClickListener   { toggleMod(binding.btnModAlt,   ::modAlt) }
         binding.btnModAltGr.setOnClickListener { toggleMod(binding.btnModAltGr, ::modAltGr) }
 
         binding.btnEscape.setOnClickListener   { flashButton(binding.btnEscape);   sendKey(byteArrayOf(27)) }
         binding.btnTab.setOnClickListener      { flashButton(binding.btnTab);      sendKey(byteArrayOf(9)) }
-        binding.btnCtrlB.setOnClickListener    { flashButton(binding.btnCtrlB);    sendKey(byteArrayOf(2)) }
-        binding.btnCtrlC.setOnClickListener {
-            flashButton(binding.btnCtrlC)
-            val sel = currentFragment()?.getSelectedText() ?: ""
-            if (sel.isNotEmpty()) {
-                TerminalClipboard.text = sel
-                KonsoleToast.show(binding.root, "Másolva")
-            } else {
-                sendKey(byteArrayOf(3))
-            }
-        }
-        binding.btnCtrlD.setOnClickListener { flashButton(binding.btnCtrlD); sendKey(byteArrayOf(4)) }
-        binding.btnCtrlV.setOnClickListener {
-            flashButton(binding.btnCtrlV)
-            val clip = TerminalClipboard.text
-            if (!clip.isNullOrEmpty()) {
-                currentFragment()?.pasteText(clip)
-                KonsoleToast.show(binding.root, "Beillesztve")
-            }
-        }
-        binding.btnCtrlZ.setOnClickListener { flashButton(binding.btnCtrlZ); sendKey(byteArrayOf(26)) }
 
         binding.btnArrowUp.setOnClickListener    { flashButton(binding.btnArrowUp);    sendKey(currentFragment()?.cursorKeyBytes('A') ?: byteArrayOf()) }
         binding.btnArrowDown.setOnClickListener  { flashButton(binding.btnArrowDown);  sendKey(currentFragment()?.cursorKeyBytes('B') ?: byteArrayOf()) }
@@ -259,6 +244,58 @@ class MainActivity : AppCompatActivity(), TabStatusListener {
         if (bytes.isEmpty()) return
         currentFragment()?.sendBytes(applyModifiers(bytes))
         resetModifiers()
+        currentFragment()?.focusTerminal()
+    }
+
+    private fun setupCtrlbar() {
+        val container = binding.ctrlbarButtons
+        for (c in listOf('A', 'B', 'C', 'D', 'V', 'Z')) {
+            val btn = LayoutInflater.from(this).inflate(
+                R.layout.item_keybar_button, container, false
+            ) as Button
+            btn.text = "Ctrl+$c"
+            btn.setOnClickListener {
+                flashButton(btn)
+                when (c) {
+                    'C' -> {
+                        val sel = currentFragment()?.getSelectedText() ?: ""
+                        if (sel.isNotEmpty()) {
+                            TerminalClipboard.text = sel
+                            KonsoleToast.show(binding.root, getString(R.string.copied))
+                        } else {
+                            currentFragment()?.sendBytes(byteArrayOf(3))
+                            currentFragment()?.focusTerminal()
+                        }
+                    }
+                    'V' -> {
+                        val clip = TerminalClipboard.text
+                        if (!clip.isNullOrEmpty()) {
+                            currentFragment()?.pasteText(clip)
+                            KonsoleToast.show(binding.root, getString(R.string.pasted))
+                        }
+                    }
+                    else -> {
+                        val code = (c.code - 'A'.code + 1).toByte()
+                        currentFragment()?.sendBytes(byteArrayOf(code))
+                        currentFragment()?.focusTerminal()
+                    }
+                }
+            }
+            container.addView(btn)
+        }
+    }
+
+    private fun toggleFnbar() {
+        val visible = binding.fnbarContainer.visibility == View.VISIBLE
+        binding.fnbarContainer.visibility = if (visible) View.GONE else View.VISIBLE
+        updateModButton(binding.btnFn, !visible)
+        currentFragment()?.focusTerminal()
+    }
+
+    private fun toggleArrowbar() {
+        val visible = binding.arrowbarContainer.visibility == View.VISIBLE
+        binding.arrowbarContainer.visibility = if (visible) View.GONE else View.VISIBLE
+        updateModButton(binding.btnArrowToggle, !visible)
         currentFragment()?.focusTerminal()
     }
 
@@ -295,7 +332,11 @@ class MainActivity : AppCompatActivity(), TabStatusListener {
     }
 
     fun resetModifiers() {
-        if (modCtrl)  { modCtrl  = false; updateModButton(binding.btnModCtrl,  false) }
+        if (modCtrl)  {
+            modCtrl  = false
+            updateModButton(binding.btnModCtrl, false)
+            binding.ctrlbarContainer.visibility = View.GONE
+        }
         if (modShift) { modShift = false; updateModButton(binding.btnModShift, false) }
         if (modAlt)   { modAlt   = false; updateModButton(binding.btnModAlt,   false) }
         if (modAltGr) { modAltGr = false; updateModButton(binding.btnModAltGr, false) }
@@ -429,9 +470,9 @@ class MainActivity : AppCompatActivity(), TabStatusListener {
         val status = tabStatusMap[pagerAdapter.getTab(internalIdx)?.id] ?: ConnectionStatus.NONE
         if (status == ConnectionStatus.CONNECTED) {
             AlertDialog.Builder(this, R.style.KonsoleDialog)
-                .setMessage("Bezárod a '$title' fület?")
-                .setPositiveButton("Bezárás") { _, _ -> closeTab(internalIdx) }
-                .setNegativeButton("Mégse", null).show()
+                .setMessage(getString(R.string.close_tab_confirm, title))
+                .setPositiveButton(R.string.action_close) { _, _ -> closeTab(internalIdx) }
+                .setNegativeButton(R.string.action_cancel, null).show()
         } else {
             closeTab(internalIdx)
         }
@@ -440,20 +481,20 @@ class MainActivity : AppCompatActivity(), TabStatusListener {
     private fun showRenameDialog(internalIdx: Int, currentTitle: String) {
         val editText = EditText(this).apply {
             setText(currentTitle); selectAll()
-            hint = "Fül neve / komment"
+            hint = getString(R.string.tab_name_hint)
             setBackgroundColor(Color.WHITE); setTextColor(Color.BLACK); setHintTextColor(Color.GRAY)
         }
         val p = resources.getDimensionPixelSize(R.dimen.dialog_padding)
         editText.setPadding(p, p / 2, p, p / 2)
         AlertDialog.Builder(this, R.style.KonsoleDialog)
-            .setTitle("Fül átnevezése").setView(editText)
-            .setPositiveButton("OK") { _, _ ->
+            .setTitle(R.string.dialog_rename_tab_title).setView(editText)
+            .setPositiveButton(R.string.action_ok) { _, _ ->
                 val newTitle = editText.text.toString().trim().ifEmpty { currentTitle }
                 pagerAdapter.renameTab(internalIdx, newTitle)
                 sshService?.renameTab(pagerAdapter.getTab(internalIdx)?.id ?: "", newTitle)
                 rebuildTabs()
             }
-            .setNegativeButton("Mégse", null).show()
+            .setNegativeButton(R.string.action_cancel, null).show()
     }
 
     // ── Tab picker ────────────────────────────────────────────────────────────
@@ -482,7 +523,7 @@ class MainActivity : AppCompatActivity(), TabStatusListener {
     // ── Tab management ────────────────────────────────────────────────────────
 
     private fun openTab(config: ConnectionConfig?, title: String? = null) {
-        val tabTitle = title ?: config?.displayName() ?: "Terminal"
+        val tabTitle = title ?: config?.displayName() ?: getString(R.string.default_tab_title)
         val tabInfo = TabInfo(config = config, title = tabTitle)
         sshService?.addTab(tabInfo)
         pagerAdapter.addTab(tabInfo)
@@ -549,7 +590,7 @@ class MainActivity : AppCompatActivity(), TabStatusListener {
             val viewPos = binding.viewPager.currentItem
             if (!pagerAdapter.isFixedPage(viewPos)) {
                 val internalIdx = viewPos - 1
-                val title = pagerAdapter.getTab(internalIdx)?.title ?: "fül"
+                val title = pagerAdapter.getTab(internalIdx)?.title ?: getString(R.string.default_tab_word)
                 confirmCloseTab(internalIdx, title)
             }
             true

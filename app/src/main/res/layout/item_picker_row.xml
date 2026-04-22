@@ -62,7 +62,7 @@
         android:src="@drawable/ic_edit"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:tint="@color/accent"
-        android:contentDescription="Szerkesztés"
+        android:contentDescription="@string/content_desc_edit"
         android:visibility="gone" />
 
     <ImageButton
@@ -72,7 +72,7 @@
         android:src="@drawable/ic_delete"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:tint="@color/error_color"
-        android:contentDescription="Törlés"
+        android:contentDescription="@string/content_desc_delete"
         android:visibility="gone" />
 
 </LinearLayout>

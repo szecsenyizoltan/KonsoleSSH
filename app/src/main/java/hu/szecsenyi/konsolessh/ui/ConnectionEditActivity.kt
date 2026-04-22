@@ -23,7 +23,7 @@ class ConnectionEditActivity : AppCompatActivity() {
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = "Mentett kapcsolatok"
+        supportActionBar?.title = getString(hu.szecsenyi.konsolessh.R.string.manage_connections)
 
         refreshList()
 
@@ -53,12 +53,12 @@ class ConnectionEditActivity : AppCompatActivity() {
             }
             itemView.findViewById<View>(hu.szecsenyi.konsolessh.R.id.btnDelete).setOnClickListener {
                 AlertDialog.Builder(this, hu.szecsenyi.konsolessh.R.style.KonsoleDialog)
-                    .setMessage("Törlöd a \"${config.displayName()}\" kapcsolatot?")
-                    .setPositiveButton("Törlés") { _, _ ->
+                    .setMessage(getString(hu.szecsenyi.konsolessh.R.string.delete_connection_confirm, config.displayName()))
+                    .setPositiveButton(hu.szecsenyi.konsolessh.R.string.action_delete) { _, _ ->
                         SavedConnections.delete(this, config.id)
                         refreshList()
                     }
-                    .setNegativeButton("Mégse", null)
+                    .setNegativeButton(hu.szecsenyi.konsolessh.R.string.action_cancel, null)
                     .show()
             }
             binding.containerConnections.addView(itemView)

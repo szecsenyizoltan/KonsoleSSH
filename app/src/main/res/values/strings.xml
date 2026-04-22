@@ -1,15 +1,132 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">KonsoleSSH</string>
-    <string name="new_connection">Új kapcsolat</string>
-    <string name="connect">Csatlakozás</string>
-    <string name="disconnect">Lecsatlakozás</string>
-    <string name="close_tab">Fül bezárása</string>
-    <string name="manage_connections">Mentett kapcsolatok</string>
-    <string name="host">Szerver</string>
+
+    <!-- Menu / actions -->
+    <string name="new_connection">New connection</string>
+    <string name="new_connection_dots">New connection…</string>
+    <string name="connect">Connect</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="close_tab">Close tab</string>
+    <string name="manage_connections">Saved connections</string>
+    <string name="exit">Exit</string>
+    <string name="action_ok">OK</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_close">Close</string>
+    <string name="action_save">Save</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_reconnect">Retry</string>
+
+    <!-- Form fields -->
+    <string name="host">Server</string>
     <string name="port">Port</string>
-    <string name="username">Felhasználónév</string>
-    <string name="password">Jelszó</string>
-    <string name="private_key">SSH kulcs</string>
-    <string name="save_connection">Kapcsolat mentése</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="private_key">SSH key</string>
+    <string name="save_connection">Save connection</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_new_connection_title">New SSH connection</string>
+    <string name="dialog_edit_connection_title">Edit connection</string>
+    <string name="dialog_rename_tab_title">Rename tab</string>
+    <string name="tab_name_hint">Tab name / comment</string>
+    <string name="load_saved_connection">Load saved connection:</string>
+    <string name="connection_name_hint">Connection name (optional)</string>
+    <string name="host_hint">Host (IP or hostname) *</string>
+    <string name="host_internal_hint">Internal host (IP or hostname) *</string>
+    <string name="port_hint">Port</string>
+    <string name="port_internal_hint">Internal port</string>
+    <string name="username_hint">Username *</string>
+    <string name="password_hint_optional">Password (optional)</string>
+    <string name="pick_key_file">📂 Pick key file…</string>
+    <string name="configure_jump_host">🌐 Configure jump host…</string>
+    <string name="jump_host_section_title">Jump host (external network)</string>
+    <string name="jump_host_pick_hint">Pick a saved external connection to connect through:</string>
+    <string name="jump_host_none">No jump host (direct)</string>
+
+    <!-- Validation / warnings -->
+    <string name="warning_public_key">Warning: this is a public key (.pub). A private key is required.</string>
+    <string name="error_read_file">Could not read: %1$s</string>
+    <string name="error_host_required">Server address required</string>
+    <string name="error_username_required">Username required</string>
+    <string name="password_required">Password required</string>
+
+    <!-- Toasts -->
+    <string name="copied">Copied</string>
+    <string name="pasted">Pasted</string>
+
+    <!-- Tab picker -->
+    <string name="tab_active">active</string>
+    <string name="open_tabs">Open tabs</string>
+    <string name="group_n_connections">%1$d connections</string>
+
+    <!-- Confirmations -->
+    <string name="delete_connection_confirm">Delete the \"%1$s\" connection?</string>
+    <string name="close_tab_confirm">Close the \'%1$s\' tab?</string>
+    <string name="close_app_confirm">%1$d active connections are open. Really close the app?</string>
+    <string name="no_saved_connections">No saved connections.</string>
+
+    <!-- Content descriptions -->
+    <string name="content_desc_new_tab">New tab</string>
+    <string name="content_desc_zoom_out">Zoom out</string>
+    <string name="content_desc_zoom_in">Zoom in</string>
+    <string name="content_desc_add_connection">Add new connection</string>
+    <string name="content_desc_edit">Edit</string>
+    <string name="content_desc_delete">Delete</string>
+    <string name="content_desc_exit">Exit</string>
+
+    <!-- Status bar / terminal messages -->
+    <string name="status_no_connection">Not connected</string>
+    <string name="status_connecting">Connecting: %1$s…</string>
+    <string name="status_connected_suffix">%1$s ● Connected</string>
+    <string name="status_disconnected_suffix">%1$s ○ Disconnected</string>
+    <string name="terminal_connecting_host">Connecting: %1$s:%2$d…\r\n</string>
+    <string name="terminal_reconnecting">\r\n[Reconnecting…]\r\n</string>
+    <string name="terminal_connection_closed">\r\n[Connection closed]\r\n</string>
+    <string name="terminal_jump_progress">Jump: %1$s:%2$d…\r\n</string>
+    <string name="terminal_jump_ok">Jump OK → Connecting: %1$s:%2$d…\r\n</string>
+    <string name="error_jump_not_found">Error: the jump connection was not found among saved connections.\r\n</string>
+    <string name="error_generic">Error: %1$s\r\n</string>
+
+    <!-- Password prompt -->
+    <string name="password_prompt_message">Password required</string>
+
+    <!-- Notification / service -->
+    <string name="service_idle">Running in the background</string>
+    <string name="service_one_active">1 active SSH connection</string>
+    <string name="service_n_active">%1$d active SSH connections</string>
+    <string name="channel_idle_name">SSH background service</string>
+    <string name="channel_idle_desc">Running in the background, no active connection</string>
+    <string name="channel_active_name">SSH active connection</string>
+    <string name="channel_active_desc">Keeping active SSH connections alive</string>
+
+    <!-- Default titles -->
+    <string name="default_tab_title">Terminal</string>
+    <string name="default_tab_word">tab</string>
+
+    <!-- Friendly errors -->
+    <string name="err_connection_refused">Connection refused — the server does not accept connections on this port.</string>
+    <string name="err_timeout">Timeout — the server is not responding.</string>
+    <string name="err_no_route">Server unreachable — check the network and the IP address.</string>
+    <string name="err_network_unreachable">The network is unreachable.</string>
+    <string name="err_unknown_host">Unknown hostname — DNS error or typo.</string>
+    <string name="err_auth_failed">Authentication failed — wrong password or key.</string>
+    <string name="err_userauth_failed">Authentication failed — rejected by the server.</string>
+    <string name="err_conn_closed">The connection was closed unexpectedly.</string>
+    <string name="err_broken_pipe">Connection lost (broken pipe).</string>
+    <string name="err_port_forwarding">Port forwarding error — the jump server does not allow it.</string>
+    <string name="err_channel">SSH channel error — the server closed the session.</string>
+
+    <!-- Welcome banner -->
+    <string name="welcome_line_1">Inspired by KDE Konsole,</string>
+    <string name="welcome_line_2">crafted for Android.</string>
+    <string name="welcome_line_3">SSH terminal emulator</string>
+    <string name="welcome_line_4">for managing multiple</string>
+    <string name="welcome_line_5">parallel connections in tabs.</string>
+    <string name="welcome_line_6">With jump host support,</string>
+    <string name="welcome_line_7">internal networks are</string>
+    <string name="welcome_line_8">also reachable.</string>
+    <string name="welcome_line_9">New connection: \'+\' button</string>
+    <string name="welcome_swipe_hint">Swipe right for help.</string>
 </resources>

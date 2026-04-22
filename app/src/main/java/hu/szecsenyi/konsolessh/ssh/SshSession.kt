@@ -16,7 +16,23 @@ import java.io.OutputStream
 import java.util.Properties
 import java.util.concurrent.TimeUnit
 
-class SshSession(private val config: ConnectionConfig, private val jumpConfig: ConnectionConfig? = null) {
+class SshSession(
+    private val config: ConnectionConfig,
+    private val jumpConfig: ConnectionConfig? = null,
+    private val messages: Messages = Messages.Default
+) {
+
+    data class Messages(
+        val jumpProgress: (host: String, port: Int) -> String,
+        val jumpOk: (host: String, port: Int) -> String
+    ) {
+        companion object {
+            val Default = Messages(
+                jumpProgress = { h, p -> "Jump: $h:$p...\r\n" },
+                jumpOk       = { h, p -> "Jump OK → Connecting: $h:$p...\r\n" }
+            )
+        }
+    }
 
     companion object {
         private const val CONNECT_TIMEOUT_MS       = 15_000
@@ -102,12 +118,16 @@ class SshSession(private val config: ConnectionConfig, private val jumpConfig: C
                 js.setConfig("PreferredAuthentications", buildPreferredAuths(jumpConfig))
                 if (jumpConfig.password.isNotBlank()) js.setPassword(jumpConfig.password)
                 js.userInfo = JschUserInfo("${jumpConfig.username}@${jumpConfig.host}")
-                withContext(Dispatchers.Main) { onProgress("Jump: ${jumpConfig.host}:${jumpConfig.port}...\r\n") }
+                withContext(Dispatchers.Main) {
+                    onProgress(messages.jumpProgress(jumpConfig.host, jumpConfig.port))
+                }
                 js.connect(CONNECT_TIMEOUT_MS)
                 jumpSession = js
                 // Local port forward through jump to target
                 val localPort = js.setPortForwardingL(0, config.host, config.port)
-                withContext(Dispatchers.Main) { onProgress("Jump OK → Csatlakozás: ${config.host}:${config.port}...\r\n") }
+                withContext(Dispatchers.Main) {
+                    onProgress(messages.jumpOk(config.host, config.port))
+                }
 
                 val jsch = JSch()
                 if (config.privateKey.isNotBlank()) {

@@ -13,7 +13,7 @@
     <!-- > chevron -->
     <path
         android:strokeColor="#E95420"
-        android:strokeWidth="13"
+        android:strokeWidth="8"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
         android:fillColor="@android:color/transparent"
@@ -22,6 +22,6 @@
     <!-- _ underscore -->
     <path
         android:fillColor="#E95420"
-        android:pathData="M 60,66 H 86 V 76 H 60 Z" />
+        android:pathData="M 60,70 H 86 V 76 H 60 Z" />
 
 </vector>

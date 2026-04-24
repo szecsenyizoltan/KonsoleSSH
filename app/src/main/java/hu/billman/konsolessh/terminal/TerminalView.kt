@@ -89,6 +89,15 @@ class TerminalView @JvmOverloads constructor(
     private var altScreenActive = false
     private val scrollback = ArrayDeque<Array<Cell>>()
 
+    /**
+     * Fázis 5 / Lépés 5: párhuzamos TerminalBuffer-mirror. A View saját
+     * belső [screen] és [scrollback]-je ebben a commitban még a kanonikus
+     * állapot — a Buffer mellékfolyásként kap minden write/clear/resize
+     * hívást, hogy Lépés 6-ban a renderer átléphessen rá anélkül, hogy
+     * az átmenet pillanatában üres lenne.
+     */
+    internal val buffer = TerminalBuffer(initialCols = MIN_COLS, initialRows = 24)
+
     // ── Cursor ────────────────────────────────────────────────────────────────
 
     private var curRow = 0; private var curCol = 0
@@ -241,6 +250,7 @@ class TerminalView @JvmOverloads constructor(
         scrollTop = 0; scrollBot = termRows - 1
         curRow = curRow.coerceIn(0, termRows - 1)
         curCol = curCol.coerceIn(0, termCols - 1)
+        buffer.resize(nc, nr)  // Fázis 5 mirror
         onTerminalResize?.invoke(termCols, termRows)
     }
 
@@ -320,6 +330,7 @@ class TerminalView @JvmOverloads constructor(
 
     fun append(bytes: ByteArray, length: Int) {
         processBytes(bytes, length)
+        buffer.write(bytes, length)  // Fázis 5 mirror — a render még a View-screenből jön
         scrollRowOff = 0
         invalidate()
     }
@@ -327,6 +338,7 @@ class TerminalView @JvmOverloads constructor(
     fun clear() {
         screen = newScreen(); curRow = 0; curCol = 0
         scrollTop = 0; scrollBot = termRows - 1
+        buffer.clearScreen()
         invalidate()
     }
 

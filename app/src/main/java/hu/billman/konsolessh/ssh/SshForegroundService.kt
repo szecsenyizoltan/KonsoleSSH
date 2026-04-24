@@ -71,15 +71,11 @@ class SshForegroundService : Service() {
         var readJob: Job? = null,
         var status: ConnectionStatus = ConnectionStatus.CONNECTING,
         val outputBuffer: OutputBuffer = OutputBuffer(),
-        var dataListener: ((ByteArray) -> Unit)? = null,
-        var statusListener: ((ConnectionStatus) -> Unit)? = null,
         var passwordPrompter: PasswordPrompterFn? = null,
-        var connectErrorListener: ((String) -> Unit)? = null,
     ) {
         /**
-         * Flow-alapú esemény-stream. Helyettesítendő a régi callback-slotokat
-         * (dataListener / statusListener / connectErrorListener). A password-
-         * prompter külön marad, mert request/response szemantikájú.
+         * Session-események Flow-felülete (data / status / connect-error). A
+         * password-prompt külön marad, mert request/response szemantikájú.
          */
         val events: MutableSharedFlow<SessionEvent> = MutableSharedFlow(
             replay = 0,
@@ -188,13 +184,11 @@ class SshForegroundService : Service() {
                     refreshNotification()
                     val friendly = friendlyError(err)
                     state.events.tryEmit(SessionEvent.ConnectError(friendly))
-                    val listener = state.connectErrorListener
-                    if (listener != null) {
-                        // UI wants to show the error itself (toast + auto-close).
-                        listener.invoke(friendly)
-                    } else {
-                        // No listener attached (fragment detached) — fall back to
-                        // writing the error to the terminal so it is not lost.
+                    // Ha az eseménynek épp nincs collectora (Fragment detached),
+                    // a Flow replay=0 miatt később érkező subscriber nem fogja
+                    // látni — ezért fallback: a hibát a terminál-outputBufferbe
+                    // is beleírjuk, így replayBuffer()-en át láthatóvá válik.
+                    if (state.events.subscriptionCount.value == 0) {
                         emitData(state, getString(R.string.error_generic, friendly).toByteArray())
                     }
                 }
@@ -207,7 +201,6 @@ class SshForegroundService : Service() {
         state.readJob?.cancel()
         state.session.disconnect()
         state.events.tryEmit(SessionEvent.StatusChange(ConnectionStatus.DISCONNECTED))
-        state.statusListener?.invoke(ConnectionStatus.DISCONNECTED)
         refreshNotification()
     }
 
@@ -291,32 +284,8 @@ class SshForegroundService : Service() {
     fun events(tabId: String): SharedFlow<SessionEvent>? =
         sessions[tabId]?.events?.asSharedFlow()
 
-    @Deprecated(
-        message = "Use events(tabId) SharedFlow with collect { if (it is SessionEvent.Data) … } in the UI layer.",
-        replaceWith = ReplaceWith("events(tabId)"),
-    )
-    fun setDataListener(tabId: String, listener: ((ByteArray) -> Unit)?) {
-        sessions[tabId]?.dataListener = listener
-    }
-
-    @Deprecated(
-        message = "Use events(tabId) SharedFlow with collect { if (it is SessionEvent.StatusChange) … } in the UI layer.",
-        replaceWith = ReplaceWith("events(tabId)"),
-    )
-    fun setStatusListener(tabId: String, listener: ((ConnectionStatus) -> Unit)?) {
-        sessions[tabId]?.statusListener = listener
-    }
-
     fun setPasswordPrompter(tabId: String, prompter: PasswordPrompterFn?) {
         sessions[tabId]?.passwordPrompter = prompter
-    }
-
-    @Deprecated(
-        message = "Use events(tabId) SharedFlow with collect { if (it is SessionEvent.ConnectError) … } in the UI layer.",
-        replaceWith = ReplaceWith("events(tabId)"),
-    )
-    fun setConnectErrorListener(tabId: String, listener: ((String) -> Unit)?) {
-        sessions[tabId]?.connectErrorListener = listener
     }
 
     // ── Private ───────────────────────────────────────────────────────────────
@@ -324,14 +293,12 @@ class SshForegroundService : Service() {
     private fun emitData(state: SessionState, bytes: ByteArray) {
         state.outputBuffer.append(bytes)
         state.events.tryEmit(SessionEvent.Data(bytes))
-        state.dataListener?.invoke(bytes)
     }
 
     private fun updateStatus(tabId: String, status: ConnectionStatus) {
         val state = sessions[tabId] ?: return
         state.status = status
         state.events.tryEmit(SessionEvent.StatusChange(status))
-        state.statusListener?.invoke(status)
     }
 
     private fun startReading(tabId: String) {
@@ -347,7 +314,6 @@ class SshForegroundService : Service() {
                         val copy = buf.copyOf(n)
                         state.outputBuffer.append(copy)
                         state.events.tryEmit(SessionEvent.Data(copy))
-                        launch(Dispatchers.Main) { state.dataListener?.invoke(copy) }
                     }
                 }
             } catch (_: Exception) {}
@@ -357,7 +323,6 @@ class SshForegroundService : Service() {
                 val msg = getString(R.string.terminal_connection_closed).toByteArray()
                 state.outputBuffer.append(msg)
                 state.events.tryEmit(SessionEvent.Data(msg))
-                state.dataListener?.invoke(msg)
             }
         }
     }

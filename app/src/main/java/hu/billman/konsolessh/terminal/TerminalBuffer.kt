@@ -88,20 +88,125 @@ class TerminalBuffer(
     /** scrollback + rows — a scrollable logikai sor-univerzum mérete. */
     val totalLines: Int get() = scrollback.size + _rows
 
-    // ── Ingestion (STUB — Lépés 3–4 tölti) ───────────────────────────────────
+    // ── Ingestion ────────────────────────────────────────────────────────────
 
     /**
-     * PTY bájtok etetése. Lépés 3–4-ben UTF-8 dekódolás + ANSI FSM.
-     * Jelenleg NOOP.
+     * PTY bájtok etetése. A NORMAL ág (látható karakterek, CR/LF/BS/TAB,
+     * wraparound, scrollback) Lépés 3-ban élesedett; az ESCAPE / CSI / OSC /
+     * DCS / CHARSET ágak ebben a commitban csendben elnyelik a következő
+     * bájtot (1 karakter consume + visszatérés NORMAL-ba), funkcionálisan
+     * NOOP-ként. Ezeket Lépés 4 tölti fel a teljes dispatch-csel.
      */
     fun write(bytes: ByteArray, length: Int = bytes.size) {
-        // Lépés 3: NORMAL ág (CR, LF, BS, TAB, printChar)
-        // Lépés 4: ESCAPE / CSI / OSC / DCS / CHARSET ágak
+        processBytes(bytes, length)
+        notifyChanged()
     }
 
     /** Konvencia: teszt-egyszerűsítő UTF-8 string-bemenet. */
     fun writeString(text: String) {
         write(text.toByteArray(Charsets.UTF_8))
+    }
+
+    private fun processBytes(bytes: ByteArray, length: Int) {
+        val text = String(bytes, 0, length, Charsets.UTF_8)
+        var i = 0
+        while (i < text.length) {
+            val ch = text[i]
+            // Supplementary character (emoji, symbols above U+FFFF):
+            // tárolás surrogate-pair stringként egyetlen cellában.
+            if (ch.isHighSurrogate() && i + 1 < text.length && text[i + 1].isLowSurrogate()) {
+                if (ansiState == AnsiState.NORMAL) printChar(text.substring(i, i + 2))
+                i += 2
+                continue
+            }
+            i++
+            when (ansiState) {
+                AnsiState.NORMAL -> when (ch) {
+                    '\u001B'              -> ansiState = AnsiState.ESCAPE
+                    '\r'                  -> _cursorCol = 0
+                    '\n'                  -> lineFeed()
+                    '\b'                  -> { if (_cursorCol > 0) _cursorCol-- }
+                    '\t'                  -> {
+                        _cursorCol = ((_cursorCol / 8) + 1) * 8
+                        if (_cursorCol >= _cols) _cursorCol = _cols - 1
+                    }
+                    '\u0007'              -> { /* BEL */ }
+                    '\u000E', '\u000F'    -> { /* SO/SI: ignore */ }
+                    '\u009B'              -> { ansiState = AnsiState.CSI; csiParams.clear() }
+                    '\u009D'              -> ansiState = AnsiState.OSC
+                    '\u0090'              -> ansiState = AnsiState.DCS
+                    in '\u0080'..'\u009F' -> { /* other C1: silently ignore */ }
+                    else                  -> if (ch >= ' ') printChar(ch)
+                }
+                AnsiState.ESCAPE -> {
+                    // Lépés 4 előtt: a bevezető karakterek alapján átlépünk a megfelelő
+                    // alállapotba (CSI, OSC, DCS, CHARSET), ahol a payload-bájtokat
+                    // csendben elnyeljük. Egyéb ESC parancsok (M, 7, 8, c) NOOP-ok.
+                    when (ch) {
+                        '[' -> { ansiState = AnsiState.CSI; csiParams.clear() }
+                        ']' -> ansiState = AnsiState.OSC
+                        'P', 'X', '^', '_' -> ansiState = AnsiState.DCS
+                        '(', ')', '*', '+' -> ansiState = AnsiState.CHARSET
+                        else -> ansiState = AnsiState.NORMAL
+                    }
+                }
+                AnsiState.CHARSET -> {
+                    // Consume charset designator byte ('B' = ASCII, '0' = graphics, stb.)
+                    ansiState = AnsiState.NORMAL
+                }
+                AnsiState.CSI -> {
+                    if (ch.isDigit() || ch == ';' || ch == '?' ||
+                        ch == '>' || ch == '<' || ch == '!' || ch == '=' || ch == '$') {
+                        csiParams.append(ch)
+                    } else {
+                        // Lépés 4-ig a CSI-dispatch nincs implementálva; a bájtot silent consume.
+                        csiParams.clear()
+                        ansiState = AnsiState.NORMAL
+                    }
+                }
+                AnsiState.OSC, AnsiState.DCS -> {
+                    when (ch) {
+                        '\u0007' -> ansiState = AnsiState.NORMAL   // BEL terminates OSC
+                        '\u001B' -> ansiState = AnsiState.ESCAPE   // ESC \ (ST) — consume \
+                    }
+                    // egyéb payload-bájt csendben elnyelve
+                }
+            }
+        }
+    }
+
+    private fun printChar(ch: Char) = printChar(ch.toString())
+
+    private fun printChar(ch: String) {
+        if (_cursorCol >= _cols) { _cursorCol = 0; lineFeed() }
+        screen[_cursorRow][_cursorCol].apply {
+            this.ch = ch
+            fg = curFg
+            bg = curBg
+            bold = curBold
+            underline = curUnderline
+            reverse = curReverse
+        }
+        _cursorCol++
+    }
+
+    private fun lineFeed() {
+        if (_cursorRow < scrollBot) _cursorRow++ else scrollRegionUp()
+    }
+
+    private fun scrollRegionUp() {
+        if (scrollTop == 0 && !_altScreenActive) {
+            scrollback.addLast(screen[0])
+            if (scrollback.size > maxScrollback) scrollback.removeFirst()
+        }
+        for (r in scrollTop until scrollBot) screen[r] = screen[r + 1]
+        screen[scrollBot] = blankRow(_cols)
+    }
+
+    @Suppress("unused")
+    private fun scrollRegionDown() {
+        for (r in scrollBot downTo scrollTop + 1) screen[r] = screen[r - 1]
+        screen[scrollTop] = blankRow(_cols)
     }
 
     // ── Lifecycle (STUB — Lépés 4–5 tölti) ───────────────────────────────────
@@ -163,6 +268,9 @@ class TerminalBuffer(
         const val DEFAULT_MAX_SCROLLBACK = 3000
 
         private fun newScreen(cols: Int, rows: Int): Array<TermLine> =
-            Array(rows) { Array(cols) { TermCell.blank() } }
+            Array(rows) { blankRow(cols) }
+
+        private fun blankRow(cols: Int): TermLine =
+            Array(cols) { TermCell.blank() }
     }
 }

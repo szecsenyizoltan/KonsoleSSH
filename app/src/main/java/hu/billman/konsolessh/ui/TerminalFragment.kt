@@ -347,12 +347,20 @@ class TerminalFragment : Fragment() {
             getString(R.string.welcome_line_9)
         )
         val banner = buildString {
-            append("\r\n\r\n  $title\r\n\r\n")
+            append("\r\n\r\n  $title  $ch v${readVersionName()}$r\r\n\r\n")
             descLines.forEach { line -> if (line.isEmpty()) append("\r\n") else append("$cs  $line$r\r\n") }
             append("\r\n$ch  ${getString(R.string.welcome_swipe_hint)}$r\r\n")
         }
         val bytes = banner.toByteArray(Charsets.UTF_8)
         binding.terminalView.append(bytes, bytes.size)
+    }
+
+    private fun readVersionName(): String = try {
+        val ctx = requireContext()
+        @Suppress("DEPRECATION")
+        ctx.packageManager.getPackageInfo(ctx.packageName, 0).versionName ?: "?"
+    } catch (_: Exception) {
+        "?"
     }
 
     private fun showCheatSheet() {

@@ -363,10 +363,10 @@ class TerminalView @JvmOverloads constructor(
 
     /** Request focus AND open the soft keyboard (explicit user intent). */
     fun focusAndShowKeyboard() {
-        post {
-            requestFocus()
-            context.getSystemService<InputMethodManager>()
-                ?.showSoftInput(this, InputMethodManager.SHOW_FORCED)
+        requestFocus()
+        val imm = context.getSystemService<InputMethodManager>() ?: return
+        if (!imm.showSoftInput(this, 0)) {
+            post { imm.showSoftInput(this, 0) }
         }
     }
 

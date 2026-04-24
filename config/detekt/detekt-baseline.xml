@@ -1,0 +1,58 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues></ManuallySuppressedIssues>
+  <CurrentIssues>
+    <ID>ComplexCondition:MainActivity.kt$MainActivity$!modCtrl &amp;&amp; !modShift &amp;&amp; !modAlt &amp;&amp; !modAltGr</ID>
+    <ID>ComplexCondition:MainActivity.kt$MainActivity$event.keyCode != KeyEvent.KEYCODE_BACK &amp;&amp; event.keyCode != KeyEvent.KEYCODE_HOME &amp;&amp; event.keyCode != KeyEvent.KEYCODE_VOLUME_UP &amp;&amp; event.keyCode != KeyEvent.KEYCODE_VOLUME_DOWN</ID>
+    <ID>ComplexCondition:TerminalBuffer.kt$TerminalBuffer$ch.isDigit() || ch == ';' || ch == '?' || ch == '&gt;' || ch == '&lt;' || ch == '!' || ch == '=' || ch == '$'</ID>
+    <ID>CyclomaticComplexMethod:SshForegroundService.kt$SshForegroundService$private fun friendlyError(err: Throwable): String</ID>
+    <ID>CyclomaticComplexMethod:TerminalBuffer.kt$TerminalBuffer$private fun handleCSI(cmd: Char, params: String)</ID>
+    <ID>CyclomaticComplexMethod:TerminalBuffer.kt$TerminalBuffer$private fun handleSGR(params: String)</ID>
+    <ID>CyclomaticComplexMethod:TerminalBuffer.kt$TerminalBuffer$private fun processBytes(bytes: ByteArray, length: Int)</ID>
+    <ID>CyclomaticComplexMethod:TerminalView.kt$TerminalView$override fun onDraw(canvas: Canvas)</ID>
+    <ID>CyclomaticComplexMethod:TerminalView.kt$TerminalView$private fun keyCodeToBytes(keyCode: Int, event: KeyEvent): ByteArray?</ID>
+    <ID>EmptyFunctionBlock:MainActivity.kt$MainActivity.&lt;no name provided&gt;${}</ID>
+    <ID>EmptyFunctionBlock:NewConnectionDialog.kt$NewConnectionDialog.&lt;no name provided&gt;${}</ID>
+    <ID>EmptyFunctionBlock:SshForegroundService.kt$SshForegroundService.Companion.&lt;no name provided&gt;${}</ID>
+    <ID>EmptyFunctionBlock:SshSession.kt$SshSession.JschUserInfo${}</ID>
+    <ID>LongMethod:SshSession.kt$SshSession$suspend fun connect( termCols: Int = 80, termRows: Int = 24, onProgress: (String) -&gt; Unit = {}, onConnected: () -&gt; Unit, onError: (Throwable) -&gt; Unit )</ID>
+    <ID>LoopWithTooManyJumpStatements:AnsiParser.kt$AnsiParser$while</ID>
+    <ID>LoopWithTooManyJumpStatements:SshKeyProvisioner.kt$SshKeyProvisioner$while</ID>
+    <ID>LoopWithTooManyJumpStatements:TerminalView.kt$TerminalView$for</ID>
+    <ID>MaxLineLength:MainActivity.kt$MainActivity$binding.btnArrowDown.setOnClickListener { flashButton(binding.btnArrowDown); sendKey(currentFragment()?.cursorKeyBytes('B') ?: byteArrayOf()) }</ID>
+    <ID>MaxLineLength:MainActivity.kt$MainActivity$binding.btnArrowLeft.setOnClickListener { flashButton(binding.btnArrowLeft); sendKey(currentFragment()?.cursorKeyBytes('D') ?: byteArrayOf()) }</ID>
+    <ID>MaxLineLength:MainActivity.kt$MainActivity$binding.btnArrowRight.setOnClickListener { flashButton(binding.btnArrowRight); sendKey(currentFragment()?.cursorKeyBytes('C') ?: byteArrayOf()) }</ID>
+    <ID>MaxLineLength:MainActivity.kt$MainActivity$binding.btnArrowUp.setOnClickListener { flashButton(binding.btnArrowUp); sendKey(currentFragment()?.cursorKeyBytes('A') ?: byteArrayOf()) }</ID>
+    <ID>MaxLineLength:MainActivity.kt$MainActivity$else</ID>
+    <ID>MaxLineLength:MainActivity.kt$MainActivity$fnbarHintAnimLeft = ObjectAnimator.ofFloat(hl, "translationX", 0f, 8f).apply { duration = 900; repeatMode = ValueAnimator.REVERSE; repeatCount = ValueAnimator.INFINITE; interpolator = interp }</ID>
+    <ID>MaxLineLength:MainActivity.kt$MainActivity$fnbarHintAnimRight = ObjectAnimator.ofFloat(hr, "translationX", 0f, -8f).apply { duration = 900; repeatMode = ValueAnimator.REVERSE; repeatCount = ValueAnimator.INFINITE; interpolator = interp }</ID>
+    <ID>MaxLineLength:MainActivity.kt$MainActivity$keybarHintAnimLeft = ObjectAnimator.ofFloat(hl, "translationX", 0f, 8f).apply { duration = 900; repeatMode = ValueAnimator.REVERSE; repeatCount = ValueAnimator.INFINITE; interpolator = interp }</ID>
+    <ID>MaxLineLength:MainActivity.kt$MainActivity$keybarHintAnimRight = ObjectAnimator.ofFloat(hr, "translationX", 0f, -8f).apply { duration = 900; repeatMode = ValueAnimator.REVERSE; repeatCount = ValueAnimator.INFINITE; interpolator = interp }</ID>
+    <ID>NestedBlockDepth:TerminalBuffer.kt$TerminalBuffer$private fun handleCSI(cmd: Char, params: String)</ID>
+    <ID>NestedBlockDepth:TerminalBuffer.kt$TerminalBuffer$private fun processBytes(bytes: ByteArray, length: Int)</ID>
+    <ID>NestedBlockDepth:TerminalView.kt$TerminalView$override fun onDraw(canvas: Canvas)</ID>
+    <ID>NestedBlockDepth:TerminalView.kt$TerminalView$override fun onTouchEvent(ev: MotionEvent): Boolean</ID>
+    <ID>ReturnCount:CryptoBoxConnectionRepository.kt$CryptoBoxConnectionRepository$override fun load(): MutableList&lt;ConnectionConfig&gt;</ID>
+    <ID>ReturnCount:MainActivity.kt$MainActivity$private fun startUpload(uri: android.net.Uri)</ID>
+    <ID>ReturnCount:NewConnectionDialog.kt$NewConnectionDialog$private fun validateAndConnect(): Boolean</ID>
+    <ID>ReturnCount:SshSession.kt$SshSession.JschUserInfo$override fun promptKeyboardInteractive( destination: String, name: String, instruction: String, prompt: Array&lt;String&gt;, echo: BooleanArray ): Array&lt;String&gt;?</ID>
+    <ID>ReturnCount:TerminalBuffer.kt$TerminalBuffer$fun cellAt(lineIndex: Int, col: Int): TermCell?</ID>
+    <ID>ReturnCount:TerminalFragment.kt$TerminalFragment$private fun onServiceBound()</ID>
+    <ID>ReturnCount:TerminalFragment.kt$TerminalFragment$private fun reconnect()</ID>
+    <ID>ReturnCount:TerminalFragment.kt$TerminalFragment$private fun resolveJumpConfig(cfg: ConnectionConfig): ConnectionConfig?</ID>
+    <ID>ReturnCount:TerminalView.kt$TerminalView$override fun dispatchKeyEvent(event: KeyEvent): Boolean</ID>
+    <ID>ReturnCount:TerminalView.kt$TerminalView.&lt;no name provided&gt;$override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean</ID>
+    <ID>TooGenericExceptionThrown:CryptoBoxConnectionRepositoryTest.kt$CryptoBoxConnectionRepositoryTest.&lt;no name provided&gt;$throw RuntimeException("keystore broke")</ID>
+    <ID>TooGenericExceptionThrown:SshKeyProvisioner.kt$SshKeyProvisioner$throw RuntimeException( if (stderr.isNotBlank()) "exit=$exit: $stderr" else "exit=$exit" )</ID>
+    <ID>UnusedParameter:SshForegroundService.kt$SshForegroundService.Companion$context: Context</ID>
+    <ID>UseCheckOrError:SshSession.kt$SshSession$throw IllegalStateException("SSH session is not connected")</ID>
+    <ID>VariableNaming:AnsiParserTest.kt$AnsiParserTest$private val ESC = "\u001B"</ID>
+    <ID>VariableNaming:TerminalBufferTest.kt$TerminalBufferTest$private val ESC = "\u001B"</ID>
+    <ID>VariableNaming:TerminalView.kt$TerminalView.TerminalInputConnection$private val SENTINEL = " "</ID>
+    <ID>WildcardImport:AnsiParserTest.kt$import org.junit.Assert.*</ID>
+    <ID>WildcardImport:ConnectionConfigTest.kt$import org.junit.Assert.*</ID>
+    <ID>WildcardImport:SavedConnectionsInstrumentedTest.kt$import org.junit.Assert.*</ID>
+    <ID>WildcardImport:SavedConnectionsTest.kt$import org.junit.Assert.*</ID>
+    <ID>WildcardImport:SshSessionTest.kt$import org.junit.Assert.*</ID>
+  </CurrentIssues>
+</SmellBaseline>

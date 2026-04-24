@@ -1,0 +1,52 @@
+# Projektspecifikus detekt-konfiguráció.
+# A "build upon default config" miatt elegendő a különbözőségeket ideírni;
+# minden más a detekt default-ját veszi fel.
+
+complexity:
+  LongMethod:
+    active: true
+    threshold: 80        # UI kód kezelésére megengedőbb (default 60)
+  LongParameterList:
+    active: true
+    functionThreshold: 8
+    constructorThreshold: 10
+  TooManyFunctions:
+    active: false        # Android Activity/Fragment sok callback-et hordoz
+  CyclomaticComplexMethod:
+    active: true
+    threshold: 25        # ANSI FSM + handleCSI miatt
+  LargeClass:
+    active: true
+    threshold: 900       # MainActivity/TerminalView tudatos tolerancia
+
+style:
+  MagicNumber:
+    active: false        # port-számok, color-paletta, SGR-kódok, timeout-ok
+  MaxLineLength:
+    active: true
+    maxLineLength: 140
+    excludeCommentStatements: true
+  WildcardImport:
+    active: true
+
+naming:
+  FunctionNaming:
+    active: true
+    functionPattern: '[a-zA-Z][a-zA-Z0-9]*'  # `fun `tesztek nevei` ()` engedélyezett
+
+performance:
+  SpreadOperator:
+    active: false        # byteArrayOf(27) + "...".toByteArray() mintához
+
+empty-blocks:
+  EmptyCatchBlock:
+    active: true
+    allowedExceptionNameRegex: "^(_|ignored|expected)$"
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: false        # jsch rengeteg specifikus kivételt dob, a lifecycle-hívások IO-szélesek
+  SwallowedException:
+    active: false
+
+# potential-bugs: default szabályok maradnak aktívan.

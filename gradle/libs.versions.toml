@@ -19,6 +19,7 @@ androidxTestCore = "1.7.0"
 espresso = "3.7.0"
 mockk = "1.14.9"
 securityCrypto = "1.1.0"
+detekt = "1.23.7"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -45,3 +46,4 @@ androidx-test-core = { group = "androidx.test", name = "core", version.ref = "an
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }

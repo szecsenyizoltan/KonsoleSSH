@@ -320,9 +320,9 @@ class SshForegroundService : Service() {
             launch(Dispatchers.Main) {
                 updateStatus(tabId, ConnectionStatus.DISCONNECTED)
                 refreshNotification()
-                val msg = getString(R.string.terminal_connection_closed).toByteArray()
-                state.outputBuffer.append(msg)
-                state.events.tryEmit(SessionEvent.Data(msg))
+                // "Kapcsolat lezárva" nem kerül a terminál-bufferbe — keveredne
+                // a fél-beütött prompttal. A StatusChange-event úgyis a UI-ra
+                // viszi a DISCONNECTED állapotot, a status-bar jelzi a user-nek.
             }
         }
     }

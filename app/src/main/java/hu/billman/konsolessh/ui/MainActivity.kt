@@ -222,6 +222,27 @@ class MainActivity : AppCompatActivity(), TabStatusListener {
         tabViewMap[tabId]?.let { applyStatusDot(it, status) }
     }
 
+    override fun onConnectFailed(tabId: String, message: String) {
+        val fired = java.util.concurrent.atomic.AtomicBoolean(false)
+        val closeOnce: () -> Unit = {
+            if (fired.compareAndSet(false, true)) closeTabById(tabId)
+        }
+        KonsoleToast.showAutoAction(
+            anchor = binding.root,
+            message = message,
+            actionLabel = getString(R.string.close_tab),
+            timeoutMs = 5000L,
+            onDone = closeOnce
+        )
+    }
+
+    private fun closeTabById(tabId: String) {
+        val internalIdx = (0 until pagerAdapter.getTabCount()).firstOrNull {
+            pagerAdapter.getTab(it)?.id == tabId
+        } ?: return
+        closeTab(internalIdx)
+    }
+
     private fun applyStatusDot(tabView: View, status: ConnectionStatus) {
         val dot = tabView.findViewById<TextView>(R.id.tabStatusDot) ?: return
         when (status) {

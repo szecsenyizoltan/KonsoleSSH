@@ -21,6 +21,9 @@ enum class ConnectionStatus { NONE, CONNECTING, CONNECTED, DISCONNECTED }
 
 interface TabStatusListener {
     fun onTabStatusChanged(tabId: String, status: ConnectionStatus)
+    /** Called when the initial SSH connect fails. UI should show a toast and
+     *  auto-close the failed tab after a short delay. */
+    fun onConnectFailed(tabId: String, message: String)
 }
 
 class TerminalFragment : Fragment() {
@@ -157,6 +160,7 @@ class TerminalFragment : Fragment() {
             sshService?.setDataListener(tabId, null)
             sshService?.setStatusListener(tabId, null)
             sshService?.setPasswordPrompter(tabId, null)
+            sshService?.setConnectErrorListener(tabId, null)
             requireContext().unbindService(serviceConnection)
             serviceBound = false
             sshService = null
@@ -224,6 +228,9 @@ class TerminalFragment : Fragment() {
             _binding?.terminalView?.append(bytes, bytes.size)
         }
         service.setStatusListener(tabId) { status -> updateStatusUI(status) }
+        service.setConnectErrorListener(tabId) { msg ->
+            statusListener?.onConnectFailed(tabId, msg)
+        }
         updateStatusUI(ConnectionStatus.CONNECTING)
         binding.statusBar.text = getString(R.string.status_connecting, cfg.displayName())
     }

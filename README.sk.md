@@ -342,8 +342,13 @@ Nezbierame, nezdieľame ani neposielame žiadne údaje. Prihlasovacie údaje zos
 - Android 8.0 (API 26) alebo novší
 - Podporovaný režim na výšku aj na šírku
 
+## Licencia
+
+Aplikácia je vydaná pod licenciou **GPL-3.0-or-later** — úplný text v súbore [LICENSE](LICENSE). Je to slobodný softvér: môžete ho voľne používať, študovať, upravovať a šíriť; odvodené diela musia zostať pod rovnakou licenciou.
+
 ## História verzií
 
+- **1.0.7** — pridaná GPL-3.0 licencia, build kompatibilný s F-Droid (podmienená signing konfigurácia)
 - **1.0.6** — Indikátor stavu po opätovnom pripojení sa správne mení na zelený
   (už nezostáva žltý); ikona klávesnice spoľahlivo otvára IME na Androide 14+
   (skutočná viditeľnosť cez `WindowInsetsCompat` namiesto zastaraného `SHOW_FORCED`)

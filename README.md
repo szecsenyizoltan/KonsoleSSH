@@ -379,8 +379,13 @@ No data is collected, shared or uploaded. Credentials stay on the device in the 
 - Android 8.0 (API 26) or newer
 - Portrait and landscape both supported
 
+## License
+
+This application is released under the **GPL-3.0-or-later** license — full text in the [LICENSE](LICENSE) file. It is free software: you may freely use, study, modify and redistribute it, provided that any derived works remain under the same license.
+
 ## Release history
 
+- **1.0.7** — GPL-3.0 license added, F-Droid-compatible build (conditional signing config)
 - **1.0.6** — reconnect status indicator correctly turns green (no longer sticks on yellow);
   keyboard icon reliably opens the IME on Android 14+ (real `WindowInsetsCompat`-based
   visibility replacing the deprecated `SHOW_FORCED`)

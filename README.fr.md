@@ -342,8 +342,13 @@ Aucune donnée n'est collectée, partagée ni envoyée. Les identifiants restent
 - Android 8.0 (API 26) ou plus récent
 - Modes portrait et paysage pris en charge
 
+## Licence
+
+L'application est publiée sous licence **GPL-3.0-or-later** — le texte complet se trouve dans le fichier [LICENSE](LICENSE). C'est un logiciel libre : vous pouvez l'utiliser, l'étudier, le modifier et le redistribuer librement ; les travaux dérivés doivent rester sous la même licence.
+
 ## Historique des versions
 
+- **1.0.7** — licence GPL-3.0 ajoutée, build compatible F-Droid (configuration de signature conditionnelle)
 - **1.0.6** — L'indicateur d'état passe correctement au vert après une reconnexion
   (ne reste plus bloqué en jaune) ; l'icône du clavier ouvre correctement l'IME sur
   Android 14+ (visibilité réelle via `WindowInsetsCompat` à la place de `SHOW_FORCED` obsolète)

@@ -342,8 +342,13 @@ Nu se colectează, nu se distribuie și nu se încarcă nicio dată. Credențial
 - Android 8.0 (API 26) sau mai nou
 - Modurile portret și peisaj sunt ambele acceptate
 
+## Licență
+
+Aplicația este distribuită sub licența **GPL-3.0-or-later** — textul complet în fișierul [LICENSE](LICENSE). Este software liber: îl poți folosi, studia, modifica și redistribui liber; lucrările derivate trebuie să rămână sub aceeași licență.
+
 ## Istoricul versiunilor
 
+- **1.0.7** — licență GPL-3.0 adăugată, build compatibil F-Droid (configurație de semnare condiționată)
 - **1.0.6** — indicatorul de stare la reconectare devine corect verde (nu mai rămâne blocat
   pe galben); pictograma tastaturii deschide fiabil IME-ul pe Android 14+ (vizibilitate
   reală bazată pe `WindowInsetsCompat` în locul `SHOW_FORCED` deprecated)

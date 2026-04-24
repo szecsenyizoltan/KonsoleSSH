@@ -380,8 +380,13 @@ Adatot nem gyűjtünk, nem továbbítunk. A hitelesítő adatok titkosítva mara
 - Android 8.0+ (API 26+)
 - Álló és fekvő mód egyaránt támogatott
 
+## Licenc
+
+Az alkalmazás **GPL-3.0-or-later** licenc alatt érhető el — a teljes szöveg a [LICENSE](LICENSE) fájlban. Ez szabad szoftver: szabadon használhatod, tanulmányozhatod, módosíthatod, és továbbadhatod; csak a származtatott munkáknak is ugyanezen licenc alatt kell maradniuk.
+
 ## Verziótörténet
 
+- **1.0.7** — GPL-3.0 licenc hozzáadása, F-Droid-kompatibilis build (feltételes aláírási konfiguráció)
 - **1.0.6** — reconnect után a státusz-indikátor helyesen zöldre vált (nem ragad sárgán);
   billentyűzet-ikon Android 14+ alatt is felhozza az IME-t (deprecated `SHOW_FORCED` helyett
   valós `WindowInsetsCompat`-alapú láthatóság)

@@ -342,8 +342,13 @@ Es werden keine Daten erhoben, geteilt oder hochgeladen. Zugangsdaten bleiben au
 - Android 8.0 (API 26) oder neuer
 - Hoch- und Querformat werden unterstützt
 
+## Lizenz
+
+Die Anwendung wird unter der **GPL-3.0-or-later**-Lizenz veröffentlicht — der vollständige Text befindet sich in der Datei [LICENSE](LICENSE). Es ist freie Software: Du kannst sie frei verwenden, studieren, modifizieren und weitergeben; abgeleitete Werke müssen allerdings unter derselben Lizenz bleiben.
+
 ## Versionsgeschichte
 
+- **1.0.7** — GPL-3.0-Lizenz hinzugefügt, F-Droid-kompatibler Build (bedingte Signing-Konfiguration)
 - **1.0.6** — Reconnect-Statusanzeige wird nun korrekt grün (bleibt nicht mehr
   auf Gelb hängen); Tastatur-Symbol öffnet die IME zuverlässig auf Android 14+
   (echte `WindowInsetsCompat`-basierte Sichtbarkeit statt des veralteten `SHOW_FORCED`)

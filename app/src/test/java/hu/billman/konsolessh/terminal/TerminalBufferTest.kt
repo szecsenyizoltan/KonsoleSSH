@@ -279,13 +279,195 @@ class TerminalBufferTest {
         assertEquals(4, buf.cursorCol)
     }
 
+    // ── Lépés 4: CSI / SGR / módok / alt-screen ──────────────────────────────
+
+    private val ESC = "\u001B"
+
     @Test
-    fun `ESC sequence is silently consumed before Lépés 4`() {
+    fun `SGR 31 sets red foreground on subsequent printed chars`() {
         val buf = TerminalBuffer()
-        // ESC [ 31 m — SGR red — Lépés 4 előtt ezt NOOP-ként kell kezelni,
-        // a következő karakterek NORMAL-ban landoljanak
-        buf.writeString("\u001B[31mX")
-        assertEquals("X", buf.cellAt(0, 0)!!.ch)
+        buf.writeString(ESC + "[31mX")
+        val cell = buf.cellAt(0, 0)!!
+        assertEquals("X", cell.ch)
+        assertEquals(TermColor.rgb(0xAA, 0, 0), cell.fg)
+    }
+
+    @Test
+    fun `SGR 0 resets all attributes`() {
+        val buf = TerminalBuffer()
+        buf.writeString(ESC + "[1;31mBold" + ESC + "[0mplain")
+        val bold = buf.cellAt(0, 0)!!
+        val plain = buf.cellAt(0, 4)!!
+        assertTrue(bold.bold)
+        assertEquals(TermColor.rgb(0xAA, 0, 0), bold.fg)
+        assertFalse(plain.bold)
+        assertEquals(TermColor.DEFAULT_FG, plain.fg)
+    }
+
+    @Test
+    fun `SGR bare m equals SGR 0 reset`() {
+        val buf = TerminalBuffer()
+        buf.writeString(ESC + "[1;31mA" + ESC + "[mB")
+        val a = buf.cellAt(0, 0)!!
+        val b = buf.cellAt(0, 1)!!
+        assertTrue(a.bold)
+        assertFalse(b.bold)
+        assertEquals(TermColor.DEFAULT_FG, b.fg)
+    }
+
+    @Test
+    fun `SGR 38_5_196 sets xterm256 red foreground`() {
+        val buf = TerminalBuffer()
+        buf.writeString(ESC + "[38;5;196mX")
+        val cell = buf.cellAt(0, 0)!!
+        assertEquals(TermColor.rgb(255, 0, 0), cell.fg)
+    }
+
+    @Test
+    fun `SGR 38_2_r_g_b sets truecolor foreground`() {
+        val buf = TerminalBuffer()
+        buf.writeString(ESC + "[38;2;17;34;51mX")
+        val cell = buf.cellAt(0, 0)!!
+        assertEquals(TermColor.rgb(17, 34, 51), cell.fg)
+    }
+
+    @Test
+    fun `CSI H positions cursor 1-based`() {
+        val buf = TerminalBuffer(initialCols = 20, initialRows = 10)
+        buf.writeString(ESC + "[5;7H")
+        assertEquals(4, buf.cursorRow)
+        assertEquals(6, buf.cursorCol)
+    }
+
+    @Test
+    fun `CSI H without params homes cursor`() {
+        val buf = TerminalBuffer()
+        buf.writeString("abc\r\ndef")
+        buf.writeString(ESC + "[H")
+        assertEquals(0, buf.cursorRow)
+        assertEquals(0, buf.cursorCol)
+    }
+
+    @Test
+    fun `CSI A moves cursor up one by default`() {
+        val buf = TerminalBuffer()
+        buf.writeString("\r\n\r\n\r\nX")
+        val rowBefore = buf.cursorRow
+        buf.writeString(ESC + "[A")
+        assertEquals(rowBefore - 1, buf.cursorRow)
+    }
+
+    @Test
+    fun `CSI K 0 erases from cursor to end of line`() {
+        val buf = TerminalBuffer(initialCols = 10, initialRows = 3)
+        buf.writeString("abcdefghij")
+        buf.writeString(ESC + "[5G")
+        buf.writeString(ESC + "[0K")
+        assertEquals("a", buf.cellAt(0, 0)!!.ch)
+        assertEquals("d", buf.cellAt(0, 3)!!.ch)
+        assertEquals(" ", buf.cellAt(0, 4)!!.ch)
+        assertEquals(" ", buf.cellAt(0, 9)!!.ch)
+    }
+
+    @Test
+    fun `CSI J 2 clears screen and pushes to scrollback when not alt-screen`() {
+        val buf = TerminalBuffer(initialCols = 5, initialRows = 3)
+        buf.writeString("ABC")
+        buf.writeString(ESC + "[2J")
+        assertEquals(1, buf.scrollbackSize)
+        assertEquals("A", buf.cellAt(0, 0)!!.ch)
+        (0 until 3).forEach { r ->
+            assertEquals(" ", buf.cellAt(buf.scrollbackSize + r, 0)!!.ch)
+        }
+    }
+
+    @Test
+    fun `CSI question mark 1 h enables app cursor keys`() {
+        val buf = TerminalBuffer()
+        assertFalse(buf.appCursorKeys)
+        buf.writeString(ESC + "[?1h")
+        assertTrue(buf.appCursorKeys)
+        buf.writeString(ESC + "[?1l")
+        assertFalse(buf.appCursorKeys)
+    }
+
+    @Test
+    fun `CSI question mark 25 l hides cursor`() {
+        val buf = TerminalBuffer()
+        assertFalse(buf.cursorHidden)
+        buf.writeString(ESC + "[?25l")
+        assertTrue(buf.cursorHidden)
+        buf.writeString(ESC + "[?25h")
+        assertFalse(buf.cursorHidden)
+    }
+
+    @Test
+    fun `CSI question mark 1049 h enters alt screen and saves main content`() {
+        val buf = TerminalBuffer(initialCols = 5, initialRows = 3)
+        buf.writeString("main")
+        assertFalse(buf.altScreenActive)
+        buf.writeString(ESC + "[?1049h")
+        assertTrue(buf.altScreenActive)
+        assertEquals(" ", buf.cellAt(buf.scrollbackSize, 0)!!.ch)
+        buf.writeString("alt!")
+        buf.writeString(ESC + "[?1049l")
+        assertFalse(buf.altScreenActive)
+        assertEquals("m", buf.cellAt(buf.scrollbackSize, 0)!!.ch)
+        assertEquals("a", buf.cellAt(buf.scrollbackSize, 1)!!.ch)
+    }
+
+    @Test
+    fun `CSI question mark 2004 toggles bracketed paste`() {
+        val buf = TerminalBuffer()
+        assertFalse(buf.bracketedPasteMode)
+        buf.writeString(ESC + "[?2004h")
+        assertTrue(buf.bracketedPasteMode)
+        buf.writeString(ESC + "[?2004l")
+        assertFalse(buf.bracketedPasteMode)
+    }
+
+    @Test
+    fun `ESC 7 and ESC 8 save-and-restore cursor`() {
+        val buf = TerminalBuffer()
+        buf.writeString(ESC + "[5;10H")
+        buf.writeString(ESC + "7")
+        buf.writeString(ESC + "[1;1H")
+        buf.writeString(ESC + "8")
+        assertEquals(4, buf.cursorRow)
+        assertEquals(9, buf.cursorCol)
+    }
+
+    @Test
+    fun `ESC c fullReset clears state`() {
+        val buf = TerminalBuffer()
+        buf.writeString(ESC + "[1;31mX")
+        buf.writeString(ESC + "[?25l")
+        buf.writeString(ESC + "c")
+        val cell = buf.cellAt(0, 0)!!
+        assertEquals(" ", cell.ch)
+        assertFalse(cell.bold)
+        assertEquals(TermColor.DEFAULT_FG, cell.fg)
+        assertFalse(buf.cursorHidden)
+    }
+
+    @Test
+    fun `clearScreen empties main screen without touching scrollback`() {
+        val buf = TerminalBuffer(initialCols = 4, initialRows = 3)
+        buf.writeString("R1\r\nR2\r\nR3\r\nR4")
+        val oldScrollback = buf.scrollbackSize
+        buf.clearScreen()
+        assertEquals(oldScrollback, buf.scrollbackSize)
+        assertEquals(0, buf.cursorRow)
+        assertEquals(0, buf.cursorCol)
+        assertEquals(" ", buf.cellAt(buf.scrollbackSize, 0)!!.ch)
+    }
+
+    @Test
+    fun `CSI r sets scroll region and homes cursor`() {
+        val buf = TerminalBuffer(initialCols = 10, initialRows = 10)
+        buf.writeString(ESC + "[2;8r")
+        assertEquals(0, buf.cursorRow)
+        assertEquals(0, buf.cursorCol)
     }
 
     @Test

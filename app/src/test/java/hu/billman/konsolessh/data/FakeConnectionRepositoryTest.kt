@@ -9,7 +9,7 @@ import org.junit.Test
 /**
  * A FakeConnectionRepository önmagában egy teszt-eszköz, de a kontraktus
  * (CRUD + displayName szerinti sorrendezés) tesztelése biztosítja, hogy
- * nem tér el a valós EncryptedPrefsConnectionRepository viselkedésétől
+ * nem tér el a valós CryptoBoxConnectionRepository viselkedésétől
  * a ViewModel-szintű teszteknél.
  */
 class FakeConnectionRepositoryTest {

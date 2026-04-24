@@ -3,10 +3,7 @@
     <string name="app_name">KonsoleSSH</string>
 
     <!-- Menu / actions -->
-    <string name="new_connection">Új kapcsolat</string>
     <string name="new_connection_dots">Új kapcsolat…</string>
-    <string name="connect">Csatlakozás</string>
-    <string name="disconnect">Lecsatlakozás</string>
     <string name="close_tab">Fül bezárása</string>
     <string name="manage_connections">Mentett kapcsolatok</string>
     <string name="action_language">Nyelv</string>
@@ -17,16 +14,11 @@
     <string name="action_delete">Törlés</string>
     <string name="action_close">Bezárás</string>
     <string name="action_save">Mentés</string>
-    <string name="action_edit">Szerkesztés</string>
     <string name="action_reconnect">Újra</string>
 
     <!-- Form fields -->
-    <string name="host">Szerver</string>
-    <string name="port">Port</string>
-    <string name="username">Felhasználónév</string>
     <string name="password">Jelszó</string>
     <string name="private_key">SSH kulcs</string>
-    <string name="save_connection">Kapcsolat mentése</string>
 
     <!-- Dialogs -->
     <string name="dialog_new_connection_title">Új SSH kapcsolat</string>
@@ -42,7 +34,6 @@
     <string name="username_hint">Felhasználónév *</string>
     <string name="password_hint_optional">Jelszó (opcionális)</string>
     <string name="pick_key_file">📂 Kulcsfájl választása…</string>
-    <string name="generate_new_key">🔑 Új kulcs generálása</string>
     <string name="generate_and_upload_key">🔑 Kulcs generálás + feltöltés</string>
     <string name="action_test_connection">🔌 Kapcsolat tesztelése</string>
     <string name="test_needs_host_user">Először töltsd ki a hostot és a felhasználónevet.</string>
@@ -58,7 +49,6 @@
     <string name="upload_manual_title">A feltöltés nem sikerült — kézi lépés kell</string>
     <string name="upload_manual_message">A kulcs legenerálódott és elmentettük lokálisan, de az automata feltöltés nem sikerült. Másold a lenti publikus kulcsot és rakd fel kézzel a szerverre.</string>
     <string name="key_generated_title">Új SSH kulcs generálva</string>
-    <string name="key_generated_message">RSA kulcspár készült. A privát kulcs ebbe a kapcsolatba bekerült. A lenti publikus kulcsot másold fel a szerverre (pl. a router SSH authorized keys-be), hogy be tudj vele lépni.</string>
     <string name="action_copy_public_key">Publikus kulcs másolása</string>
     <string name="key_copied">Publikus kulcs a vágólapon</string>
     <string name="configure_jump_host">🌐 Jump host beállítása…</string>
@@ -71,7 +61,6 @@
     <string name="error_read_file">Nem sikerült beolvasni: %1$s</string>
     <string name="error_host_required">Szerver cím szükséges</string>
     <string name="error_username_required">Felhasználónév szükséges</string>
-    <string name="password_required">Jelszó megadása szükséges</string>
 
     <!-- Toasts -->
     <string name="copied">Másolva</string>

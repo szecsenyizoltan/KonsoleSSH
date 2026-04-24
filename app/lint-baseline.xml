@@ -356,7 +356,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="92"
+            line="81"
             column="5"/>
     </issue>
 
@@ -367,7 +367,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="97"
+            line="86"
             column="5"/>
     </issue>
 
@@ -378,7 +378,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="128"
+            line="117"
             column="5"/>
     </issue>
 
@@ -422,7 +422,7 @@
         errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/TerminalFragment.kt"
-            line="397"
+            line="419"
             column="26"/>
     </issue>
 
@@ -512,144 +512,23 @@
 
     <issue
         id="UnusedResources"
-        message="The resource `R.color.accent_variant` appears to be unused"
-        errorLine1="    &lt;color name=&quot;accent_variant&quot;>#F7C2B1&lt;/color>"
-        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/colors.xml"
-            line="24"
-            column="12"/>
-    </issue>
-
-    <issue
-        id="UnusedResources"
-        message="The resource `R.color.black` appears to be unused"
-        errorLine1="    &lt;color name=&quot;black&quot;>#000000&lt;/color>"
-        errorLine2="           ~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/colors.xml"
-            line="31"
-            column="12"/>
-    </issue>
-
-    <issue
-        id="UnusedResources"
-        message="The resource `R.string.new_connection` appears to be unused"
-        errorLine1="    &lt;string name=&quot;new_connection&quot;>New connection&lt;/string>"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/strings.xml"
-            line="6"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="UnusedResources"
-        message="The resource `R.string.connect` appears to be unused"
-        errorLine1="    &lt;string name=&quot;connect&quot;>Connect&lt;/string>"
-        errorLine2="            ~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/strings.xml"
-            line="8"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="UnusedResources"
-        message="The resource `R.string.disconnect` appears to be unused"
-        errorLine1="    &lt;string name=&quot;disconnect&quot;>Disconnect&lt;/string>"
-        errorLine2="            ~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/strings.xml"
-            line="9"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="UnusedResources"
-        message="The resource `R.string.action_edit` appears to be unused"
-        errorLine1="    &lt;string name=&quot;action_edit&quot;>Edit&lt;/string>"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/strings.xml"
-            line="20"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="UnusedResources"
-        message="The resource `R.string.host` appears to be unused"
-        errorLine1="    &lt;string name=&quot;host&quot;>Server&lt;/string>"
-        errorLine2="            ~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/strings.xml"
-            line="24"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="UnusedResources"
-        message="The resource `R.string.port` appears to be unused"
-        errorLine1="    &lt;string name=&quot;port&quot;>Port&lt;/string>"
-        errorLine2="            ~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/strings.xml"
-            line="25"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="UnusedResources"
-        message="The resource `R.string.username` appears to be unused"
-        errorLine1="    &lt;string name=&quot;username&quot;>Username&lt;/string>"
-        errorLine2="            ~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/strings.xml"
-            line="26"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="UnusedResources"
-        message="The resource `R.string.save_connection` appears to be unused"
-        errorLine1="    &lt;string name=&quot;save_connection&quot;>Save connection&lt;/string>"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/strings.xml"
-            line="29"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="UnusedResources"
-        message="The resource `R.string.generate_new_key` appears to be unused"
-        errorLine1="    &lt;string name=&quot;generate_new_key&quot;>🔑 Generate new key&lt;/string>"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/strings.xml"
-            line="45"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="UnusedResources"
-        message="The resource `R.string.key_generated_message` appears to be unused"
-        errorLine1="    &lt;string name=&quot;key_generated_message&quot;>An RSA key pair has been generated. The private key is saved in this connection. Add the public key below to the server (e.g. the router\&apos;s SSH authorized keys) so you can log in.&lt;/string>"
+        message="The resource `R.string.terminal_reconnecting` appears to be unused"
+        errorLine1="    &lt;string name=&quot;terminal_reconnecting&quot;>\r\n[Reconnecting…]\r\n&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="61"
+            line="104"
             column="13"/>
     </issue>
 
     <issue
         id="UnusedResources"
-        message="The resource `R.string.password_required` appears to be unused"
-        errorLine1="    &lt;string name=&quot;password_required&quot;>Password required&lt;/string>"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        message="The resource `R.string.terminal_connection_closed` appears to be unused"
+        errorLine1="    &lt;string name=&quot;terminal_connection_closed&quot;>\r\n[Connection closed]\r\n&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="74"
+            line="105"
             column="13"/>
     </issue>
 
@@ -717,39 +596,6 @@
             file="src/main/res/layout/dialog_new_connection.xml"
             line="241"
             column="14"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `SharedPreferences.edit` instead?"
-        errorLine1="            encPrefs.edit().putString(KEY_CONNECTIONS, legacyJson).apply()"
-        errorLine2="            ~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/hu/billman/konsolessh/data/EncryptedPrefsConnectionRepository.kt"
-            line="47"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `SharedPreferences.edit` instead?"
-        errorLine1="        legacy.edit().remove(KEY_CONNECTIONS).apply()"
-        errorLine2="        ~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/hu/billman/konsolessh/data/EncryptedPrefsConnectionRepository.kt"
-            line="49"
-            column="9"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `SharedPreferences.edit` instead?"
-        errorLine1="        getPrefs().edit().putString(KEY_CONNECTIONS, gson.toJson(connections)).apply()"
-        errorLine2="        ~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/hu/billman/konsolessh/data/EncryptedPrefsConnectionRepository.kt"
-            line="66"
-            column="9"/>
     </issue>
 
     <issue

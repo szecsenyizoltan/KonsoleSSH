@@ -3,10 +3,7 @@
     <string name="app_name">KonsoleSSH</string>
 
     <!-- Menu / actions -->
-    <string name="new_connection">New connection</string>
     <string name="new_connection_dots">New connection…</string>
-    <string name="connect">Connect</string>
-    <string name="disconnect">Disconnect</string>
     <string name="close_tab">Close tab</string>
     <string name="manage_connections">Saved connections</string>
     <string name="action_language">Language</string>
@@ -17,16 +14,11 @@
     <string name="action_delete">Delete</string>
     <string name="action_close">Close</string>
     <string name="action_save">Save</string>
-    <string name="action_edit">Edit</string>
     <string name="action_reconnect">Retry</string>
 
     <!-- Form fields -->
-    <string name="host">Server</string>
-    <string name="port">Port</string>
-    <string name="username">Username</string>
     <string name="password">Password</string>
     <string name="private_key">SSH key</string>
-    <string name="save_connection">Save connection</string>
 
     <!-- Dialogs -->
     <string name="dialog_new_connection_title">New SSH connection</string>
@@ -42,7 +34,6 @@
     <string name="username_hint">Username *</string>
     <string name="password_hint_optional">Password (optional)</string>
     <string name="pick_key_file">📂 Pick key file…</string>
-    <string name="generate_new_key">🔑 Generate new key</string>
     <string name="generate_and_upload_key">🔑 Generate key + upload</string>
     <string name="action_test_connection">🔌 Test connection</string>
     <string name="test_needs_host_user">Fill host and username first.</string>
@@ -58,7 +49,6 @@
     <string name="upload_manual_title">Upload failed — manual step required</string>
     <string name="upload_manual_message">The key was generated and saved locally, but automatic upload failed. Copy the public key below and add it to the server manually.</string>
     <string name="key_generated_title">New SSH key generated</string>
-    <string name="key_generated_message">An RSA key pair has been generated. The private key is saved in this connection. Add the public key below to the server (e.g. the router\'s SSH authorized keys) so you can log in.</string>
     <string name="action_copy_public_key">Copy public key</string>
     <string name="key_copied">Public key copied to clipboard</string>
     <string name="configure_jump_host">🌐 Configure jump host…</string>
@@ -71,7 +61,6 @@
     <string name="error_read_file">Could not read: %1$s</string>
     <string name="error_host_required">Server address required</string>
     <string name="error_username_required">Username required</string>
-    <string name="password_required">Password required</string>
 
     <!-- Toasts -->
     <string name="copied">Copied</string>

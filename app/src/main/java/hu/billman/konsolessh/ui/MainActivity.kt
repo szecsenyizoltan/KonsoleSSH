@@ -133,6 +133,42 @@ class MainActivity : AppCompatActivity(), TabStatusListener {
         binding.btnNewTab.setOnClickListener { showTabPicker() }
         binding.btnZoomOut.setOnClickListener { currentTerminalView()?.let { it.zoom(-1f); saveZoom(it.fontSize) } }
         binding.btnZoomIn.setOnClickListener  { currentTerminalView()?.let { it.zoom(+1f); saveZoom(it.fontSize) } }
+
+        restoreUiStateIfAny(savedInstanceState)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(STATE_MOD_CTRL, modCtrl)
+        outState.putBoolean(STATE_MOD_SHIFT, modShift)
+        outState.putBoolean(STATE_MOD_ALT, modAlt)
+        outState.putBoolean(STATE_MOD_ALTGR, modAltGr)
+        outState.putBoolean(STATE_FNBAR_VISIBLE, binding.fnbarContainer.visibility == View.VISIBLE)
+        outState.putBoolean(STATE_ARROWBAR_VISIBLE, binding.arrowbarContainer.visibility == View.VISIBLE)
+        outState.putBoolean(STATE_CTRLBAR_VISIBLE, binding.ctrlbarContainer.visibility == View.VISIBLE)
+    }
+
+    private fun restoreUiStateIfAny(savedInstanceState: Bundle?) {
+        val s = savedInstanceState ?: return
+        modCtrl  = s.getBoolean(STATE_MOD_CTRL,  false)
+        modShift = s.getBoolean(STATE_MOD_SHIFT, false)
+        modAlt   = s.getBoolean(STATE_MOD_ALT,   false)
+        modAltGr = s.getBoolean(STATE_MOD_ALTGR, false)
+        if (modCtrl)  updateModButton(binding.btnModCtrl, true)
+        if (modShift) updateModButton(binding.btnModShift, true)
+        if (modAlt)   updateModButton(binding.btnModAlt, true)
+        if (modAltGr) updateModButton(binding.btnModAltGr, true)
+        if (s.getBoolean(STATE_FNBAR_VISIBLE, false)) {
+            binding.fnbarContainer.visibility = View.VISIBLE
+            updateModButton(binding.btnFn, true)
+        }
+        if (s.getBoolean(STATE_ARROWBAR_VISIBLE, false)) {
+            binding.arrowbarContainer.visibility = View.VISIBLE
+            updateModButton(binding.btnArrowToggle, true)
+        }
+        if (s.getBoolean(STATE_CTRLBAR_VISIBLE, false)) {
+            binding.ctrlbarContainer.visibility = View.VISIBLE
+        }
     }
 
     override fun onStart() {
@@ -210,6 +246,14 @@ class MainActivity : AppCompatActivity(), TabStatusListener {
     }
 
     companion object {
+        private const val STATE_MOD_CTRL = "mod_ctrl"
+        private const val STATE_MOD_SHIFT = "mod_shift"
+        private const val STATE_MOD_ALT = "mod_alt"
+        private const val STATE_MOD_ALTGR = "mod_altgr"
+        private const val STATE_FNBAR_VISIBLE = "fnbar_visible"
+        private const val STATE_ARROWBAR_VISIBLE = "arrowbar_visible"
+        private const val STATE_CTRLBAR_VISIBLE = "ctrlbar_visible"
+
         fun savedFontSize(context: Context): Float =
             context.getSharedPreferences("settings", Context.MODE_PRIVATE)
                 .getFloat("font_size", 0f)

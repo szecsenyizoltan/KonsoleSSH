@@ -150,6 +150,66 @@ class NewConnectionDialog : DialogFragment() {
         binding.btnPickKeyFile.setOnClickListener {
             pickKeyFile.launch(arrayOf("*/*"))
         }
+        binding.btnGenerateKey.setOnClickListener { generateKeyPair() }
+    }
+
+    private fun generateKeyPair() {
+        try {
+            val jsch = com.jcraft.jsch.JSch()
+            val kpair = com.jcraft.jsch.KeyPair.genKeyPair(jsch, com.jcraft.jsch.KeyPair.ED25519)
+            val username = binding.editUsername.text.toString().trim().ifBlank { "konsolessh" }
+            val host = binding.editHost.text.toString().trim().ifBlank { "konsolessh" }
+            val comment = "$username@$host"
+
+            val privBuf = java.io.ByteArrayOutputStream()
+            kpair.writePrivateKey(privBuf)
+            val pubBuf = java.io.ByteArrayOutputStream()
+            kpair.writePublicKey(pubBuf, comment)
+            kpair.dispose()
+
+            val privatePem = privBuf.toString(Charsets.UTF_8)
+            val publicLine = pubBuf.toString(Charsets.UTF_8).trim()
+
+            binding.radioPrivateKey.isChecked = true
+            updateAuthTypeVisibility()
+            binding.editPrivateKey.setText(privatePem)
+            binding.editPassword.setText("")
+            updateKeyStatus(privatePem)
+
+            showGeneratedKeyDialog(publicLine)
+        } catch (e: Exception) {
+            KonsoleToast.show(binding.root, getString(R.string.error_generic, e.message ?: ""))
+        }
+    }
+
+    private fun showGeneratedKeyDialog(publicKeyLine: String) {
+        val padding = resources.getDimensionPixelSize(R.dimen.dialog_padding)
+        val keyView = android.widget.EditText(requireContext()).apply {
+            setText(publicKeyLine)
+            isFocusable = false
+            isCursorVisible = false
+            setTextIsSelectable(true)
+            setHorizontallyScrolling(true)
+            setSingleLine(false)
+            setTextColor(android.graphics.Color.WHITE)
+            setBackgroundColor(android.graphics.Color.TRANSPARENT)
+            setPadding(padding, padding / 2, padding, padding / 2)
+            textSize = 12f
+            typeface = android.graphics.Typeface.MONOSPACE
+        }
+        AlertDialog.Builder(requireContext(), R.style.KonsoleDialog)
+            .setTitle(R.string.key_generated_title)
+            .setMessage(R.string.key_generated_message)
+            .setView(keyView)
+            .setPositiveButton(R.string.action_copy_public_key) { _, _ ->
+                val cm = requireContext().getSystemService(android.content.Context.CLIPBOARD_SERVICE)
+                        as android.content.ClipboardManager
+                cm.setPrimaryClip(android.content.ClipData.newPlainText("ssh-public-key", publicKeyLine))
+                KonsoleToast.show(binding.root, getString(R.string.key_copied))
+            }
+            .setNegativeButton(R.string.action_close, null)
+            .setCancelable(false)
+            .show()
     }
 
     private fun populateFromConfig(config: ConnectionConfig) {

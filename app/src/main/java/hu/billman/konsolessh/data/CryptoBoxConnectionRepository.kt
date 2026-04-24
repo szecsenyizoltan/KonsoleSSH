@@ -75,10 +75,16 @@ class CryptoBoxConnectionRepository(
         val payload = try {
             Base64.encodeToString(cryptoBox.encrypt(json), Base64.NO_WRAP)
         } catch (e: Exception) {
-            Log.e(TAG, "encrypt failed, saving as plain fallback", e)
-            // Fallback: nyers JSON — ez elméletileg nem történhet meg a Keystore
-            // rendeltetésszerű működése mellett. Legrosszabb esetben is a user
-            // elveszíti a "titkosított" védelmet, nem az adatot.
+            // Plaintext-fallback csak adatveszteség megelőzésére — a user
+            // jelszavai/kulcsai ezzel rendszerszintű titkosítás NÉLKÜL
+            // tárolódnak. Log.wtf-ként (CryptoFailureSink-en át) jelezzük,
+            // hogy a Keystore-integráció meghibásodott; Crashlytics / bug-
+            // report / override-olt handler mind látja a riadót.
+            CryptoFailureSink.report(
+                TAG,
+                "AES-GCM encrypt failed — saving connection list in plaintext fallback",
+                e,
+            )
             Base64.encodeToString(PLAIN_MARKER + json, Base64.NO_WRAP)
         }
         prefs().edit { putString(KEY_PAYLOAD, payload) }

@@ -193,4 +193,32 @@ class CryptoBoxConnectionRepositoryTest {
             legacy.contains("connections"),
         )
     }
+
+    @Test
+    fun `encrypt failure routes through CryptoFailureSink and falls back to plaintext`() {
+        // Telepítünk egy CryptoBox-ot, ami mindig dobja az encrypt-nél:
+        val failingBox = object : CryptoBox {
+            override fun encrypt(plaintext: ByteArray): ByteArray =
+                throw RuntimeException("keystore broke")
+            override fun decrypt(payload: ByteArray): ByteArray = plaintext(payload)
+            private fun plaintext(payload: ByteArray): ByteArray = payload
+        }
+        val repo = CryptoBoxConnectionRepository(context, failingBox)
+
+        var sinkCalls = 0
+        val originalHandler = CryptoFailureSink.handler
+        CryptoFailureSink.handler = { _, _, _ -> sinkCalls++ }
+        try {
+            repo.saveOne(cfg("a", "Alpha"))
+        } finally {
+            CryptoFailureSink.handler = originalHandler
+        }
+
+        // A sink meghívódott, a user látja a figyelmeztetést
+        assertEquals(1, sinkCalls)
+        // Plusz: az adat megmenekült (plain fallback-ben) — read-back:
+        val reloaded = repo.load()
+        assertEquals(1, reloaded.size)
+        assertEquals("Alpha", reloaded[0].name)
+    }
 }

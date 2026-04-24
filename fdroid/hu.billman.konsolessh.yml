@@ -1,0 +1,66 @@
+Categories:
+  - Connectivity
+  - Development
+License: GPL-3.0-or-later
+AuthorName: Szécsényi Zoltán
+AuthorEmail: oregon@linuxuser.hu
+WebSite: https://github.com/szecsenyizoltan/KonsoleSSH
+SourceCode: https://github.com/szecsenyizoltan/KonsoleSSH
+IssueTracker: https://github.com/szecsenyizoltan/KonsoleSSH/issues
+Changelog: https://github.com/szecsenyizoltan/KonsoleSSH/releases
+
+AutoName: KonsoleSSH
+Summary: Multi-tab SSH terminal inspired by KDE Konsole
+
+Description: |-
+    Multi-tab SSH terminal for Android with a Canvas-based emulator,
+    jump-host support, SFTP file upload, and encrypted storage for
+    saved connection profiles.
+
+    Features:
+
+    * Multi-tab UI with independent SSH sessions per tab (ViewPager2).
+    * SSH authentication with password or PEM private key (optional
+      passphrase), keyboard-interactive auth supported.
+    * Jump host (``ssh -J``) with local port forwarding for reaching
+      hosts on internal networks.
+    * Canvas-based terminal emulator: 256-colour + truecolor, bold,
+      underline, reverse video, scrollback, ANSI/VT100 +
+      xterm-256color PTY, alt-screen buffer for vi/top/less/mc.
+    * Bundled NerdFont (JetBrainsMono) with proper emoji / surrogate
+      pair rendering.
+    * On-screen key bar with Fn row, Ctrl combos, sticky modifiers,
+      arrow row, SFTP upload.
+    * Foreground Service keeps SSH sessions alive through screen
+      lock and task removal; per-session output buffer replayed on
+      reconnect.
+    * Interactive password prompts when no password is saved.
+    * Saved connections stored in EncryptedSharedPreferences
+      (AES256, Android Keystore).
+    * Tree-grouped connection picker based on common underscore
+      prefixes.
+    * Linux command and tmux cheat sheets (swipe from welcome page),
+      localised to Hungarian when the system language is Hungarian.
+    * Friendly error messages instead of raw JSch exceptions.
+    * Edge-to-edge layout with proper window-insets handling on
+      Android 15.
+
+    No data is collected, shared or uploaded. Credentials stay on
+    the device in the encrypted keystore-backed store.
+
+RepoType: git
+Repo: https://github.com/szecsenyizoltan/KonsoleSSH
+
+Builds:
+  - versionName: 1.0.7
+    versionCode: 8
+    commit: v1.0.7
+    subdir: app
+    gradle:
+      - yes
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+UpdateCheckData: 'app/build.gradle.kts|versionCode\s*=\s*(\d+)|.|versionName\s*=\s*"([^"]+)"'
+CurrentVersion: 1.0.7
+CurrentVersionCode: 8

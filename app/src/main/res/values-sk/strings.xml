@@ -3,10 +3,7 @@
     <string name="app_name">KonsoleSSH</string>
 
     <!-- Menu / actions -->
-    <string name="new_connection">Nové pripojenie</string>
     <string name="new_connection_dots">Nové pripojenie…</string>
-    <string name="connect">Pripojiť</string>
-    <string name="disconnect">Odpojiť</string>
     <string name="close_tab">Zavrieť kartu</string>
     <string name="manage_connections">Uložené pripojenia</string>
     <string name="action_language">Jazyk</string>
@@ -17,16 +14,11 @@
     <string name="action_delete">Odstrániť</string>
     <string name="action_close">Zavrieť</string>
     <string name="action_save">Uložiť</string>
-    <string name="action_edit">Upraviť</string>
     <string name="action_reconnect">Skúsiť znova</string>
 
     <!-- Form fields -->
-    <string name="host">Server</string>
-    <string name="port">Port</string>
-    <string name="username">Používateľ</string>
     <string name="password">Heslo</string>
     <string name="private_key">SSH kľúč</string>
-    <string name="save_connection">Uložiť pripojenie</string>
 
     <!-- Dialogs -->
     <string name="dialog_new_connection_title">Nové SSH pripojenie</string>
@@ -42,7 +34,6 @@
     <string name="username_hint">Používateľ *</string>
     <string name="password_hint_optional">Heslo (voliteľné)</string>
     <string name="pick_key_file">📂 Vybrať súbor kľúča…</string>
-    <string name="generate_new_key">🔑 Vygenerovať nový kľúč</string>
     <string name="generate_and_upload_key">🔑 Generovať kľúč + nahrať</string>
     <string name="action_test_connection">🔌 Otestovať pripojenie</string>
     <string name="test_needs_host_user">Najprv vyplň hosta a používateľské meno.</string>
@@ -58,7 +49,6 @@
     <string name="upload_manual_title">Nahrávanie zlyhalo — potrebný ručný krok</string>
     <string name="upload_manual_message">Kľúč bol vygenerovaný a uložený lokálne, ale automatické nahratie zlyhalo. Skopíruj verejný kľúč nižšie a pridaj ho ručne na server.</string>
     <string name="key_generated_title">Nový SSH kľúč vygenerovaný</string>
-    <string name="key_generated_message">Bol vygenerovaný pár kľúčov RSA. Súkromný kľúč je uložený v tomto pripojení. Pridaj verejný kľúč nižšie na server (napr. do authorized keys SSH na routeri), aby si sa mohol prihlásiť.</string>
     <string name="action_copy_public_key">Kopírovať verejný kľúč</string>
     <string name="key_copied">Verejný kľúč skopírovaný do schránky</string>
     <string name="configure_jump_host">🌐 Nastaviť jump host…</string>
@@ -71,7 +61,6 @@
     <string name="error_read_file">Nedá sa prečítať: %1$s</string>
     <string name="error_host_required">Adresa servera je povinná</string>
     <string name="error_username_required">Meno používateľa je povinné</string>
-    <string name="password_required">Je potrebné heslo</string>
 
     <!-- Toasts -->
     <string name="copied">Skopírované</string>

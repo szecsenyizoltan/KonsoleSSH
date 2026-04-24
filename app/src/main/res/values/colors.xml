@@ -21,13 +21,11 @@
 
     <!-- Accent / Ubuntu orange-ish -->
     <color name="accent">#E95420</color>
-    <color name="accent_variant">#F7C2B1</color>
 
     <!-- State -->
     <color name="error_color">#F85149</color>
     <color name="success_color">#3FB950</color>
 
     <!-- Material required -->
-    <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
 </resources>

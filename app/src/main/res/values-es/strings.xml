@@ -3,10 +3,7 @@
     <string name="app_name">KonsoleSSH</string>
 
     <!-- Menu / actions -->
-    <string name="new_connection">Nueva conexión</string>
     <string name="new_connection_dots">Nueva conexión…</string>
-    <string name="connect">Conectar</string>
-    <string name="disconnect">Desconectar</string>
     <string name="close_tab">Cerrar pestaña</string>
     <string name="manage_connections">Conexiones guardadas</string>
     <string name="action_language">Idioma</string>
@@ -17,16 +14,11 @@
     <string name="action_delete">Eliminar</string>
     <string name="action_close">Cerrar</string>
     <string name="action_save">Guardar</string>
-    <string name="action_edit">Editar</string>
     <string name="action_reconnect">Reintentar</string>
 
     <!-- Form fields -->
-    <string name="host">Servidor</string>
-    <string name="port">Puerto</string>
-    <string name="username">Usuario</string>
     <string name="password">Contraseña</string>
     <string name="private_key">Clave SSH</string>
-    <string name="save_connection">Guardar conexión</string>
 
     <!-- Dialogs -->
     <string name="dialog_new_connection_title">Nueva conexión SSH</string>
@@ -42,7 +34,6 @@
     <string name="username_hint">Usuario *</string>
     <string name="password_hint_optional">Contraseña (opcional)</string>
     <string name="pick_key_file">📂 Elegir archivo de clave…</string>
-    <string name="generate_new_key">🔑 Generar nueva clave</string>
     <string name="generate_and_upload_key">🔑 Generar clave + subir</string>
     <string name="action_test_connection">🔌 Probar conexión</string>
     <string name="test_needs_host_user">Rellena primero el host y el nombre de usuario.</string>
@@ -58,7 +49,6 @@
     <string name="upload_manual_title">Subida fallida — paso manual necesario</string>
     <string name="upload_manual_message">La clave se generó y guardó localmente, pero la subida automática falló. Copia la clave pública de abajo y añádela al servidor manualmente.</string>
     <string name="key_generated_title">Nueva clave SSH generada</string>
-    <string name="key_generated_message">Se ha generado un par de claves RSA. La clave privada se ha guardado en esta conexión. Añade la clave pública de abajo al servidor (p. ej. a las authorized keys SSH del router) para poder iniciar sesión.</string>
     <string name="action_copy_public_key">Copiar clave pública</string>
     <string name="key_copied">Clave pública copiada al portapapeles</string>
     <string name="configure_jump_host">🌐 Configurar jump host…</string>
@@ -71,7 +61,6 @@
     <string name="error_read_file">No se pudo leer: %1$s</string>
     <string name="error_host_required">Se requiere la dirección del servidor</string>
     <string name="error_username_required">Se requiere el nombre de usuario</string>
-    <string name="password_required">Se requiere la contraseña</string>
 
     <!-- Toasts -->
     <string name="copied">Copiado</string>

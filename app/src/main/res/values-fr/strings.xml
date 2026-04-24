@@ -3,10 +3,7 @@
     <string name="app_name">KonsoleSSH</string>
 
     <!-- Menu / actions -->
-    <string name="new_connection">Nouvelle connexion</string>
     <string name="new_connection_dots">Nouvelle connexion…</string>
-    <string name="connect">Connecter</string>
-    <string name="disconnect">Déconnecter</string>
     <string name="close_tab">Fermer l\'onglet</string>
     <string name="manage_connections">Connexions enregistrées</string>
     <string name="action_language">Langue</string>
@@ -17,16 +14,11 @@
     <string name="action_delete">Supprimer</string>
     <string name="action_close">Fermer</string>
     <string name="action_save">Enregistrer</string>
-    <string name="action_edit">Modifier</string>
     <string name="action_reconnect">Réessayer</string>
 
     <!-- Form fields -->
-    <string name="host">Serveur</string>
-    <string name="port">Port</string>
-    <string name="username">Utilisateur</string>
     <string name="password">Mot de passe</string>
     <string name="private_key">Clé SSH</string>
-    <string name="save_connection">Enregistrer la connexion</string>
 
     <!-- Dialogs -->
     <string name="dialog_new_connection_title">Nouvelle connexion SSH</string>
@@ -42,7 +34,6 @@
     <string name="username_hint">Utilisateur *</string>
     <string name="password_hint_optional">Mot de passe (facultatif)</string>
     <string name="pick_key_file">📂 Choisir un fichier de clé…</string>
-    <string name="generate_new_key">🔑 Générer une nouvelle clé</string>
     <string name="generate_and_upload_key">🔑 Générer + envoyer la clé</string>
     <string name="action_test_connection">🔌 Tester la connexion</string>
     <string name="test_needs_host_user">Remplis d\'abord l\'hôte et le nom d\'utilisateur.</string>
@@ -58,7 +49,6 @@
     <string name="upload_manual_title">Envoi échoué — étape manuelle requise</string>
     <string name="upload_manual_message">La clé a été générée et sauvegardée localement, mais l\'envoi automatique a échoué. Copie la clé publique ci-dessous et ajoute-la manuellement au serveur.</string>
     <string name="key_generated_title">Nouvelle clé SSH générée</string>
-    <string name="key_generated_message">Une paire de clés RSA a été générée. La clé privée est enregistrée dans cette connexion. Ajoute la clé publique ci-dessous au serveur (p. ex. aux authorized keys SSH du routeur) pour pouvoir te connecter.</string>
     <string name="action_copy_public_key">Copier la clé publique</string>
     <string name="key_copied">Clé publique copiée dans le presse-papiers</string>
     <string name="configure_jump_host">🌐 Configurer le jump host…</string>
@@ -71,7 +61,6 @@
     <string name="error_read_file">Lecture impossible : %1$s</string>
     <string name="error_host_required">Adresse du serveur requise</string>
     <string name="error_username_required">Nom d\'utilisateur requis</string>
-    <string name="password_required">Mot de passe requis</string>
 
     <!-- Toasts -->
     <string name="copied">Copié</string>

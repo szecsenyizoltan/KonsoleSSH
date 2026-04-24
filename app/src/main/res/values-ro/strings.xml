@@ -144,6 +144,8 @@
     <string name="err_auth_failed">Autentificare eșuată — parolă sau cheie greșită.</string>
     <string name="err_userauth_failed">Autentificare eșuată — respinsă de server.</string>
     <string name="err_auth_cancel">Autentificare anulată — serverul a respins toate metodele oferite. Încearcă o cheie privată (unele routere, ex. Mikrotik RouterOS, resping autentificarea cu parolă pentru utilizatorii doar-cheie).</string>
+    <string name="err_bad_credentials">Utilizator sau parolă greșită — serverul a respins credențialele.</string>
+    <string name="err_algo_mismatch">Serverul folosește un algoritm SSH pe care clientul nu îl acceptă (ex. o cheie de host veche). Verifică dacă firmware-ul / serviciul SSH este învechit sau dacă ai ajuns la host-ul potrivit.</string>
     <string name="err_conn_closed">Conexiunea s-a închis neașteptat.</string>
     <string name="err_broken_pipe">Conexiune pierdută (broken pipe).</string>
     <string name="err_port_forwarding">Eroare de port forwarding — serverul jump nu o permite.</string>

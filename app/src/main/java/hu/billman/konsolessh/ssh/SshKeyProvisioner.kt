@@ -68,6 +68,13 @@ object SshKeyProvisioner {
         val props = Properties().apply {
             set("StrictHostKeyChecking", "no")
             set("PreferredAuthentications", "password,keyboard-interactive")
+            // Legacy ssh-rsa (SHA-1 RSA) re-enabled for old routers / embedded
+            // SSH servers; see SshSession for the same list.
+            set(
+                "server_host_key",
+                "ssh-ed25519,ecdsa-sha2-nistp521,ecdsa-sha2-nistp384," +
+                "ecdsa-sha2-nistp256,rsa-sha2-512,rsa-sha2-256,ssh-rsa"
+            )
         }
         session.setConfig(props)
         if (cfg.password.isNotBlank()) session.setPassword(cfg.password)

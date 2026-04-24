@@ -144,6 +144,8 @@
     <string name="err_auth_failed">Autenticación fallida — contraseña o clave incorrecta.</string>
     <string name="err_userauth_failed">Autenticación fallida — rechazada por el servidor.</string>
     <string name="err_auth_cancel">Autenticación cancelada — el servidor rechazó todos los métodos disponibles. Prueba con una clave privada (algunos routers, p. ej. Mikrotik RouterOS, rechazan la autenticación por contraseña para usuarios solo-clave).</string>
+    <string name="err_bad_credentials">Nombre de usuario o contraseña incorrectos — el servidor rechazó las credenciales.</string>
+    <string name="err_algo_mismatch">El servidor usa un algoritmo SSH que el cliente no acepta (p. ej. una clave de host heredada). Comprueba si el firmware o servicio SSH está desactualizado o si has llegado al host correcto.</string>
     <string name="err_conn_closed">La conexión se cerró inesperadamente.</string>
     <string name="err_broken_pipe">Conexión perdida (broken pipe).</string>
     <string name="err_port_forwarding">Error de port forwarding — el servidor jump no lo permite.</string>

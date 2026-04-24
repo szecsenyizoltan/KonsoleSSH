@@ -48,6 +48,13 @@ class SshSession(
     // Called on main thread: displayHost is the real server (e.g. "csaba@10.1.1.8"), callback returns entered password or null
     var passwordPrompter: ((displayHost: String, callback: (String?) -> Unit) -> Unit)? = null
 
+    /**
+     * True once the server has rejected at least one credential attempt and
+     * JSch has called back for a retry. Lets the outer catch block replace
+     * the generic "Auth cancel" error with a targeted "bad credentials" one.
+     */
+    @Volatile private var sawCredentialReject = false
+
     private inner class JschUserInfo(private val displayHost: String) : UserInfo, UIKeyboardInteractive {
         private var pendingPassword: String? = null
 
@@ -65,6 +72,10 @@ class SshSession(
         }
 
         override fun promptPassword(message: String): Boolean {
+            // JSch only calls this after the initial stored password failed,
+            // or when no password was stored. In either case, the server has
+            // actively rejected something — remember that for error routing.
+            sawCredentialReject = true
             pendingPassword = askUser() ?: return false
             return true
         }
@@ -102,8 +113,18 @@ class SshSession(
         onError: (Throwable) -> Unit
     ) = withContext(Dispatchers.IO) {
         try {
+            sawCredentialReject = false
             val props = Properties().apply {
                 set("StrictHostKeyChecking", "no")
+                // Re-enable legacy ssh-rsa (SHA-1 RSA) as a last-resort host key
+                // algorithm. JSch 0.2.x dropped it by default, but many consumer
+                // routers and embedded SSH servers still only offer it. We trust
+                // whatever is there via StrictHostKeyChecking=no anyway.
+                set(
+                    "server_host_key",
+                    "ssh-ed25519,ecdsa-sha2-nistp521,ecdsa-sha2-nistp384," +
+                    "ecdsa-sha2-nistp256,rsa-sha2-512,rsa-sha2-256,ssh-rsa"
+                )
             }
 
             // ── Jump host (SSH -J) ────────────────────────────────────────────
@@ -173,7 +194,16 @@ class SshSession(
 
             withContext(Dispatchers.Main) { onConnected() }
         } catch (e: Throwable) {
-            withContext(Dispatchers.Main) { onError(e) }
+            val rewrapped = if (sawCredentialReject &&
+                (e.message ?: "").contains("Auth cancel", ignoreCase = true)
+            ) {
+                // The server actually rejected a credential attempt; JSch's
+                // "Auth cancel" is misleading here. Annotate so friendlyError
+                // can show the "wrong username or password" message instead of
+                // the Mikrotik-style key-only hint.
+                RuntimeException("bad credentials: ${e.message}", e)
+            } else e
+            withContext(Dispatchers.Main) { onError(rewrapped) }
         }
     }
 

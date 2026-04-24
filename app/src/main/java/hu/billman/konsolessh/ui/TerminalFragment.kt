@@ -11,11 +11,17 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import hu.billman.konsolessh.R
 import hu.billman.konsolessh.databinding.FragmentTerminalBinding
 import hu.billman.konsolessh.model.ConnectionConfig
 import hu.billman.konsolessh.model.SavedConnections
+import hu.billman.konsolessh.ssh.SessionEvent
 import hu.billman.konsolessh.ssh.SshForegroundService
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 enum class ConnectionStatus { NONE, CONNECTING, CONNECTED, DISCONNECTED }
 
@@ -80,6 +86,7 @@ class TerminalFragment : Fragment() {
 
     private var sshService: SshForegroundService? = null
     private var serviceBound = false
+    private var eventsJob: Job? = null
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName, binder: IBinder) {
@@ -157,10 +164,12 @@ class TerminalFragment : Fragment() {
     override fun onStop() {
         super.onStop()
         if (serviceBound) {
-            sshService?.setDataListener(tabId, null)
-            sshService?.setStatusListener(tabId, null)
+            // A Flow-collect lifecycleScope-ban fut; repeatOnLifecycle(STARTED)
+            // az onStop-pal automatikusan cancel-ezi. Explicit null-osítás
+            // a password-prompter-re kell, mert az egy kontraktusos referencia.
             sshService?.setPasswordPrompter(tabId, null)
-            sshService?.setConnectErrorListener(tabId, null)
+            eventsJob?.cancel()
+            eventsJob = null
             requireContext().unbindService(serviceConnection)
             serviceBound = false
             sshService = null
@@ -194,13 +203,33 @@ class TerminalFragment : Fragment() {
                 startConnection(cfg, service)
             }
             ConnectionStatus.CONNECTED, ConnectionStatus.CONNECTING, ConnectionStatus.DISCONNECTED -> {
-                // Existing session — register listeners and replay buffer
-                service.setStatusListener(tabId) { status -> updateStatusUI(status) }
                 replayBuffer(service)
-                service.setDataListener(tabId) { bytes ->
-                    _binding?.terminalView?.append(bytes, bytes.size)
-                }
+                collectSessionEvents(service)
                 updateStatusUI(service.getStatus(tabId))
+            }
+        }
+    }
+
+    /**
+     * Feliratkozik a [SshForegroundService] Flow-felületére a jelenlegi
+     * tabId-hoz. A collect-ciklus repeatOnLifecycle(STARTED)-ben fut, így
+     * onStop-pal automatikusan cancel-eződik, onStart-tel újra elindul.
+     */
+    private fun collectSessionEvents(service: SshForegroundService) {
+        eventsJob?.cancel()
+        val flow = service.events(tabId) ?: return
+        eventsJob = viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                flow.collect { event ->
+                    when (event) {
+                        is SessionEvent.Data ->
+                            _binding?.terminalView?.append(event.bytes, event.bytes.size)
+                        is SessionEvent.StatusChange ->
+                            updateStatusUI(event.status)
+                        is SessionEvent.ConnectError ->
+                            statusListener?.onConnectFailed(tabId, event.message)
+                    }
+                }
             }
         }
     }
@@ -224,13 +253,7 @@ class TerminalFragment : Fragment() {
         val cols = binding.terminalView.currentCols
         val rows = binding.terminalView.currentRows
         service.connect(tabId, cfg, jumpConfig, cols, rows)
-        service.setDataListener(tabId) { bytes ->
-            _binding?.terminalView?.append(bytes, bytes.size)
-        }
-        service.setStatusListener(tabId) { status -> updateStatusUI(status) }
-        service.setConnectErrorListener(tabId) { msg ->
-            statusListener?.onConnectFailed(tabId, msg)
-        }
+        collectSessionEvents(service)
         updateStatusUI(ConnectionStatus.CONNECTING)
         binding.statusBar.text = getString(R.string.status_connecting, cfg.displayName())
     }

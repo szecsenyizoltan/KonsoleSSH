@@ -1,8 +1,0 @@
-hu.szecsenyi.konsolessh.app-pngs-0 /home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/build/generated/res/pngs/debug
-hu.szecsenyi.konsolessh.app-resValues-1 /home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/build/generated/res/resValues/debug
-hu.szecsenyi.konsolessh.app-updated_navigation_xml-2 /home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/build/generated/updated_navigation_xml/debug
-hu.szecsenyi.konsolessh.app-packageDebugResources-3 /home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/build/intermediates/incremental/debug/packageDebugResources/merged.dir
-hu.szecsenyi.konsolessh.app-packageDebugResources-4 /home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir
-hu.szecsenyi.konsolessh.app-debug-5 /home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/build/intermediates/merged_res/debug/mergeDebugResources
-hu.szecsenyi.konsolessh.app-debug-6 /home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/debug/res
-hu.szecsenyi.konsolessh.app-main-7 /home/szecsenyizoltan/AndroidStudioProjects/KonsoleSSH/app/src/main/res

@@ -50,3 +50,19 @@ exceptions:
     active: false
 
 # potential-bugs: default szabályok maradnak aktívan.
+
+# ── ktlint-wrapper szabályok (detekt-formatting plugin) ──
+formatting:
+  active: true
+  android: true
+  autoCorrect: false
+  MaximumLineLength:
+    active: false        # detekt core MaxLineLength kezeli
+  NoWildcardImports:
+    active: true
+  Indentation:
+    active: true
+  TrailingCommaOnCallSite:
+    active: false        # Kotlin-stílus, hobbi-projekten nem kötelező
+  TrailingCommaOnDeclarationSite:
+    active: false

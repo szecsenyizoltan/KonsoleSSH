@@ -189,12 +189,19 @@ class TerminalFragment : Fragment() {
     // ── Service bound ─────────────────────────────────────────────────────────
 
     private fun onServiceBound() {
+        // A service-binding onServiceConnected callback-je aszinkron — rotáció
+        // vagy gyors tab-close közben a Fragment addigra detached/view-less
+        // is lehet. Minden requireContext()/binding-hivatkozás null-safe.
+        if (!isAdded) return
+        val ctx = context ?: return
         val service = sshService ?: return
         val cfg = config ?: return  // no SSH on welcome/cheatsheet tabs
 
-        val savedSp = MainActivity.savedFontSize(requireContext())
+        val savedSp = MainActivity.savedFontSize(ctx)
         val termView = _binding?.terminalView
-        if (savedSp > 0f && termView != null) termView.post { termView.setFontSize(savedSp) }
+        if (savedSp > 0f && termView != null) termView.post {
+            _binding?.terminalView?.setFontSize(savedSp)
+        }
 
         service.setPasswordPrompter(tabId, buildPasswordPrompter())
 
@@ -354,7 +361,7 @@ class TerminalFragment : Fragment() {
     private fun showLocalShellPrompt() {
         updateStatusUI(ConnectionStatus.NONE)
         binding.terminalView.horizontalScrollEnabled = false
-        binding.terminalView.post { binding.terminalView.setFontSize(16f) }
+        binding.terminalView.post { _binding?.terminalView?.setFontSize(16f) }
         val r  = "\u001B[0m"
         val c1 = "\u001B[38;5;214m"; val c2 = "\u001B[38;5;208m"; val c3 = "\u001B[38;5;202m"
         val cs = "\u001B[38;5;244m"; val ch = "\u001B[38;5;240m"
@@ -390,7 +397,7 @@ class TerminalFragment : Fragment() {
         val text = if (isHungarianLocale()) cheatSheetHu() else cheatSheetEn()
         val bytes = text.toByteArray(Charsets.UTF_8)
         binding.terminalView.append(bytes, bytes.size)
-        binding.terminalView.post { binding.terminalView.scrollToTop() }
+        binding.terminalView.post { _binding?.terminalView?.scrollToTop() }
     }
 
     private fun isHungarianLocale(): Boolean {
@@ -518,7 +525,7 @@ class TerminalFragment : Fragment() {
         val text = if (isHungarianLocale()) tmuxSheetHu() else tmuxSheetEn()
         val bytes = text.toByteArray(Charsets.UTF_8)
         binding.terminalView.append(bytes, bytes.size)
-        binding.terminalView.post { binding.terminalView.scrollToTop() }
+        binding.terminalView.post { _binding?.terminalView?.scrollToTop() }
     }
 
     private fun tmuxSheetHu(): String {

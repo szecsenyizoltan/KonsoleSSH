@@ -8,10 +8,14 @@ package hu.billman.konsolessh.terminal
  * metódusokon keresztül olvas, és a [setChangeListener]-en keresztül kap invalidáció-
  * jelzést minden állapotmódosítás után.
  *
- * **Fázis 5 / Lépés 2 állapota:** a váz és a read-only API él. A [write], [resize],
- * [reset] és [clearScreen] törzsek a Lépés 3–4-ben kerülnek feltöltésre; ebben a
- * commitban NOOP-ok, hogy a TerminalBuffer a TerminalView párhuzamos mirror-jaként
- * már létezhessen anélkül, hogy a UI-viselkedést bármilyen módon befolyásolná.
+ * Támogatott: ASCII + surrogate-pair (emoji), CR/LF/BS/TAB, CSI kurzor-mozgás és
+ * törlések, SGR (16 + 256 + truecolor), DECCKM (?1), cursor hide (?25), alt-screen
+ * (?47 / ?1049), bracketed paste (?2004), scroll region (CSI r), save/restore
+ * cursor (ESC 7/8, CSI s/u), reverse index (ESC M), charset designator
+ * (ESC-zárójel-változatok elnyelve), OSC/DCS payload csendes konszumálása.
+ *
+ * Scrollback-plafon: [maxScrollback] sor (default 3000 — a korábbi TerminalView
+ * értéke). Tartomány-túlfolyáskor a legrégebbi sor elvesz.
  */
 class TerminalBuffer(
     initialCols: Int = 80,
@@ -91,11 +95,9 @@ class TerminalBuffer(
     // ── Ingestion ────────────────────────────────────────────────────────────
 
     /**
-     * PTY bájtok etetése. A NORMAL ág (látható karakterek, CR/LF/BS/TAB,
-     * wraparound, scrollback) Lépés 3-ban élesedett; az ESCAPE / CSI / OSC /
-     * DCS / CHARSET ágak ebben a commitban csendben elnyelik a következő
-     * bájtot (1 karakter consume + visszatérés NORMAL-ba), funkcionálisan
-     * NOOP-ként. Ezeket Lépés 4 tölti fel a teljes dispatch-csel.
+     * PTY-bájtok etetése: UTF-8 dekódolás, ANSI FSM, cellarács-frissítés,
+     * scrollback-karbantartás. A hívás végén meghívja a ChangeListener-t,
+     * ha be van állítva.
      */
     fun write(bytes: ByteArray, length: Int = bytes.size) {
         processBytes(bytes, length)

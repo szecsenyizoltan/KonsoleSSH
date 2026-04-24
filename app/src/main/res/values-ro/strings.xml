@@ -9,6 +9,8 @@
     <string name="disconnect">Deconectare</string>
     <string name="close_tab">Închide fila</string>
     <string name="manage_connections">Conexiuni salvate</string>
+    <string name="action_language">Limbă</string>
+    <string name="language_system_default">Implicit sistem</string>
     <string name="exit">Ieșire</string>
     <string name="action_ok">OK</string>
     <string name="action_cancel">Anulare</string>

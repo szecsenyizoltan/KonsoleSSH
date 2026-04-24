@@ -9,6 +9,8 @@
     <string name="disconnect">Disconnect</string>
     <string name="close_tab">Close tab</string>
     <string name="manage_connections">Saved connections</string>
+    <string name="action_language">Language</string>
+    <string name="language_system_default">System default</string>
     <string name="exit">Exit</string>
     <string name="action_ok">OK</string>
     <string name="action_cancel">Cancel</string>

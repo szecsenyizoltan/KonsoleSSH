@@ -267,7 +267,7 @@ class SshSession(
         val hasPassword = cfg.password.isNotBlank()
         val hasKey      = cfg.privateKey.isNotBlank()
         return when {
-            hasPassword && hasKey -> "password,keyboard-interactive,publickey"
+            hasPassword && hasKey -> "publickey,password,keyboard-interactive"
             hasKey                -> "publickey"
             else                  -> "password,keyboard-interactive"
         }

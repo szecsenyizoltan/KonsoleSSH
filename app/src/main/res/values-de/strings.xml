@@ -124,6 +124,7 @@
     <string name="err_unknown_host">Unbekannter Hostname — DNS-Fehler oder Tippfehler.</string>
     <string name="err_auth_failed">Authentifizierung fehlgeschlagen — falsches Passwort oder Schlüssel.</string>
     <string name="err_userauth_failed">Authentifizierung fehlgeschlagen — vom Server abgelehnt.</string>
+    <string name="err_auth_cancel">Authentifizierung abgebrochen — der Server hat alle angebotenen Methoden abgelehnt. Versuche einen privaten Schlüssel (einige Router, z. B. Mikrotik RouterOS, lehnen Passwort-Login für Key-only-Benutzer ab).</string>
     <string name="err_conn_closed">Die Verbindung wurde unerwartet geschlossen.</string>
     <string name="err_broken_pipe">Verbindung verloren (broken pipe).</string>
     <string name="err_port_forwarding">Port-Forwarding-Fehler — der Jump-Server erlaubt es nicht.</string>

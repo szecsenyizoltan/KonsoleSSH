@@ -4,6 +4,13 @@ plugins {
     alias(libs.plugins.detekt)
 }
 
+dependencies {
+    // detekt-formatting: ktlint-szabályok a detekt-futásban (indentation,
+    // trailing-comma, no-wildcard-imports, stb.). Nincs külön ktlint task —
+    // a `./gradlew detekt` intézi a format-check-et is.
+    detektPlugins(libs.detekt.formatting)
+}
+
 // ── detekt: Kotlin static analysis ───────────────────────────────────────────
 // Egyetlen gyökér-Task (`./gradlew detekt`), ami az app/ modul összes Kotlin
 // forrását elemzi. A "build upon default config" minta — a jelen állapot

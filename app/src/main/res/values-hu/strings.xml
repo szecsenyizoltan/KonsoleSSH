@@ -144,6 +144,8 @@
     <string name="err_auth_failed">Hitelesítés sikertelen — helytelen jelszó vagy kulcs.</string>
     <string name="err_userauth_failed">Hitelesítés sikertelen — a szerver visszautasította.</string>
     <string name="err_auth_cancel">Hitelesítés megszakítva — a szerver minden felajánlott módszert elutasított. Próbálj privát kulcsot (egyes routerek, pl. Mikrotik RouterOS, a jelszavas belépést nem engedik kulcs-only usereknél).</string>
+    <string name="err_bad_credentials">Hibás felhasználónév vagy jelszó — a szerver elutasította a hitelesítést.</string>
+    <string name="err_algo_mismatch">A szerver olyan SSH-algoritmust használ, amit a kliens nem fogad el (pl. régi host-kulcs). Ellenőrizd, hogy nem elavult-e a firmware / SSH-szolgáltatás, és hogy a megfelelő host-ra csatlakozol-e.</string>
     <string name="err_conn_closed">A kapcsolat váratlanul lezárult.</string>
     <string name="err_broken_pipe">A kapcsolat megszakadt (broken pipe).</string>
     <string name="err_port_forwarding">Port forwarding hiba — a jump szerver nem engedélyezi.</string>

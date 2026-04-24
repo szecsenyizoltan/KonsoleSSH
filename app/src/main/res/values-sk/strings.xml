@@ -144,6 +144,8 @@
     <string name="err_auth_failed">Overenie zlyhalo — nesprávne heslo alebo kľúč.</string>
     <string name="err_userauth_failed">Overenie zlyhalo — server odmietol.</string>
     <string name="err_auth_cancel">Overenie zrušené — server odmietol všetky ponúknuté metódy. Skús súkromný kľúč (niektoré routery, napr. Mikrotik RouterOS, odmietajú heslové overenie pri používateľoch len s kľúčom).</string>
+    <string name="err_bad_credentials">Nesprávne používateľské meno alebo heslo — server odmietol prihlasovacie údaje.</string>
+    <string name="err_algo_mismatch">Server používa SSH algoritmus, ktorý klient neakceptuje (napr. zastaraný host key). Skontroluj, či firmvér / SSH služba nie je zastaraná, alebo či si sa spojil so správnym hostom.</string>
     <string name="err_conn_closed">Pripojenie bolo neočakávane zatvorené.</string>
     <string name="err_broken_pipe">Pripojenie stratené (broken pipe).</string>
     <string name="err_port_forwarding">Chyba port forwardingu — jump server to nepovoľuje.</string>

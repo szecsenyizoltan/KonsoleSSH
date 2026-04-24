@@ -366,6 +366,8 @@ class SshForegroundService : Service() {
             "unreachable"            in full -> getString(R.string.err_network_unreachable)
             "unknown host"           in full ||
             "nodename nor servname"  in full -> getString(R.string.err_unknown_host)
+            "bad credentials"        in full -> getString(R.string.err_bad_credentials)
+            "algorithm negotiation"  in full -> getString(R.string.err_algo_mismatch)
             "auth cancel"            in full -> getString(R.string.err_auth_cancel)
             "auth fail"              in full ||
             "authentication"         in full -> getString(R.string.err_auth_failed)

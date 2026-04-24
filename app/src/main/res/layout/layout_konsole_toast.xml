@@ -45,7 +45,7 @@
         android:id="@+id/btnToastClose"
         android:layout_width="32dp"
         android:layout_height="32dp"
-        android:text="✕"
+        android:text="@string/sym_cross"
         android:textColor="@color/text_secondary"
         android:textSize="14sp"
         android:gravity="center"

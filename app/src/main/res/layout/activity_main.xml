@@ -104,18 +104,18 @@
                 android:layout_height="36dp"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
-                <Button android:id="@+id/btnF1"  style="@style/KeyBarButton" android:text="F1" />
-                <Button android:id="@+id/btnF2"  style="@style/KeyBarButton" android:text="F2" />
-                <Button android:id="@+id/btnF3"  style="@style/KeyBarButton" android:text="F3" />
-                <Button android:id="@+id/btnF4"  style="@style/KeyBarButton" android:text="F4" />
-                <Button android:id="@+id/btnF5"  style="@style/KeyBarButton" android:text="F5" />
-                <Button android:id="@+id/btnF6"  style="@style/KeyBarButton" android:text="F6" />
-                <Button android:id="@+id/btnF7"  style="@style/KeyBarButton" android:text="F7" />
-                <Button android:id="@+id/btnF8"  style="@style/KeyBarButton" android:text="F8" />
-                <Button android:id="@+id/btnF9"  style="@style/KeyBarButton" android:text="F9" />
-                <Button android:id="@+id/btnF10" style="@style/KeyBarButton" android:text="F10" />
-                <Button android:id="@+id/btnF11" style="@style/KeyBarButton" android:text="F11" />
-                <Button android:id="@+id/btnF12" style="@style/KeyBarButton" android:text="F12" />
+                <Button android:id="@+id/btnF1"  style="@style/KeyBarButton" android:text="@string/key_f1" />
+                <Button android:id="@+id/btnF2"  style="@style/KeyBarButton" android:text="@string/key_f2" />
+                <Button android:id="@+id/btnF3"  style="@style/KeyBarButton" android:text="@string/key_f3" />
+                <Button android:id="@+id/btnF4"  style="@style/KeyBarButton" android:text="@string/key_f4" />
+                <Button android:id="@+id/btnF5"  style="@style/KeyBarButton" android:text="@string/key_f5" />
+                <Button android:id="@+id/btnF6"  style="@style/KeyBarButton" android:text="@string/key_f6" />
+                <Button android:id="@+id/btnF7"  style="@style/KeyBarButton" android:text="@string/key_f7" />
+                <Button android:id="@+id/btnF8"  style="@style/KeyBarButton" android:text="@string/key_f8" />
+                <Button android:id="@+id/btnF9"  style="@style/KeyBarButton" android:text="@string/key_f9" />
+                <Button android:id="@+id/btnF10" style="@style/KeyBarButton" android:text="@string/key_f10" />
+                <Button android:id="@+id/btnF11" style="@style/KeyBarButton" android:text="@string/key_f11" />
+                <Button android:id="@+id/btnF12" style="@style/KeyBarButton" android:text="@string/key_f12" />
             </LinearLayout>
         </HorizontalScrollView>
 
@@ -124,7 +124,7 @@
             android:layout_width="32dp"
             android:layout_height="36dp"
             android:layout_gravity="start|center_vertical"
-            android:text="◀"
+            android:text="@string/sym_triangle_left"
             android:textColor="@color/accent"
             android:textSize="13sp"
             android:gravity="center"
@@ -136,7 +136,7 @@
             android:layout_width="32dp"
             android:layout_height="36dp"
             android:layout_gravity="end|center_vertical"
-            android:text="▶"
+            android:text="@string/sym_triangle_right"
             android:textColor="@color/accent"
             android:textSize="13sp"
             android:gravity="center"
@@ -171,7 +171,7 @@
             android:layout_width="32dp"
             android:layout_height="36dp"
             android:layout_gravity="start|center_vertical"
-            android:text="◀"
+            android:text="@string/sym_triangle_left"
             android:textColor="@color/accent"
             android:textSize="13sp"
             android:gravity="center"
@@ -183,7 +183,7 @@
             android:layout_width="32dp"
             android:layout_height="36dp"
             android:layout_gravity="end|center_vertical"
-            android:text="▶"
+            android:text="@string/sym_triangle_right"
             android:textColor="@color/accent"
             android:textSize="13sp"
             android:gravity="center"
@@ -214,22 +214,22 @@
                 <Button
                     android:id="@+id/btnArrowLeft"
                     style="@style/KeyBarButton"
-                    android:text="←" />
+                    android:text="@string/sym_arrow_left" />
 
                 <Button
                     android:id="@+id/btnArrowUp"
                     style="@style/KeyBarButton"
-                    android:text="↑" />
+                    android:text="@string/sym_arrow_up" />
 
                 <Button
                     android:id="@+id/btnArrowDown"
                     style="@style/KeyBarButton"
-                    android:text="↓" />
+                    android:text="@string/sym_arrow_down" />
 
                 <Button
                     android:id="@+id/btnArrowRight"
                     style="@style/KeyBarButton"
-                    android:text="→" />
+                    android:text="@string/sym_arrow_right" />
 
             </LinearLayout>
         </HorizontalScrollView>
@@ -257,60 +257,60 @@
                 <Button
                     android:id="@+id/btnKeyboard"
                     style="@style/KeyBarButton"
-                    android:text="⌨" />
+                    android:text="@string/sym_keyboard" />
 
                 <Button
                     android:id="@+id/btnFn"
                     style="@style/KeyBarButton"
-                    android:text="Fn" />
+                    android:text="@string/key_fn" />
 
                 <View style="@style/KeyBarDivider" />
 
                 <Button
                     android:id="@+id/btnModCtrl"
                     style="@style/KeyBarButton"
-                    android:text="CTRL" />
+                    android:text="@string/key_ctrl" />
 
                 <Button
                     android:id="@+id/btnModShift"
                     style="@style/KeyBarButton"
-                    android:text="SHIFT" />
+                    android:text="@string/key_shift" />
 
                 <Button
                     android:id="@+id/btnModAlt"
                     style="@style/KeyBarButton"
-                    android:text="ALT" />
+                    android:text="@string/key_alt" />
 
                 <Button
                     android:id="@+id/btnModAltGr"
                     style="@style/KeyBarButton"
-                    android:text="ALTGR" />
+                    android:text="@string/key_altgr" />
 
                 <View style="@style/KeyBarDivider" />
 
                 <Button
                     android:id="@+id/btnEscape"
                     style="@style/KeyBarButton"
-                    android:text="ESC" />
+                    android:text="@string/key_esc" />
 
                 <Button
                     android:id="@+id/btnTab"
                     style="@style/KeyBarButton"
-                    android:text="TAB" />
+                    android:text="@string/key_tab" />
 
                 <View style="@style/KeyBarDivider" />
 
                 <Button
                     android:id="@+id/btnArrowToggle"
                     style="@style/KeyBarButton"
-                    android:text="↑" />
+                    android:text="@string/sym_arrow_up" />
 
                 <View style="@style/KeyBarDivider" />
 
                 <Button
                     android:id="@+id/btnUpload"
                     style="@style/KeyBarButton"
-                    android:text="📁"
+                    android:text="@string/sym_folder"
                     android:contentDescription="@string/content_desc_upload" />
 
             </LinearLayout>
@@ -321,7 +321,7 @@
             android:layout_width="32dp"
             android:layout_height="40dp"
             android:layout_gravity="start|center_vertical"
-            android:text="◀"
+            android:text="@string/sym_triangle_left"
             android:textColor="@color/accent"
             android:textSize="13sp"
             android:gravity="center"
@@ -333,7 +333,7 @@
             android:layout_width="32dp"
             android:layout_height="40dp"
             android:layout_gravity="end|center_vertical"
-            android:text="▶"
+            android:text="@string/sym_triangle_right"
             android:textColor="@color/accent"
             android:textSize="13sp"
             android:gravity="center"

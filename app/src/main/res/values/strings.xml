@@ -162,4 +162,39 @@
     <string name="welcome_line_8">also reachable.</string>
     <string name="welcome_line_9">New connection: \'+\' button</string>
     <string name="welcome_swipe_hint">Swipe right for help.</string>
+
+    <!-- Non-translatable UI glyphs and key labels (keybar / fnbar / symbols) -->
+    <string name="key_f1" translatable="false">F1</string>
+    <string name="key_f2" translatable="false">F2</string>
+    <string name="key_f3" translatable="false">F3</string>
+    <string name="key_f4" translatable="false">F4</string>
+    <string name="key_f5" translatable="false">F5</string>
+    <string name="key_f6" translatable="false">F6</string>
+    <string name="key_f7" translatable="false">F7</string>
+    <string name="key_f8" translatable="false">F8</string>
+    <string name="key_f9" translatable="false">F9</string>
+    <string name="key_f10" translatable="false">F10</string>
+    <string name="key_f11" translatable="false">F11</string>
+    <string name="key_f12" translatable="false">F12</string>
+    <string name="key_esc" translatable="false">ESC</string>
+    <string name="key_tab" translatable="false">TAB</string>
+    <string name="key_ctrl" translatable="false">CTRL</string>
+    <string name="key_shift" translatable="false">SHIFT</string>
+    <string name="key_alt" translatable="false">ALT</string>
+    <string name="key_altgr" translatable="false">ALTGR</string>
+    <string name="key_fn" translatable="false">Fn</string>
+    <string name="sym_arrow_left" translatable="false">←</string>
+    <string name="sym_arrow_up" translatable="false">↑</string>
+    <string name="sym_arrow_down" translatable="false">↓</string>
+    <string name="sym_arrow_right" translatable="false">→</string>
+    <string name="sym_triangle_left" translatable="false">◀</string>
+    <string name="sym_triangle_right" translatable="false">▶</string>
+    <string name="sym_keyboard" translatable="false">⌨</string>
+    <string name="sym_folder" translatable="false">📁</string>
+    <string name="sym_refresh" translatable="false">↺</string>
+    <string name="sym_check" translatable="false">✓</string>
+    <string name="sym_cross" translatable="false">✕</string>
+    <string name="sym_dot" translatable="false">●</string>
+    <string name="sym_plus" translatable="false">+</string>
+    <string name="default_ssh_port" translatable="false">22</string>
 </resources>

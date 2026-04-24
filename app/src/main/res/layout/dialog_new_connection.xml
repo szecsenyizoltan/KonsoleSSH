@@ -88,7 +88,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="number"
-                    android:text="22"
+                    android:text="@string/default_ssh_port"
                     android:imeOptions="actionNext" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -228,7 +228,7 @@
                     android:id="@+id/textKeyStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="✓"
+                    android:text="@string/sym_check"
                     android:textColor="@color/success_color"
                     android:textStyle="bold"
                     android:textSize="18sp"

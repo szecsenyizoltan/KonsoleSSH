@@ -14,7 +14,7 @@
         android:id="@+id/tabStatusDot"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="●"
+        android:text="@string/sym_dot"
         android:textSize="9sp"
         android:layout_marginEnd="5dp"
         android:visibility="gone" />
@@ -34,7 +34,7 @@
         android:layout_width="24dp"
         android:layout_height="24dp"
         android:layout_marginStart="4dp"
-        android:text="✕"
+        android:text="@string/sym_cross"
         android:textSize="12sp"
         android:gravity="center"
         android:background="?attr/selectableItemBackgroundBorderless" />

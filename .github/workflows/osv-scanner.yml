@@ -1,0 +1,29 @@
+name: OSV-Scanner
+
+# Google's CVE-ellenőrző a dependency-graph-on. A reusable workflow
+# lekéri a projekt Gradle-függőségeit és minden ismert CVE-t kijelez.
+# Push + PR triggerre fut; heti ütemezés biztonsági fennakadásra.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 5 * * 1'  # minden hétfő 05:00 UTC
+  workflow_dispatch:
+
+permissions:
+  # Security-events: a Code Scanning-be tudjuk pusholni a SARIF reportot
+  security-events: write
+  # Read: dep-graph olvasásához
+  contents: read
+  actions: read
+
+jobs:
+  scan:
+    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.0.2"
+    with:
+      scan-args: |-
+        --recursive
+        ./

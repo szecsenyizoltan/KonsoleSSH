@@ -17,6 +17,17 @@ value class TermColor(val argb: Int) {
     companion object {
         val DEFAULT_FG = TermColor(0xFFCCCCCC.toInt())
         val DEFAULT_BG = TermColor(0xFF000000.toInt())
+
+        /**
+         * RGB komponensekből szerkeszt ARGB színt (alpha = 255).
+         * Az android.graphics.Color.rgb(r,g,b) ugyanezt a bit-mintát adja.
+         */
+        fun rgb(r: Int, g: Int, b: Int): TermColor {
+            val rr = r and 0xFF
+            val gg = g and 0xFF
+            val bb = b and 0xFF
+            return TermColor((0xFF shl 24) or (rr shl 16) or (gg shl 8) or bb)
+        }
     }
 }
 

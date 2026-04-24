@@ -139,19 +139,23 @@ class TerminalBuffer(
                     else                  -> if (ch >= ' ') printChar(ch)
                 }
                 AnsiState.ESCAPE -> {
-                    // Lépés 4 előtt: a bevezető karakterek alapján átlépünk a megfelelő
-                    // alállapotba (CSI, OSC, DCS, CHARSET), ahol a payload-bájtokat
-                    // csendben elnyeljük. Egyéb ESC parancsok (M, 7, 8, c) NOOP-ok.
+                    ansiState = AnsiState.NORMAL
                     when (ch) {
                         '[' -> { ansiState = AnsiState.CSI; csiParams.clear() }
                         ']' -> ansiState = AnsiState.OSC
                         'P', 'X', '^', '_' -> ansiState = AnsiState.DCS
+                        'M' -> reverseIndex()
+                        '7' -> { savedRow = _cursorRow; savedCol = _cursorCol }
+                        '8' -> {
+                            _cursorRow = savedRow.coerceIn(0, _rows - 1)
+                            _cursorCol = savedCol.coerceIn(0, _cols - 1)
+                        }
+                        'c' -> reset()
                         '(', ')', '*', '+' -> ansiState = AnsiState.CHARSET
-                        else -> ansiState = AnsiState.NORMAL
+                        // ESC \ = ST terminator — már konszumálva, NORMAL-ban maradunk
                     }
                 }
                 AnsiState.CHARSET -> {
-                    // Consume charset designator byte ('B' = ASCII, '0' = graphics, stb.)
                     ansiState = AnsiState.NORMAL
                 }
                 AnsiState.CSI -> {
@@ -159,8 +163,7 @@ class TerminalBuffer(
                         ch == '>' || ch == '<' || ch == '!' || ch == '=' || ch == '$') {
                         csiParams.append(ch)
                     } else {
-                        // Lépés 4-ig a CSI-dispatch nincs implementálva; a bájtot silent consume.
-                        csiParams.clear()
+                        handleCSI(ch, csiParams.toString())
                         ansiState = AnsiState.NORMAL
                     }
                 }
@@ -203,26 +206,255 @@ class TerminalBuffer(
         screen[scrollBot] = blankRow(_cols)
     }
 
-    @Suppress("unused")
     private fun scrollRegionDown() {
         for (r in scrollBot downTo scrollTop + 1) screen[r] = screen[r - 1]
         screen[scrollTop] = blankRow(_cols)
     }
 
-    // ── Lifecycle (STUB — Lépés 4–5 tölti) ───────────────────────────────────
+    private fun reverseIndex() {
+        if (_cursorRow > scrollTop) _cursorRow-- else scrollRegionDown()
+    }
 
+    private fun insertLinesAtCursor(n: Int) {
+        repeat(n) {
+            for (r in scrollBot downTo _cursorRow + 1) screen[r] = screen[r - 1]
+            screen[_cursorRow] = blankRow(_cols)
+        }
+    }
+
+    private fun deleteLinesAtCursor(n: Int) {
+        repeat(n) {
+            for (r in _cursorRow until scrollBot) screen[r] = screen[r + 1]
+            screen[scrollBot] = blankRow(_cols)
+        }
+    }
+
+    // ── CSI dispatch ─────────────────────────────────────────────────────────
+
+    private fun handleCSI(cmd: Char, params: String) {
+        val isPrivate = params.startsWith("?")
+        val cleaned = if (isPrivate) params.substring(1) else params
+        val parts = cleaned.split(";")
+        val n1 = parts.getOrNull(0)?.toIntOrNull() ?: 1
+        val n0 = parts.getOrNull(0)?.toIntOrNull() ?: 0
+
+        when (cmd) {
+            'A' -> _cursorRow = (_cursorRow - n1).coerceAtLeast(0)
+            'B' -> _cursorRow = (_cursorRow + n1).coerceAtMost(_rows - 1)
+            'C' -> _cursorCol = (_cursorCol + n1).coerceAtMost(_cols - 1)
+            'D' -> _cursorCol = (_cursorCol - n1).coerceAtLeast(0)
+            'E' -> { _cursorRow = (_cursorRow + n1).coerceAtMost(_rows - 1); _cursorCol = 0 }
+            'F' -> { _cursorRow = (_cursorRow - n1).coerceAtLeast(0); _cursorCol = 0 }
+            'G' -> _cursorCol = (n1 - 1).coerceIn(0, _cols - 1)
+            'H', 'f' -> {
+                _cursorRow = ((parts.getOrNull(0)?.toIntOrNull() ?: 1) - 1).coerceIn(0, _rows - 1)
+                _cursorCol = ((parts.getOrNull(1)?.toIntOrNull() ?: 1) - 1).coerceIn(0, _cols - 1)
+            }
+            'J' -> when (n0) {
+                0 -> { eraseLineEnd(); for (r in _cursorRow + 1 until _rows) screen[r] = blankRow(_cols) }
+                1 -> { for (r in 0 until _cursorRow) screen[r] = blankRow(_cols); eraseLineStart() }
+                2, 3 -> {
+                    if (!_altScreenActive) {
+                        for (r in 0.._cursorRow) scrollback.addLast(screen[r])
+                        while (scrollback.size > maxScrollback) scrollback.removeFirst()
+                    }
+                    screen = newScreen(_cols, _rows)
+                }
+            }
+            'K' -> when (n0) {
+                0 -> eraseLineEnd()
+                1 -> eraseLineStart()
+                2 -> screen[_cursorRow] = blankRow(_cols)
+            }
+            'L' -> insertLinesAtCursor(n1)
+            'M' -> deleteLinesAtCursor(n1)
+            'P' -> deleteChars(n1)
+            '@' -> insertBlanks(n1)
+            'S' -> repeat(n1) { scrollRegionUp() }
+            'T' -> repeat(n1) { scrollRegionDown() }
+            'X' -> {
+                val end = minOf(_cursorCol + n1, _cols)
+                for (c in _cursorCol until end) screen[_cursorRow][c] = TermCell.blank()
+            }
+            'r' -> {
+                val top = ((parts.getOrNull(0)?.toIntOrNull() ?: 1) - 1).coerceIn(0, _rows - 1)
+                val bot = ((parts.getOrNull(1)?.toIntOrNull() ?: _rows) - 1).coerceIn(0, _rows - 1)
+                if (top < bot) { scrollTop = top; scrollBot = bot }
+                _cursorRow = 0; _cursorCol = 0
+            }
+            'm' -> handleSGR(cleaned)
+            'h' -> if (isPrivate) handleMode(n1, true)
+            'l' -> if (isPrivate) handleMode(n1, false)
+            's' -> { savedRow = _cursorRow; savedCol = _cursorCol }
+            'u' -> {
+                _cursorRow = savedRow.coerceIn(0, _rows - 1)
+                _cursorCol = savedCol.coerceIn(0, _cols - 1)
+            }
+            // 'n', 't', others: silently ignore
+        }
+    }
+
+    private fun handleMode(mode: Int, enable: Boolean) {
+        when (mode) {
+            1 -> _appCursorKeys = enable
+            25 -> _cursorHidden = !enable
+            47, 1049 -> if (enable) enterAltScreen() else leaveAltScreen()
+            2004 -> _bracketedPasteMode = enable
+        }
+    }
+
+    private fun enterAltScreen() {
+        if (_altScreenActive) return
+        savedMainScreen = screen
+        savedMainRow = _cursorRow; savedMainCol = _cursorCol
+        screen = newScreen(_cols, _rows)
+        _cursorRow = 0; _cursorCol = 0
+        scrollTop = 0; scrollBot = _rows - 1
+        _altScreenActive = true
+    }
+
+    private fun leaveAltScreen() {
+        if (!_altScreenActive) return
+        screen = savedMainScreen ?: newScreen(_cols, _rows)
+        savedMainScreen = null
+        _altScreenActive = false
+        _cursorRow = savedMainRow.coerceIn(0, _rows - 1)
+        _cursorCol = 0   // prompt sorkezdő oszlopban induljon
+        for (r in _cursorRow + 1 until _rows) screen[r] = blankRow(_cols)
+        scrollTop = 0; scrollBot = _rows - 1
+    }
+
+    private fun eraseLineEnd() {
+        for (c in _cursorCol until _cols) screen[_cursorRow][c] = TermCell.blank()
+    }
+
+    private fun eraseLineStart() {
+        for (c in 0.._cursorCol) screen[_cursorRow][c] = TermCell.blank()
+    }
+
+    private fun deleteChars(n: Int) {
+        val row = screen[_cursorRow]
+        val shift = minOf(n, _cols - _cursorCol)
+        for (c in _cursorCol until _cols - shift) row[c] = row[c + shift].copy()
+        for (c in _cols - shift until _cols) row[c] = TermCell.blank()
+    }
+
+    private fun insertBlanks(n: Int) {
+        val row = screen[_cursorRow]
+        val shift = minOf(n, _cols - _cursorCol)
+        for (c in _cols - 1 downTo _cursorCol + shift) row[c] = row[c - shift].copy()
+        for (c in _cursorCol until _cursorCol + shift) row[c] = TermCell.blank()
+    }
+
+    // ── SGR ──────────────────────────────────────────────────────────────────
+
+    private fun handleSGR(params: String) {
+        if (params.isEmpty()) { resetStyle(); return }
+        val parts = params.split(";")
+        var i = 0
+        while (i < parts.size) {
+            when (val p = parts[i].toIntOrNull() ?: 0) {
+                0 -> resetStyle()
+                1 -> curBold = true
+                2 -> { /* dim: no dedicated rendering */ }
+                3 -> { /* italic: skip */ }
+                4 -> curUnderline = true
+                5, 6 -> { /* blink: ignore */ }
+                7 -> curReverse = true
+                8 -> { /* conceal: skip */ }
+                9 -> { /* strikethrough: skip */ }
+                21, 24 -> curUnderline = false
+                22 -> curBold = false
+                23 -> { /* italic off */ }
+                27 -> curReverse = false
+                28 -> { /* reveal */ }
+                39 -> curFg = TermColor.DEFAULT_FG
+                49 -> curBg = TermColor.DEFAULT_BG
+                in 30..37 -> curFg = ansi16(p - 30)
+                in 40..47 -> curBg = ansi16(p - 40)
+                in 90..97 -> curFg = ansi16(p - 90 + 8)
+                in 100..107 -> curBg = ansi16(p - 100 + 8)
+                38 -> when (parts.getOrNull(i + 1)?.toIntOrNull()) {
+                    5 -> { curFg = xterm256(parts.getOrNull(i + 2)?.toIntOrNull() ?: 0); i += 2 }
+                    2 -> {
+                        curFg = TermColor.rgb(
+                            parts.getOrNull(i + 2)?.toIntOrNull() ?: 0,
+                            parts.getOrNull(i + 3)?.toIntOrNull() ?: 0,
+                            parts.getOrNull(i + 4)?.toIntOrNull() ?: 0,
+                        ); i += 4
+                    }
+                }
+                48 -> when (parts.getOrNull(i + 1)?.toIntOrNull()) {
+                    5 -> { curBg = xterm256(parts.getOrNull(i + 2)?.toIntOrNull() ?: 0); i += 2 }
+                    2 -> {
+                        curBg = TermColor.rgb(
+                            parts.getOrNull(i + 2)?.toIntOrNull() ?: 0,
+                            parts.getOrNull(i + 3)?.toIntOrNull() ?: 0,
+                            parts.getOrNull(i + 4)?.toIntOrNull() ?: 0,
+                        ); i += 4
+                    }
+                }
+            }
+            i++
+        }
+    }
+
+    private fun resetStyle() {
+        curFg = TermColor.DEFAULT_FG; curBg = TermColor.DEFAULT_BG
+        curBold = false; curUnderline = false; curReverse = false
+    }
+
+    private fun ansi16(i: Int): TermColor {
+        val c = intArrayOf(
+            0x000000, 0xAA0000, 0x00AA00, 0xAA5500, 0x0000AA, 0xAA00AA, 0x00AAAA, 0xAAAAAA,
+            0x555555, 0xFF5555, 0x55FF55, 0xFFFF55, 0x5555FF, 0xFF55FF, 0x55FFFF, 0xFFFFFF,
+        )[i.coerceIn(0, 15)]
+        return TermColor.rgb(c shr 16 and 0xFF, c shr 8 and 0xFF, c and 0xFF)
+    }
+
+    private fun xterm256(i: Int): TermColor {
+        if (i < 16) return ansi16(i)
+        if (i >= 232) { val v = 8 + (i - 232) * 10; return TermColor.rgb(v, v, v) }
+        val idx = i - 16
+        fun comp(c: Int) = if (c == 0) 0 else c * 40 + 55
+        return TermColor.rgb(comp(idx / 36), comp((idx % 36) / 6), comp(idx % 6))
+    }
+
+    // ── Lifecycle ────────────────────────────────────────────────────────────
+
+    /**
+     * Lépés 5-ben véglegesedik a resize szemantikája; ebben a commitban még
+     * szándékosan NOOP, hogy a Lépés 4 (CSI/SGR) tesztjei függetlenül futhassanak.
+     */
     fun resize(newCols: Int, newRows: Int) {
-        // Lépés 5: screen/scrollback átméretezése, kurzor coerce, alt-backup drop
+        // Lépés 5
     }
 
-    /** ESC c teljes reset. */
+    /** ESC c: teljes reset (állapot, scrollback, módok, SGR-stílus). */
     fun reset() {
-        // Lépés 4
+        screen = newScreen(_cols, _rows)
+        scrollback.clear()
+        _cursorRow = 0; _cursorCol = 0
+        savedRow = 0; savedCol = 0
+        savedMainRow = 0; savedMainCol = 0
+        scrollTop = 0; scrollBot = _rows - 1
+        _altScreenActive = false
+        savedMainScreen = null
+        _appCursorKeys = false
+        _cursorHidden = false
+        _bracketedPasteMode = false
+        resetStyle()
     }
 
-    /** Main screen törlése (a TerminalView.clear() megfelelője). */
+    /**
+     * A TerminalView.clear() megfelelője: csak a main screen-t üríti, scrollback
+     * nem változik, a kurzor hazaugrik.
+     */
     fun clearScreen() {
-        // Lépés 4
+        screen = newScreen(_cols, _rows)
+        _cursorRow = 0; _cursorCol = 0
+        resetStyle()
+        notifyChanged()
     }
 
     // ── Read-only access for renderer / selection ────────────────────────────

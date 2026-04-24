@@ -35,17 +35,6 @@
     </issue>
 
     <issue
-        id="UnusedAttribute"
-        message="Attribute `localeConfig` is only used in API level 33 and higher (current min is 26)"
-        errorLine1="        android:localeConfig=&quot;@xml/locales_config&quot;"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/AndroidManifest.xml"
-            line="17"
-            column="9"/>
-    </issue>
-
-    <issue
         id="InflateParams"
         message="Avoid passing `null` as the view root (needed to resolve layout parameters on the inflated layout&apos;s root element)"
         errorLine1="        val view = LayoutInflater.from(this).inflate(R.layout.tab_custom, null)"
@@ -107,7 +96,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/AndroidManifest.xml"
-            line="25"
+            line="27"
             column="13"/>
     </issue>
 
@@ -252,17 +241,6 @@
             file="src/main/java/hu/billman/konsolessh/ui/TerminalPagerAdapter.kt"
             line="74"
             column="9"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 26"
-        errorLine1="        val locale = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {"
-        errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/hu/billman/konsolessh/ui/TerminalFragment.kt"
-            line="419"
-            column="26"/>
     </issue>
 
     <issue

@@ -416,12 +416,8 @@ class TerminalFragment : Fragment() {
     }
 
     private fun isHungarianLocale(): Boolean {
-        val locale = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-            resources.configuration.locales[0]
-        } else {
-            @Suppress("DEPRECATION") resources.configuration.locale
-        }
-        return locale.language == "hu"
+        // minSdk = 26 → SDK_INT mindig >= N (Android 7), a locales[0] mindig elérhető.
+        return resources.configuration.locales[0].language == "hu"
     }
 
     private fun cheatSheetHu(): String {

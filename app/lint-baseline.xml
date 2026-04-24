@@ -8,7 +8,7 @@
         errorLine2="                 ~~~~~~~~~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/MainActivity.kt"
-            line="166"
+            line="202"
             column="18"/>
     </issue>
 
@@ -19,7 +19,7 @@
         errorLine2="                                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/NewConnectionDialog.kt"
-            line="74"
+            line="82"
             column="55"/>
     </issue>
 
@@ -41,7 +41,7 @@
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/AndroidManifest.xml"
-            line="16"
+            line="17"
             column="9"/>
     </issue>
 
@@ -52,7 +52,7 @@
         errorLine2="                                                                          ~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/MainActivity.kt"
-            line="618"
+            line="662"
             column="75"/>
     </issue>
 
@@ -422,7 +422,7 @@
         errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/TerminalFragment.kt"
-            line="366"
+            line="397"
             column="26"/>
     </issue>
 
@@ -693,7 +693,7 @@
         errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/terminal/TerminalView.kt"
-            line="788"
+            line="435"
             column="43"/>
     </issue>
 
@@ -704,7 +704,7 @@
         errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/terminal/TerminalView.kt"
-            line="790"
+            line="437"
             column="43"/>
     </issue>
 
@@ -754,12 +754,45 @@
 
     <issue
         id="UseKtx"
+        message="Use the KTX extension property `View.isVisible` instead?"
+        errorLine1="        outState.putBoolean(STATE_FNBAR_VISIBLE, binding.fnbarContainer.visibility == View.VISIBLE)"
+        errorLine2="                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/hu/billman/konsolessh/ui/MainActivity.kt"
+            line="146"
+            column="50"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension property `View.isVisible` instead?"
+        errorLine1="        outState.putBoolean(STATE_ARROWBAR_VISIBLE, binding.arrowbarContainer.visibility == View.VISIBLE)"
+        errorLine2="                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/hu/billman/konsolessh/ui/MainActivity.kt"
+            line="147"
+            column="53"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension property `View.isVisible` instead?"
+        errorLine1="        outState.putBoolean(STATE_CTRLBAR_VISIBLE, binding.ctrlbarContainer.visibility == View.VISIBLE)"
+        errorLine2="                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/hu/billman/konsolessh/ui/MainActivity.kt"
+            line="148"
+            column="52"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
         message="Use the KTX extension function `SharedPreferences.edit` instead?"
         errorLine1="        getSharedPreferences(&quot;settings&quot;, Context.MODE_PRIVATE)"
         errorLine2="        ^">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/MainActivity.kt"
-            line="208"
+            line="244"
             column="9"/>
     </issue>
 
@@ -770,7 +803,7 @@
         errorLine2="                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/MainActivity.kt"
-            line="447"
+            line="491"
             column="23"/>
     </issue>
 
@@ -781,7 +814,7 @@
         errorLine2="                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/MainActivity.kt"
-            line="454"
+            line="498"
             column="23"/>
     </issue>
 
@@ -792,7 +825,7 @@
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/MainActivity.kt"
-            line="538"
+            line="582"
             column="29"/>
     </issue>
 
@@ -803,7 +836,7 @@
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/MainActivity.kt"
-            line="540"
+            line="584"
             column="29"/>
     </issue>
 
@@ -814,7 +847,7 @@
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/MainActivity.kt"
-            line="559"
+            line="603"
             column="29"/>
     </issue>
 
@@ -825,7 +858,7 @@
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/MainActivity.kt"
-            line="561"
+            line="605"
             column="29"/>
     </issue>
 
@@ -836,7 +869,7 @@
         errorLine2="                 ~~~~~~~~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/terminal/TerminalView.kt"
-            line="816"
+            line="470"
             column="18"/>
     </issue>
 
@@ -858,7 +891,7 @@
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/ConnectionEditActivity.kt"
-            line="65"
+            line="82"
             column="25"/>
     </issue>
 
@@ -869,7 +902,7 @@
         errorLine2="                       ~~~~~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/MainActivity.kt"
-            line="311"
+            line="355"
             column="24"/>
     </issue>
 
@@ -880,7 +913,7 @@
         errorLine2="                        ~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/MainActivity.kt"
-            line="311"
+            line="355"
             column="25"/>
     </issue>
 
@@ -891,7 +924,7 @@
         errorLine2="                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/MainActivity.kt"
-            line="376"
+            line="420"
             column="39"/>
     </issue>
 
@@ -902,7 +935,7 @@
         errorLine2="                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/MainActivity.kt"
-            line="379"
+            line="423"
             column="39"/>
     </issue>
 
@@ -913,7 +946,7 @@
         errorLine2="                                 ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/NewConnectionDialog.kt"
-            line="347"
+            line="353"
             column="34"/>
     </issue>
 

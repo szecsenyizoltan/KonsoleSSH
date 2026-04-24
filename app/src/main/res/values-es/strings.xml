@@ -124,6 +124,7 @@
     <string name="err_unknown_host">Nombre de host desconocido — error de DNS o escritura.</string>
     <string name="err_auth_failed">Autenticación fallida — contraseña o clave incorrecta.</string>
     <string name="err_userauth_failed">Autenticación fallida — rechazada por el servidor.</string>
+    <string name="err_auth_cancel">Autenticación cancelada — el servidor rechazó todos los métodos disponibles. Prueba con una clave privada (algunos routers, p. ej. Mikrotik RouterOS, rechazan la autenticación por contraseña para usuarios solo-clave).</string>
     <string name="err_conn_closed">La conexión se cerró inesperadamente.</string>
     <string name="err_broken_pipe">Conexión perdida (broken pipe).</string>
     <string name="err_port_forwarding">Error de port forwarding — el servidor jump no lo permite.</string>

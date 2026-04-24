@@ -342,8 +342,13 @@ No se recopilan, comparten ni envían datos. Las credenciales permanecen en el d
 - Android 8.0 (API 26) o superior
 - Modos vertical y horizontal soportados
 
+## Licencia
+
+La aplicación se distribuye bajo la licencia **GPL-3.0-or-later** — el texto completo está en el archivo [LICENSE](LICENSE). Es software libre: puedes usarlo, estudiarlo, modificarlo y redistribuirlo libremente; los trabajos derivados deben permanecer bajo la misma licencia.
+
 ## Historial de versiones
 
+- **1.0.7** — licencia GPL-3.0 añadida, build compatible con F-Droid (configuración de firma condicional)
 - **1.0.6** — el indicador de estado de reconexión ahora se pone correctamente en verde
   (ya no se queda en amarillo); el icono del teclado abre el IME de forma fiable en
   Android 14+ (visibilidad real basada en `WindowInsetsCompat` en lugar del obsoleto `SHOW_FORCED`)

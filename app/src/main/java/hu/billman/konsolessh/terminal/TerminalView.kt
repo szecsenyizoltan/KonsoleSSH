@@ -586,7 +586,10 @@ class TerminalView @JvmOverloads constructor(
 
     private fun keyCodeToBytes(keyCode: Int, event: KeyEvent): ByteArray? = when (keyCode) {
         KeyEvent.KEYCODE_ENTER -> byteArrayOf(13)
+        // Android KEYCODE_DEL neve félrevezető: ez valójában a Backspace billentyű.
         KeyEvent.KEYCODE_DEL -> byteArrayOf(127)
+        // A tényleges "Delete" (forward delete) billentyű: xterm Del-szekvencia.
+        KeyEvent.KEYCODE_FORWARD_DEL -> fnKey("[3~")
         KeyEvent.KEYCODE_TAB -> byteArrayOf(9)
         KeyEvent.KEYCODE_ESCAPE -> byteArrayOf(27)
         KeyEvent.KEYCODE_DPAD_UP -> cursorKeyBytes('A')

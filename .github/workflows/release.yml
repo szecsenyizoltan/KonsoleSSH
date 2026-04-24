@@ -146,7 +146,7 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: hu.billman.konsolessh
           releaseFiles: ${{ steps.artifacts.outputs.aab }}
-          track: ${{ github.event.inputs.play_track || 'internal' }}
+          tracks: ${{ github.event.inputs.play_track || 'internal' }}
           status: completed
           mappingFile: app/build/outputs/mapping/release/mapping.txt
 

@@ -1,38 +1,30 @@
 package hu.billman.konsolessh.model
 
 import android.content.Context
-import hu.billman.konsolessh.data.AesGcmKeystoreBox
-import hu.billman.konsolessh.data.CryptoBox
-import hu.billman.konsolessh.data.CryptoBoxConnectionRepository
+import hu.billman.konsolessh.AppContainer
 
 /**
  * Backward-compat wrapper a korábbi statikus SavedConnections API-hoz.
  *
- * A valós logika a `data/ConnectionRepository` interfész mögött van; az
- * aktuális impl a `CryptoBoxConnectionRepository` (AES-256-GCM Android
- * Keystore, `androidx.security:security-crypto` alpha dep-től független
- * napi működés). Az első [load] automatikusan átmigrálja a régebbi
- * `EncryptedSharedPreferences`- és a még régebbi plain-prefs-adatokat.
+ * A valós logika a `data/ConnectionRepository` interfész mögött van. Az
+ * aktuális (Fázis 7 utáni) impl a `CryptoBoxConnectionRepository`, amit
+ * Fázis 8-tól az `AppContainer` tartja egyetlen példányban — így minden
+ * hívás ugyanazt a repository-t használja, nem hoz létre új
+ * `AesGcmKeystoreBox`-ot minden egyes read/write-nál.
  *
- * A call site-ok fokozatosan migrálnak a repository konstruktor-injektált
- * használatára (ViewModel-fázisban).
+ * A jövőben (ViewModel-migrációk végeztével) ez a wrapper törölhető.
  */
 object SavedConnections {
 
-    private val sharedCryptoBox: CryptoBox by lazy { AesGcmKeystoreBox() }
-
-    private fun repo(context: Context) =
-        CryptoBoxConnectionRepository(context, sharedCryptoBox)
-
     fun load(context: Context): MutableList<ConnectionConfig> =
-        repo(context).load()
+        AppContainer.from(context).connectionRepository.load()
 
     fun save(context: Context, connections: List<ConnectionConfig>) =
-        repo(context).save(connections)
+        AppContainer.from(context).connectionRepository.save(connections)
 
     fun saveOne(context: Context, config: ConnectionConfig) =
-        repo(context).saveOne(config)
+        AppContainer.from(context).connectionRepository.saveOne(config)
 
     fun delete(context: Context, id: String) =
-        repo(context).delete(id)
+        AppContainer.from(context).connectionRepository.delete(id)
 }

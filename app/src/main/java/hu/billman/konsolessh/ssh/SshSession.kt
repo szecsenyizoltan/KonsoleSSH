@@ -39,6 +39,21 @@ class SshSession(
         private const val CONNECT_TIMEOUT_MS       = 15_000
         private const val SHELL_CONNECT_TIMEOUT_MS = 10_000
         private const val PASSWORD_PROMPT_TIMEOUT_S = 30L
+
+        /**
+         * SSH keep-alive: no-op csomag küldése ennyi ms-enként. Mobil NAT-
+         * tűzfalakon egy session 60–120 másodperc inaktivitás után eldobódik,
+         * ezért 30 másodperces alive-intervallum.
+         */
+        private const val SERVER_ALIVE_INTERVAL_MS = 30_000
+
+        /** Ennyi egymás utáni sikertelen alive-check után a session lezár. */
+        private const val SERVER_ALIVE_COUNT_MAX = 3
+    }
+
+    private fun Session.applyKeepAlive() {
+        setServerAliveInterval(SERVER_ALIVE_INTERVAL_MS)
+        serverAliveCountMax = SERVER_ALIVE_COUNT_MAX
     }
 
     private var jumpSession: Session? = null
@@ -143,6 +158,7 @@ class SshSession(
                 withContext(Dispatchers.Main) {
                     onProgress(messages.jumpProgress(jumpConfig.host, jumpConfig.port))
                 }
+                js.applyKeepAlive()
                 js.connect(CONNECT_TIMEOUT_MS)
                 jumpSession = js
                 // Local port forward through jump to target
@@ -162,6 +178,7 @@ class SshSession(
                 session.setConfig("PreferredAuthentications", buildPreferredAuths(config))
                 if (config.password.isNotBlank()) session.setPassword(config.password)
                 session.userInfo = JschUserInfo("${config.username}@${config.host}")
+                session.applyKeepAlive()
                 session.connect(CONNECT_TIMEOUT_MS)
                 jschSession = session
 
@@ -178,6 +195,7 @@ class SshSession(
                 session.setConfig(props)
                 if (config.password.isNotBlank()) session.setPassword(config.password)
                 session.userInfo = JschUserInfo("${config.username}@${config.host}")
+                session.applyKeepAlive()
                 session.connect(CONNECT_TIMEOUT_MS)
                 jschSession = session
             }

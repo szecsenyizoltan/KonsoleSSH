@@ -270,8 +270,9 @@ class TerminalFragment : Fragment() {
         val service = sshService ?: return
         val binding = _binding ?: return
         binding.btnReconnect.visibility = View.GONE
-        val msg = getString(R.string.terminal_reconnecting)
-        binding.terminalView.append(msg.toByteArray(), msg.length)
+        // Nem írunk "Újracsatlakozás" üzenetet a terminál-bufferbe — a status-
+        // bar magától mutatja a CONNECTING állapotot, a Welcome-banner pedig
+        // tisztán új sorban jön a szervertől.
         startConnection(cfg, service)
     }
 

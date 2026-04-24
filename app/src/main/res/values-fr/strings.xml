@@ -9,6 +9,8 @@
     <string name="disconnect">Déconnecter</string>
     <string name="close_tab">Fermer l\'onglet</string>
     <string name="manage_connections">Connexions enregistrées</string>
+    <string name="action_language">Langue</string>
+    <string name="language_system_default">Par défaut du système</string>
     <string name="exit">Quitter</string>
     <string name="action_ok">OK</string>
     <string name="action_cancel">Annuler</string>

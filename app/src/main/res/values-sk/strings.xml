@@ -9,6 +9,8 @@
     <string name="disconnect">Odpojiť</string>
     <string name="close_tab">Zavrieť kartu</string>
     <string name="manage_connections">Uložené pripojenia</string>
+    <string name="action_language">Jazyk</string>
+    <string name="language_system_default">Predvolené systémom</string>
     <string name="exit">Ukončiť</string>
     <string name="action_ok">OK</string>
     <string name="action_cancel">Zrušiť</string>

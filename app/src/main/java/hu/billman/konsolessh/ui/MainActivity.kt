@@ -735,6 +735,35 @@ class MainActivity : AppCompatActivity(), TabStatusListener {
             }
             true
         }
+        R.id.action_language -> {
+            showLanguagePicker(); true
+        }
         else -> super.onOptionsItemSelected(item)
+    }
+
+    // ── Language picker ───────────────────────────────────────────────────────
+
+    private fun showLanguagePicker() {
+        val tags = arrayOf("", "en", "hu", "de", "es", "fr", "sk", "ro")
+        val labels = arrayOf(
+            getString(R.string.language_system_default),
+            "English", "Magyar", "Deutsch", "Español", "Français", "Slovenčina", "Română"
+        )
+        val current = androidx.appcompat.app.AppCompatDelegate.getApplicationLocales()
+        val currentTag = if (current.isEmpty) "" else current[0]?.language ?: ""
+        val checked = tags.indexOf(currentTag).let { if (it < 0) 0 else it }
+
+        AlertDialog.Builder(this, R.style.KonsoleDialog)
+            .setTitle(R.string.action_language)
+            .setSingleChoiceItems(labels, checked) { dialog, which ->
+                val locales = if (tags[which].isEmpty())
+                    androidx.core.os.LocaleListCompat.getEmptyLocaleList()
+                else
+                    androidx.core.os.LocaleListCompat.forLanguageTags(tags[which])
+                androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(locales)
+                dialog.dismiss()
+            }
+            .setNegativeButton(R.string.action_cancel, null)
+            .show()
     }
 }

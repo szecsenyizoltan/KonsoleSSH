@@ -187,9 +187,7 @@ class TerminalFragment : Fragment() {
 
         when (service.getStatus(tabId)) {
             ConnectionStatus.NONE -> {
-                // First time — start connection (setStatusListener after connect() so new SessionState exists)
                 startConnection(cfg, service)
-                service.setStatusListener(tabId) { status -> updateStatusUI(status) }
             }
             ConnectionStatus.CONNECTED, ConnectionStatus.CONNECTING, ConnectionStatus.DISCONNECTED -> {
                 // Existing session — register listeners and replay buffer
@@ -225,6 +223,7 @@ class TerminalFragment : Fragment() {
         service.setDataListener(tabId) { bytes ->
             _binding?.terminalView?.append(bytes, bytes.size)
         }
+        service.setStatusListener(tabId) { status -> updateStatusUI(status) }
         updateStatusUI(ConnectionStatus.CONNECTING)
         binding.statusBar.text = getString(R.string.status_connecting, cfg.displayName())
     }

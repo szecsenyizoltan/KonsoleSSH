@@ -438,8 +438,11 @@ class MainActivity : AppCompatActivity(), TabStatusListener {
 
     private fun toggleKeyboard() {
         val imm = getSystemService<InputMethodManager>() ?: return
-        if (keyboardVisible) {
-            imm.hideSoftInputFromWindow(currentFocus?.windowToken, 0)
+        val rootInsets = androidx.core.view.ViewCompat.getRootWindowInsets(binding.root)
+        val imeVisible = rootInsets?.isVisible(androidx.core.view.WindowInsetsCompat.Type.ime()) ?: false
+        if (imeVisible) {
+            val token = currentFocus?.windowToken ?: binding.root.windowToken
+            imm.hideSoftInputFromWindow(token, 0)
             keyboardVisible = false
         } else {
             currentFragment()?.focusAndShowKeyboard()

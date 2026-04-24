@@ -131,7 +131,7 @@ object SshKeyProvisioner {
             }
             val exit = channel.exitStatus
             if (exit != 0 && exit != -1) {
-                val stderr = errStream.toString(Charsets.UTF_8).trim()
+                val stderr = String(errStream.toByteArray(), Charsets.UTF_8).trim()
                 throw RuntimeException(
                     if (stderr.isNotBlank()) "exit=$exit: $stderr" else "exit=$exit"
                 )

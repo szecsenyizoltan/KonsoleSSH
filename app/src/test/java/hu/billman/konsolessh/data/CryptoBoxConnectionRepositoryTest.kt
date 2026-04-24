@@ -162,4 +162,35 @@ class CryptoBoxConnectionRepositoryTest {
         assertEquals(1, reloaded.size)
         assertEquals("NewOne", reloaded[0].name)
     }
+
+    @Test
+    fun `legacy files deleted only after the new payload is verifiable`() {
+        // Előfeltétel: legacy plain-prefs fájl létezik egy bejegyzéssel.
+        val legacyJson = Gson().toJson(listOf(cfg("x", "Y")))
+        context.getSharedPreferences("konsole_connections", Context.MODE_PRIVATE)
+            .edit()
+            .putString("connections", legacyJson)
+            .apply()
+
+        val list = newRepo().load()
+        assertEquals(1, list.size)
+
+        // Új formátumban meg kell lennie a payload-nak…
+        val newPrefs = context.getSharedPreferences("konsole_connections_box", Context.MODE_PRIVATE)
+        assertTrue(
+            "new payload should exist after successful migration",
+            newPrefs.contains("payload"),
+        )
+        // …és csak ezután a migrációs flag…
+        assertTrue(
+            "migration flag should be set after a verifiable save",
+            newPrefs.getBoolean("_migrated_from_legacy_v1", false),
+        )
+        // …majd a legacy fájl eltávolítható.
+        val legacy = context.getSharedPreferences("konsole_connections", Context.MODE_PRIVATE)
+        assertFalse(
+            "legacy plain prefs entry should be gone after migration",
+            legacy.contains("connections"),
+        )
+    }
 }

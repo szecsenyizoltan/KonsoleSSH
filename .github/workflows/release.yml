@@ -1,4 +1,4 @@
-name: Release APK
+name: Release APK + Play upload
 
 on:
   push:
@@ -9,6 +9,16 @@ on:
       tag:
         description: 'Tag to release (e.g. v1.0.7)'
         required: true
+      play_track:
+        description: 'Play Store track'
+        required: true
+        default: 'internal'
+        type: choice
+        options:
+          - internal
+          - alpha
+          - beta
+          - production
 
 permissions:
   contents: write
@@ -56,8 +66,8 @@ jobs:
             echo "keyPassword=${KEY_PASSWORD}"
           } > keystore.properties
 
-      - name: Build signed release APK
-        run: ./gradlew :app:assembleRelease --no-daemon
+      - name: Build signed APK + AAB
+        run: ./gradlew :app:assembleRelease :app:bundleRelease --no-daemon
 
       - name: Read version from build.gradle.kts
         id: version
@@ -65,19 +75,23 @@ jobs:
           VERSION_NAME=$(grep 'versionName' app/build.gradle.kts | head -1 | sed -E 's/.*"([^"]+)".*/\1/')
           echo "name=${VERSION_NAME}" >> "$GITHUB_OUTPUT"
 
-      - name: Rename APK
-        id: apk
+      - name: Rename artifacts
+        id: artifacts
         run: |
-          SRC=app/build/outputs/apk/release/app-release.apk
-          DST="KonsoleSSH-${{ steps.version.outputs.name }}-release.apk"
-          cp "$SRC" "$DST"
-          echo "path=${DST}" >> "$GITHUB_OUTPUT"
+          APK_SRC=app/build/outputs/apk/release/app-release.apk
+          AAB_SRC=app/build/outputs/bundle/release/app-release.aab
+          APK_DST="KonsoleSSH-${{ steps.version.outputs.name }}-release.apk"
+          AAB_DST="KonsoleSSH-${{ steps.version.outputs.name }}-release.aab"
+          cp "$APK_SRC" "$APK_DST"
+          cp "$AAB_SRC" "$AAB_DST"
+          echo "apk=${APK_DST}" >> "$GITHUB_OUTPUT"
+          echo "aab=${AAB_DST}" >> "$GITHUB_OUTPUT"
 
       - name: Compute signer SHA-256 fingerprint
         id: fingerprint
         run: |
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -1)
-          FP=$("$APKSIGNER" verify --print-certs "${{ steps.apk.outputs.path }}" \
+          FP=$("$APKSIGNER" verify --print-certs "${{ steps.artifacts.outputs.apk }}" \
                | grep -i "SHA-256 digest:" | head -1 \
                | sed -E 's/.*: *//' \
                | tr '[:lower:]' '[:upper:]' \
@@ -87,11 +101,10 @@ jobs:
       - name: Write release notes
         id: notes
         run: |
-          TAG="${{ github.event.inputs.tag || github.ref_name }}"
           {
             echo "## Telepítés"
             echo ""
-            echo "Töltsd le a \`${{ steps.apk.outputs.path }}\` fájlt és telepítsd (ismeretlen forrás engedélyezése szükséges, ha Play-en kívülről rakod fel)."
+            echo "Töltsd le a \`${{ steps.artifacts.outputs.apk }}\` fájlt és telepítsd (ismeretlen forrás engedélyezése szükséges, ha Play-en kívülről rakod fel)."
             echo ""
             echo "Az APK ugyanazzal a kulccsal van aláírva, mint a Play Store-os verzió — így a frissítés probléma nélkül felülírja a Play-esét, és fordítva is."
             echo ""
@@ -105,14 +118,37 @@ jobs:
         run: |
           TAG="${{ github.event.inputs.tag || github.ref_name }}"
           gh release view "$TAG" >/dev/null 2>&1 && {
-            gh release upload "$TAG" "${{ steps.apk.outputs.path }}" --clobber
+            gh release upload "$TAG" "${{ steps.artifacts.outputs.apk }}" --clobber
           } || {
             gh release create "$TAG" \
               --title "$TAG" \
               --notes-file "${{ steps.notes.outputs.path }}" \
               --generate-notes \
-              "${{ steps.apk.outputs.path }}"
+              "${{ steps.artifacts.outputs.apk }}"
           }
+
+      - name: Check Play secret
+        id: play_secret
+        env:
+          PLAY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -n "$PLAY_JSON" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::PLAY_SERVICE_ACCOUNT_JSON not set — skipping Play Store upload."
+          fi
+
+      - name: Upload AAB to Google Play
+        if: steps.play_secret.outputs.present == 'true'
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: hu.billman.konsolessh
+          releaseFiles: ${{ steps.artifacts.outputs.aab }}
+          track: ${{ github.event.inputs.play_track || 'internal' }}
+          status: completed
+          mappingFile: app/build/outputs/mapping/release/mapping.txt
 
       - name: Cleanup secrets
         if: always()

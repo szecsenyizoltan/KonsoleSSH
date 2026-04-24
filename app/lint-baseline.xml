@@ -19,7 +19,7 @@
         errorLine2="                                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/NewConnectionDialog.kt"
-            line="64"
+            line="73"
             column="55"/>
     </issue>
 
@@ -35,13 +35,24 @@
     </issue>
 
     <issue
+        id="UnusedAttribute"
+        message="Attribute `localeConfig` is only used in API level 33 and higher (current min is 26)"
+        errorLine1="        android:localeConfig=&quot;@xml/locales_config&quot;"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="16"
+            column="9"/>
+    </issue>
+
+    <issue
         id="InflateParams"
         message="Avoid passing `null` as the view root (needed to resolve layout parameters on the inflated layout&apos;s root element)"
         errorLine1="        val view = LayoutInflater.from(this).inflate(R.layout.tab_custom, null)"
         errorLine2="                                                                          ~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/MainActivity.kt"
-            line="597"
+            line="618"
             column="75"/>
     </issue>
 
@@ -58,8 +69,8 @@
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.core:core-ktx than 1.13.1 is available: 1.18.0"
-        errorLine1="coreKtx = &quot;1.13.1&quot;"
+        message="A newer version of androidx.core:core-ktx than 1.15.0 is available: 1.18.0"
+        errorLine1="coreKtx = &quot;1.15.0&quot;"
         errorLine2="          ~~~~~~~~">
         <location
             file="$HOME/AndroidStudioProjects/KonsoleSSH/gradle/libs.versions.toml"
@@ -91,8 +102,8 @@
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.fragment:fragment-ktx than 1.7.1 is available: 1.8.9"
-        errorLine1="fragment = &quot;1.7.1&quot;"
+        message="A newer version of androidx.fragment:fragment-ktx than 1.8.5 is available: 1.8.9"
+        errorLine1="fragment = &quot;1.8.5&quot;"
         errorLine2="           ~~~~~~~">
         <location
             file="$HOME/AndroidStudioProjects/KonsoleSSH/gradle/libs.versions.toml"
@@ -102,8 +113,8 @@
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.lifecycle:lifecycle-runtime-ktx than 2.8.2 is available: 2.10.0"
-        errorLine1="lifecycle = &quot;2.8.2&quot;"
+        message="A newer version of androidx.lifecycle:lifecycle-runtime-ktx than 2.8.7 is available: 2.10.0"
+        errorLine1="lifecycle = &quot;2.8.7&quot;"
         errorLine2="            ~~~~~~~">
         <location
             file="$HOME/AndroidStudioProjects/KonsoleSSH/gradle/libs.versions.toml"
@@ -113,24 +124,13 @@
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.lifecycle:lifecycle-viewmodel-ktx than 2.8.2 is available: 2.10.0"
-        errorLine1="lifecycle = &quot;2.8.2&quot;"
+        message="A newer version of androidx.lifecycle:lifecycle-viewmodel-ktx than 2.8.7 is available: 2.10.0"
+        errorLine1="lifecycle = &quot;2.8.7&quot;"
         errorLine2="            ~~~~~~~">
         <location
             file="$HOME/AndroidStudioProjects/KonsoleSSH/gradle/libs.versions.toml"
             line="12"
             column="13"/>
-    </issue>
-
-    <issue
-        id="GradleDependency"
-        message="A newer version of androidx.constraintlayout:constraintlayout than 2.1.4 is available: 2.2.1"
-        errorLine1="constraintlayout = &quot;2.1.4&quot;"
-        errorLine2="                   ~~~~~~~">
-        <location
-            file="$HOME/AndroidStudioProjects/KonsoleSSH/gradle/libs.versions.toml"
-            line="13"
-            column="20"/>
     </issue>
 
     <issue
@@ -146,17 +146,6 @@
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.test:core than 1.6.1 is available: 1.7.0"
-        errorLine1="androidxTestRunner = &quot;1.6.1&quot;"
-        errorLine2="                     ~~~~~~~">
-        <location
-            file="$HOME/AndroidStudioProjects/KonsoleSSH/gradle/libs.versions.toml"
-            line="17"
-            column="22"/>
-    </issue>
-
-    <issue
-        id="GradleDependency"
         message="A newer version of androidx.test:runner than 1.6.1 is available: 1.7.0"
         errorLine1="androidxTestRunner = &quot;1.6.1&quot;"
         errorLine2="                     ~~~~~~~">
@@ -168,12 +157,23 @@
 
     <issue
         id="GradleDependency"
+        message="A newer version of androidx.test:core than 1.6.1 is available: 1.7.0"
+        errorLine1="androidxTestCore = &quot;1.6.1&quot;"
+        errorLine2="                   ~~~~~~~">
+        <location
+            file="$HOME/AndroidStudioProjects/KonsoleSSH/gradle/libs.versions.toml"
+            line="18"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
         message="A newer version of androidx.test.espresso:espresso-core than 3.6.1 is available: 3.7.0"
         errorLine1="espresso = &quot;3.6.1&quot;"
         errorLine2="           ~~~~~~~">
         <location
             file="$HOME/AndroidStudioProjects/KonsoleSSH/gradle/libs.versions.toml"
-            line="18"
+            line="19"
             column="12"/>
     </issue>
 
@@ -184,7 +184,7 @@
         errorLine2="                 ~~~~~~~~~~~~~~~">
         <location
             file="$HOME/AndroidStudioProjects/KonsoleSSH/gradle/libs.versions.toml"
-            line="20"
+            line="21"
             column="18"/>
     </issue>
 
@@ -197,17 +197,6 @@
             file="$HOME/AndroidStudioProjects/KonsoleSSH/gradle/libs.versions.toml"
             line="3"
             column="10"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of org.jetbrains.kotlinx:kotlinx-coroutines-android than 1.8.1 is available: 1.10.2"
-        errorLine1="coroutines = &quot;1.8.1&quot;"
-        errorLine2="             ~~~~~~~">
-        <location
-            file="$HOME/AndroidStudioProjects/KonsoleSSH/gradle/libs.versions.toml"
-            line="9"
-            column="14"/>
     </issue>
 
     <issue
@@ -250,7 +239,7 @@
         errorLine2="        ~~~~~~~~~">
         <location
             file="$HOME/AndroidStudioProjects/KonsoleSSH/gradle/libs.versions.toml"
-            line="19"
+            line="20"
             column="9"/>
     </issue>
 
@@ -261,7 +250,7 @@
         errorLine2="        ~~~~~~~~~">
         <location
             file="$HOME/AndroidStudioProjects/KonsoleSSH/gradle/libs.versions.toml"
-            line="19"
+            line="20"
             column="9"/>
     </issue>
 
@@ -269,7 +258,7 @@
         id="Aligned16KB"
         message="The native library `arm64-v8a/libmockkjvmtiagent.so` (from `io.mockk:mockk-agent-android:1.13.10`) is not 16 KB aligned">
         <location
-            file="$GRADLE_USER_HOME/caches/9.4.1/transforms/14d2a31012624f173a0af339d9762477/transformed/jetified-mockk-agent-android-1.13.10/jni/arm64-v8a/libmockkjvmtiagent.so"/>
+            file="$GRADLE_USER_HOME/caches/9.4.1/transforms/a00786a23527a957c8bb345b4229ebcf/transformed/jetified-mockk-agent-android-1.13.10/jni/arm64-v8a/libmockkjvmtiagent.so"/>
     </issue>
 
     <issue
@@ -279,7 +268,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/AndroidManifest.xml"
-            line="24"
+            line="25"
             column="13"/>
     </issue>
 
@@ -367,7 +356,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="71"
+            line="92"
             column="5"/>
     </issue>
 
@@ -378,7 +367,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="76"
+            line="97"
             column="5"/>
     </issue>
 
@@ -389,7 +378,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="107"
+            line="128"
             column="5"/>
     </issue>
 
@@ -433,7 +422,7 @@
         errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/TerminalFragment.kt"
-            line="359"
+            line="366"
             column="26"/>
     </issue>
 
@@ -583,7 +572,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="18"
+            line="20"
             column="13"/>
     </issue>
 
@@ -594,7 +583,7 @@
         errorLine2="            ~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="22"
+            line="24"
             column="13"/>
     </issue>
 
@@ -605,7 +594,7 @@
         errorLine2="            ~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="23"
+            line="25"
             column="13"/>
     </issue>
 
@@ -616,7 +605,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="24"
+            line="26"
             column="13"/>
     </issue>
 
@@ -627,7 +616,29 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="27"
+            line="29"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.generate_new_key` appears to be unused"
+        errorLine1="    &lt;string name=&quot;generate_new_key&quot;>🔑 Generate new key&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="45"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.key_generated_message` appears to be unused"
+        errorLine1="    &lt;string name=&quot;key_generated_message&quot;>An RSA key pair has been generated. The private key is saved in this connection. Add the public key below to the server (e.g. the router\&apos;s SSH authorized keys) so you can log in.&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="61"
             column="13"/>
     </issue>
 
@@ -638,7 +649,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="53"
+            line="74"
             column="13"/>
     </issue>
 
@@ -660,7 +671,7 @@
         errorLine2="             ~~~~~~~~">
         <location
             file="src/main/res/layout/dialog_new_connection.xml"
-            line="197"
+            line="241"
             column="14"/>
     </issue>
 
@@ -704,7 +715,7 @@
         errorLine2="             ~~~~~~~~">
         <location
             file="src/main/res/layout/dialog_new_connection.xml"
-            line="197"
+            line="241"
             column="14"/>
     </issue>
 
@@ -726,7 +737,7 @@
         errorLine2="                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/MainActivity.kt"
-            line="426"
+            line="447"
             column="23"/>
     </issue>
 
@@ -737,7 +748,7 @@
         errorLine2="                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/MainActivity.kt"
-            line="433"
+            line="454"
             column="23"/>
     </issue>
 
@@ -748,7 +759,7 @@
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/MainActivity.kt"
-            line="517"
+            line="538"
             column="29"/>
     </issue>
 
@@ -759,7 +770,7 @@
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/MainActivity.kt"
-            line="519"
+            line="540"
             column="29"/>
     </issue>
 
@@ -770,7 +781,7 @@
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/MainActivity.kt"
-            line="538"
+            line="559"
             column="29"/>
     </issue>
 
@@ -781,7 +792,7 @@
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/MainActivity.kt"
-            line="540"
+            line="561"
             column="29"/>
     </issue>
 
@@ -836,7 +847,7 @@
         errorLine2="             ~~~~~~~~">
         <location
             file="src/main/res/layout/dialog_new_connection.xml"
-            line="197"
+            line="241"
             column="14"/>
     </issue>
 
@@ -858,7 +869,7 @@
         errorLine2="                       ~~~~~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/MainActivity.kt"
-            line="290"
+            line="311"
             column="24"/>
     </issue>
 
@@ -869,7 +880,7 @@
         errorLine2="                        ~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/MainActivity.kt"
-            line="290"
+            line="311"
             column="25"/>
     </issue>
 
@@ -880,7 +891,7 @@
         errorLine2="                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/MainActivity.kt"
-            line="355"
+            line="376"
             column="39"/>
     </issue>
 
@@ -891,7 +902,7 @@
         errorLine2="                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/MainActivity.kt"
-            line="358"
+            line="379"
             column="39"/>
     </issue>
 
@@ -902,7 +913,7 @@
         errorLine2="                                 ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/NewConnectionDialog.kt"
-            line="160"
+            line="358"
             column="34"/>
     </issue>
 
@@ -1287,7 +1298,7 @@
         errorLine2="                    ~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/dialog_new_connection.xml"
-            line="187"
+            line="231"
             column="21"/>
     </issue>
 
@@ -1349,11 +1360,22 @@
     <issue
         id="RtlSymmetry"
         message="When you define `paddingStart` you should probably also define `paddingEnd` for right-to-left symmetry"
+        errorLine1="                android:paddingStart=&quot;0dp&quot; />"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/layout/dialog_new_connection.xml"
+            line="174"
+            column="17"/>
+    </issue>
+
+    <issue
+        id="RtlSymmetry"
+        message="When you define `paddingStart` you should probably also define `paddingEnd` for right-to-left symmetry"
         errorLine1="                    android:paddingStart=&quot;0dp&quot; />"
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/dialog_new_connection.xml"
-            line="181"
+            line="213"
             column="21"/>
     </issue>
 
@@ -1364,7 +1386,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/dialog_new_connection.xml"
-            line="215"
+            line="259"
             column="13"/>
     </issue>
 

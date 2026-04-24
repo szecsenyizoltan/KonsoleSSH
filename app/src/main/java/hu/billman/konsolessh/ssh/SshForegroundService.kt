@@ -69,7 +69,8 @@ class SshForegroundService : Service() {
         val outputBuffer: OutputBuffer = OutputBuffer(),
         var dataListener: ((ByteArray) -> Unit)? = null,
         var statusListener: ((ConnectionStatus) -> Unit)? = null,
-        var passwordPrompter: PasswordPrompterFn? = null
+        var passwordPrompter: PasswordPrompterFn? = null,
+        var connectErrorListener: ((String) -> Unit)? = null
     )
 
     // ── Internal state ────────────────────────────────────────────────────────
@@ -170,7 +171,16 @@ class SshForegroundService : Service() {
                 onError = { err ->
                     updateStatus(tabId, ConnectionStatus.DISCONNECTED)
                     refreshNotification()
-                    emitData(state, getString(R.string.error_generic, friendlyError(err)).toByteArray())
+                    val friendly = friendlyError(err)
+                    val listener = state.connectErrorListener
+                    if (listener != null) {
+                        // UI wants to show the error itself (toast + auto-close).
+                        listener.invoke(friendly)
+                    } else {
+                        // No listener attached (fragment detached) — fall back to
+                        // writing the error to the terminal so it is not lost.
+                        emitData(state, getString(R.string.error_generic, friendly).toByteArray())
+                    }
                 }
             )
         }
@@ -264,6 +274,10 @@ class SshForegroundService : Service() {
 
     fun setPasswordPrompter(tabId: String, prompter: PasswordPrompterFn?) {
         sessions[tabId]?.passwordPrompter = prompter
+    }
+
+    fun setConnectErrorListener(tabId: String, listener: ((String) -> Unit)?) {
+        sessions[tabId]?.connectErrorListener = listener
     }
 
     // ── Private ───────────────────────────────────────────────────────────────

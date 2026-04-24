@@ -16,7 +16,7 @@ object KonsoleToast {
     private const val ANIM_DURATION_MS = 250L
 
     fun show(anchor: View, message: String) {
-        build(anchor, message, null, AUTO_DISMISS_MS, null)
+        build(anchor, message, null, AUTO_DISMISS_MS, null, null, wholeToastClickable = false)
     }
 
     /**
@@ -31,7 +31,30 @@ object KonsoleToast {
         timeoutMs: Long,
         onAction: () -> Unit
     ) {
-        build(anchor, message, actionLabel, timeoutMs, onAction)
+        build(anchor, message, actionLabel, timeoutMs, onAction, onTimeout = null, wholeToastClickable = false)
+    }
+
+    /**
+     * Show a toast that resolves in exactly one way: [onDone] fires either
+     * when the user taps the toast (or its action button) OR when the
+     * [timeoutMs] timeout elapses — whichever comes first. Designed for
+     * confirm-or-wait situations like auto-closing a failed tab.
+     */
+    fun showAutoAction(
+        anchor: View,
+        message: String,
+        actionLabel: String,
+        timeoutMs: Long,
+        onDone: () -> Unit
+    ) {
+        val fired = java.util.concurrent.atomic.AtomicBoolean(false)
+        fun fireOnce() { if (fired.compareAndSet(false, true)) onDone() }
+        build(
+            anchor, message, actionLabel, timeoutMs,
+            onAction = { fireOnce() },
+            onTimeout = { fireOnce() },
+            wholeToastClickable = true
+        )
     }
 
     private fun build(
@@ -39,14 +62,19 @@ object KonsoleToast {
         message: String,
         actionLabel: String?,
         timeoutMs: Long,
-        onAction: (() -> Unit)?
+        onAction: (() -> Unit)?,
+        onTimeout: (() -> Unit)?,
+        wholeToastClickable: Boolean
     ) {
         val root = anchor.rootView as? ViewGroup ?: return
         val ctx = anchor.context
 
         val toast = LayoutInflater.from(ctx).inflate(R.layout.layout_konsole_toast, root, false)
         toast.findViewById<TextView>(R.id.toastMessage).text = message
-        toast.findViewById<View>(R.id.btnToastClose).setOnClickListener { dismiss(root, toast) }
+        toast.findViewById<View>(R.id.btnToastClose).setOnClickListener {
+            onAction?.invoke()
+            dismiss(root, toast)
+        }
 
         if (actionLabel != null && onAction != null) {
             toast.findViewById<TextView>(R.id.btnToastAction).apply {
@@ -59,6 +87,13 @@ object KonsoleToast {
             }
         }
 
+        if (wholeToastClickable && onAction != null) {
+            toast.setOnClickListener {
+                onAction()
+                dismiss(root, toast)
+            }
+        }
+
         val density = ctx.resources.displayMetrics.density
         val lp = FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.WRAP_CONTENT,
@@ -67,7 +102,10 @@ object KonsoleToast {
         ).apply { bottomMargin = (100 * density).toInt() }
 
         root.addView(toast, lp)
-        toast.postDelayed({ dismiss(root, toast) }, timeoutMs)
+        toast.postDelayed({
+            onTimeout?.invoke()
+            dismiss(root, toast)
+        }, timeoutMs)
     }
 
     private fun dismiss(root: ViewGroup, view: View) {

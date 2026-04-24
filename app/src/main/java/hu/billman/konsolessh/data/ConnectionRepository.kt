@@ -9,7 +9,7 @@ import hu.billman.konsolessh.model.ConnectionConfig
  * egységtesztelését anélkül, hogy valós (Encrypted)SharedPreferences-re
  * vagy Android-kontextusra lenne szükség (lásd FakeConnectionRepository).
  *
- * A jelenlegi valós implementáció az EncryptedPrefsConnectionRepository.
+ * A jelenlegi valós implementáció a CryptoBoxConnectionRepository.
  */
 interface ConnectionRepository {
     fun load(): MutableList<ConnectionConfig>

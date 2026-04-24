@@ -249,7 +249,11 @@ class TerminalFragment : Fragment() {
         }
     }
 
-    private fun startConnection(cfg: ConnectionConfig, service: SshForegroundService) {
+    private fun startConnection(
+        cfg: ConnectionConfig,
+        service: SshForegroundService,
+        isReconnect: Boolean = false,
+    ) {
         val jumpConfig = resolveJumpConfig(cfg)
         if (cfg.jumpConnectionId.isNotBlank() && jumpConfig == null) {
             val msg = getString(R.string.error_jump_not_found)
@@ -259,7 +263,7 @@ class TerminalFragment : Fragment() {
         }
         val cols = binding.terminalView.currentCols
         val rows = binding.terminalView.currentRows
-        service.connect(tabId, cfg, jumpConfig, cols, rows)
+        service.connect(tabId, cfg, jumpConfig, cols, rows, isReconnect = isReconnect)
         collectSessionEvents(service)
         updateStatusUI(ConnectionStatus.CONNECTING)
         binding.statusBar.text = getString(R.string.status_connecting, cfg.displayName())
@@ -272,8 +276,9 @@ class TerminalFragment : Fragment() {
         binding.btnReconnect.visibility = View.GONE
         // Nem írunk "Újracsatlakozás" üzenetet a terminál-bufferbe — a status-
         // bar magától mutatja a CONNECTING állapotot, a Welcome-banner pedig
-        // tisztán új sorban jön a szervertől.
-        startConnection(cfg, service)
+        // tisztán új sorban jön a szervertől. Az isReconnect flag miatt a
+        // "Csatlakozás: host:port" sem kerül a terminálba.
+        startConnection(cfg, service, isReconnect = true)
     }
 
     // ── Public interface for MainActivity keybar ──────────────────────────────

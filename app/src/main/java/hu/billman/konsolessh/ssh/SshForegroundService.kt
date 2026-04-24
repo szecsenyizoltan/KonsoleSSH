@@ -147,7 +147,8 @@ class SshForegroundService : Service() {
         config: ConnectionConfig,
         jumpConfig: ConnectionConfig?,
         cols: Int,
-        rows: Int
+        rows: Int,
+        isReconnect: Boolean = false,
     ) {
         disconnectSession(tabId)
 
@@ -165,9 +166,13 @@ class SshForegroundService : Service() {
             state.passwordPrompter?.invoke(displayHost, callback) ?: callback(null)
         }
 
-        val initMsg = if (jumpConfig == null)
-            getString(R.string.terminal_connecting_host, config.host, config.port) else ""
-        if (initMsg.isNotEmpty()) emitData(state, initMsg.toByteArray())
+        // "Csatlakozás: host:port…" csak az első csatlakozáskor íródik a
+        // terminálba — reconnectnél a Welcome-banner tisztán, előkeverés
+        // nélkül érkezik a szervertől.
+        if (!isReconnect && jumpConfig == null) {
+            val initMsg = getString(R.string.terminal_connecting_host, config.host, config.port)
+            emitData(state, initMsg.toByteArray())
+        }
 
         serviceScope.launch {
             session.connect(

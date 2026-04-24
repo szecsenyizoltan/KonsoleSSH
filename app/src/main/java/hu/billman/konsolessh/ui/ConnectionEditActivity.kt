@@ -5,21 +5,35 @@ import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import hu.billman.konsolessh.AppContainer
+import hu.billman.konsolessh.R
 import hu.billman.konsolessh.databinding.ActivityConnectionEditBinding
 import hu.billman.konsolessh.model.ConnectionConfig
-import hu.billman.konsolessh.model.SavedConnections
+import kotlinx.coroutines.launch
 
 /**
  * Full-screen activity for managing saved SSH connection profiles.
+ * Lista-forrás: [ConnectionsViewModel] StateFlow-ja; a UI reaktívan
+ * követi a repository változásait.
  */
 class ConnectionEditActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityConnectionEditBinding
+    private lateinit var viewModel: ConnectionsViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityConnectionEditBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        viewModel = ViewModelProvider(
+            this,
+            KonsoleViewModelFactory(AppContainer.from(this)),
+        )[ConnectionsViewModel::class.java]
 
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
             val bars = insets.getInsets(
@@ -31,22 +45,25 @@ class ConnectionEditActivity : AppCompatActivity() {
                 bars.left,
                 bars.top,
                 bars.right,
-                maxOf(bars.bottom, ime.bottom)
+                maxOf(bars.bottom, ime.bottom),
             )
             insets
         }
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = getString(hu.billman.konsolessh.R.string.manage_connections)
-
-        refreshList()
+        supportActionBar?.title = getString(R.string.manage_connections)
 
         binding.btnAdd.setOnClickListener { showAddDialog() }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.connections.collect { list -> renderList(list) }
+            }
+        }
     }
 
-    private fun refreshList() {
-        val saved = SavedConnections.load(this)
+    private fun renderList(saved: List<ConnectionConfig>) {
         binding.containerConnections.removeAllViews()
         if (saved.isEmpty()) {
             binding.textEmpty.visibility = View.VISIBLE
@@ -55,25 +72,24 @@ class ConnectionEditActivity : AppCompatActivity() {
         binding.textEmpty.visibility = View.GONE
         saved.forEach { config ->
             val itemView = layoutInflater.inflate(
-                hu.billman.konsolessh.R.layout.item_saved_connection,
+                R.layout.item_saved_connection,
                 binding.containerConnections,
-                false
+                false,
             )
-            itemView.findViewById<android.widget.TextView>(hu.billman.konsolessh.R.id.textConnectionName)
+            itemView.findViewById<android.widget.TextView>(R.id.textConnectionName)
                 .text = config.displayName()
-            itemView.findViewById<android.widget.TextView>(hu.billman.konsolessh.R.id.textConnectionDetails)
+            itemView.findViewById<android.widget.TextView>(R.id.textConnectionDetails)
                 .text = "${config.username}@${config.host}:${config.port}"
-            itemView.findViewById<View>(hu.billman.konsolessh.R.id.btnEdit).setOnClickListener {
+            itemView.findViewById<View>(R.id.btnEdit).setOnClickListener {
                 showEditDialog(config)
             }
-            itemView.findViewById<View>(hu.billman.konsolessh.R.id.btnDelete).setOnClickListener {
-                AlertDialog.Builder(this, hu.billman.konsolessh.R.style.KonsoleDialog)
-                    .setMessage(getString(hu.billman.konsolessh.R.string.delete_connection_confirm, config.displayName()))
-                    .setPositiveButton(hu.billman.konsolessh.R.string.action_delete) { _, _ ->
-                        SavedConnections.delete(this, config.id)
-                        refreshList()
+            itemView.findViewById<View>(R.id.btnDelete).setOnClickListener {
+                AlertDialog.Builder(this, R.style.KonsoleDialog)
+                    .setMessage(getString(R.string.delete_connection_confirm, config.displayName()))
+                    .setPositiveButton(R.string.action_delete) { _, _ ->
+                        viewModel.delete(config.id)
                     }
-                    .setNegativeButton(hu.billman.konsolessh.R.string.action_cancel, null)
+                    .setNegativeButton(R.string.action_cancel, null)
                     .show()
             }
             binding.containerConnections.addView(itemView)
@@ -84,8 +100,7 @@ class ConnectionEditActivity : AppCompatActivity() {
         val dialog = NewConnectionDialog()
         dialog.listener = object : NewConnectionDialog.Listener {
             override fun onConnectionSelected(config: ConnectionConfig) {
-                SavedConnections.saveOne(this@ConnectionEditActivity, config)
-                refreshList()
+                viewModel.saveOne(config)
             }
         }
         dialog.show(supportFragmentManager, "add_connection")
@@ -95,7 +110,9 @@ class ConnectionEditActivity : AppCompatActivity() {
         val dialog = NewConnectionDialog.newForEdit(config)
         dialog.listener = object : NewConnectionDialog.Listener {
             override fun onConnectionSelected(config: ConnectionConfig) {
-                refreshList()
+                // A dialog maga menti (backward-compat), de a
+                // ViewModel-nek frissítenie kell a listát.
+                viewModel.refresh()
             }
         }
         dialog.show(supportFragmentManager, "edit_connection")

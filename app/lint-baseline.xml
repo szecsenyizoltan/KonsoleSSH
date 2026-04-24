@@ -19,7 +19,7 @@
         errorLine2="                                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/NewConnectionDialog.kt"
-            line="73"
+            line="74"
             column="55"/>
     </issue>
 
@@ -722,6 +722,39 @@
     <issue
         id="UseKtx"
         message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="            encPrefs.edit().putString(KEY_CONNECTIONS, legacyJson).apply()"
+        errorLine2="            ~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/hu/billman/konsolessh/data/EncryptedPrefsConnectionRepository.kt"
+            line="47"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        legacy.edit().remove(KEY_CONNECTIONS).apply()"
+        errorLine2="        ~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/hu/billman/konsolessh/data/EncryptedPrefsConnectionRepository.kt"
+            line="49"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        getPrefs().edit().putString(KEY_CONNECTIONS, gson.toJson(connections)).apply()"
+        errorLine2="        ~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/hu/billman/konsolessh/data/EncryptedPrefsConnectionRepository.kt"
+            line="66"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
         errorLine1="        getSharedPreferences(&quot;settings&quot;, Context.MODE_PRIVATE)"
         errorLine2="        ^">
         <location
@@ -794,39 +827,6 @@
             file="src/main/java/hu/billman/konsolessh/ui/MainActivity.kt"
             line="561"
             column="29"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `SharedPreferences.edit` instead?"
-        errorLine1="            encPrefs.edit().putString(KEY_CONNECTIONS, legacyJson).apply()"
-        errorLine2="            ~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/hu/billman/konsolessh/model/SavedConnections.kt"
-            line="37"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `SharedPreferences.edit` instead?"
-        errorLine1="        legacy.edit().remove(KEY_CONNECTIONS).apply()"
-        errorLine2="        ~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/hu/billman/konsolessh/model/SavedConnections.kt"
-            line="39"
-            column="9"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `SharedPreferences.edit` instead?"
-        errorLine1="        prefs.edit().putString(KEY_CONNECTIONS, gson.toJson(connections)).apply()"
-        errorLine2="        ~~~~~~~~~~~~">
-        <location
-            file="src/main/java/hu/billman/konsolessh/model/SavedConnections.kt"
-            line="57"
-            column="9"/>
     </issue>
 
     <issue
@@ -913,7 +913,7 @@
         errorLine2="                                 ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/hu/billman/konsolessh/ui/NewConnectionDialog.kt"
-            line="358"
+            line="347"
             column="34"/>
     </issue>
 

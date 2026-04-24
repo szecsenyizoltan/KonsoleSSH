@@ -143,7 +143,7 @@
             android:hint="@string/password_hint_optional"
             style="@style/KonsoleInputLayout"
             app:passwordToggleEnabled="true"
-            android:layout_marginBottom="8dp"
+            android:layout_marginBottom="4dp"
             xmlns:app="http://schemas.android.com/apk/res-auto">
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editPassword"
@@ -153,6 +153,38 @@
                 android:inputType="textPassword"
                 android:imeOptions="actionDone" />
         </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Test connection row (only meaningful with a password) -->
+        <LinearLayout
+            android:id="@+id/layoutTestRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <Button
+                android:id="@+id/btnTestConnection"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="@string/action_test_connection"
+                android:textSize="13sp"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:textColor="@color/accent"
+                android:paddingStart="0dp" />
+
+            <TextView
+                android:id="@+id/textTestStatus"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginStart="8dp"
+                android:ellipsize="end"
+                android:maxLines="2" />
+
+        </LinearLayout>
 
         <!-- Private key section -->
         <LinearLayout
@@ -180,15 +212,16 @@
                     android:textColor="@color/accent"
                     android:paddingStart="0dp" />
 
-                <!-- Key generator button -->
+                <!-- Key generator button (enabled after successful connection test) -->
                 <Button
                     android:id="@+id/btnGenerateKey"
                     android:layout_width="wrap_content"
                     android:layout_height="36dp"
-                    android:text="@string/generate_new_key"
+                    android:text="@string/generate_and_upload_key"
                     android:textSize="13sp"
                     style="@style/Widget.AppCompat.Button.Borderless"
                     android:textColor="@color/accent"
+                    android:enabled="false"
                     android:layout_marginStart="4dp" />
 
                 <TextView

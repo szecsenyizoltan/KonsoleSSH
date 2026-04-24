@@ -180,6 +180,17 @@
                     android:textColor="@color/accent"
                     android:paddingStart="0dp" />
 
+                <!-- Key generator button -->
+                <Button
+                    android:id="@+id/btnGenerateKey"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:text="@string/generate_new_key"
+                    android:textSize="13sp"
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:textColor="@color/accent"
+                    android:layout_marginStart="4dp" />
+
                 <TextView
                     android:id="@+id/textKeyStatus"
                     android:layout_width="wrap_content"

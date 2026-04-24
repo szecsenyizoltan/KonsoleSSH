@@ -42,6 +42,11 @@
     <string name="username_hint">Username *</string>
     <string name="password_hint_optional">Password (optional)</string>
     <string name="pick_key_file">📂 Pick key file…</string>
+    <string name="generate_new_key">🔑 Generate new key</string>
+    <string name="key_generated_title">New SSH key generated</string>
+    <string name="key_generated_message">An Ed25519 key pair has been generated. The private key is saved in this connection. Add the public key below to the server (e.g. the router\'s SSH authorized keys) so you can log in.</string>
+    <string name="action_copy_public_key">Copy public key</string>
+    <string name="key_copied">Public key copied to clipboard</string>
     <string name="configure_jump_host">🌐 Configure jump host…</string>
     <string name="jump_host_section_title">Jump host (external network)</string>
     <string name="jump_host_pick_hint">Pick a saved external connection to connect through:</string>

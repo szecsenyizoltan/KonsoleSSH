@@ -42,6 +42,11 @@
     <string name="username_hint">Felhasználónév *</string>
     <string name="password_hint_optional">Jelszó (opcionális)</string>
     <string name="pick_key_file">📂 Kulcsfájl választása…</string>
+    <string name="generate_new_key">🔑 Új kulcs generálása</string>
+    <string name="key_generated_title">Új SSH kulcs generálva</string>
+    <string name="key_generated_message">Ed25519 kulcspár készült. A privát kulcs ebbe a kapcsolatba bekerült. A lenti publikus kulcsot másold fel a szerverre (pl. a router SSH authorized keys-be), hogy be tudj vele lépni.</string>
+    <string name="action_copy_public_key">Publikus kulcs másolása</string>
+    <string name="key_copied">Publikus kulcs a vágólapon</string>
     <string name="configure_jump_host">🌐 Jump host beállítása…</string>
     <string name="jump_host_section_title">Jump host (külső hálózat)</string>
     <string name="jump_host_pick_hint">Válassz egy mentett külső kapcsolatot a csatlakozáshoz:</string>

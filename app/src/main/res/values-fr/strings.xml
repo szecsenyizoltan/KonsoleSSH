@@ -42,6 +42,11 @@
     <string name="username_hint">Utilisateur *</string>
     <string name="password_hint_optional">Mot de passe (facultatif)</string>
     <string name="pick_key_file">📂 Choisir un fichier de clé…</string>
+    <string name="generate_new_key">🔑 Générer une nouvelle clé</string>
+    <string name="key_generated_title">Nouvelle clé SSH générée</string>
+    <string name="key_generated_message">Une paire de clés Ed25519 a été générée. La clé privée est enregistrée dans cette connexion. Ajoute la clé publique ci-dessous au serveur (p. ex. aux authorized keys SSH du routeur) pour pouvoir te connecter.</string>
+    <string name="action_copy_public_key">Copier la clé publique</string>
+    <string name="key_copied">Clé publique copiée dans le presse-papiers</string>
     <string name="configure_jump_host">🌐 Configurer le jump host…</string>
     <string name="jump_host_section_title">Jump host (réseau externe)</string>
     <string name="jump_host_pick_hint">Choisis une connexion externe enregistrée à utiliser comme jump :</string>

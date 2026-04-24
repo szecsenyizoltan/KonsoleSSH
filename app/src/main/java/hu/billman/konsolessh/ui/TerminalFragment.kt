@@ -325,7 +325,8 @@ class TerminalFragment : Fragment() {
 
     private fun resolveJumpConfig(cfg: ConnectionConfig): ConnectionConfig? {
         if (cfg.jumpConnectionId.isNotBlank()) {
-            return SavedConnections.load(requireContext()).find { it.id == cfg.jumpConnectionId }
+            val ctx = context ?: return null
+            return SavedConnections.load(ctx).find { it.id == cfg.jumpConnectionId }
         }
         if (cfg.jumpHost.isNotBlank()) {
             return ConnectionConfig(
@@ -337,24 +338,32 @@ class TerminalFragment : Fragment() {
     }
 
     private fun buildPasswordPrompter(): (String, (String?) -> Unit) -> Unit = { displayHost, callback ->
-        val editText = android.widget.EditText(requireContext()).apply {
-            inputType = android.text.InputType.TYPE_CLASS_TEXT or
-                    android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
-            hint = getString(R.string.password)
-            setTextColor(Color.WHITE)
-            setHintTextColor(Color.GRAY)
-            setBackgroundColor(Color.TRANSPARENT)
-            val p = resources.getDimensionPixelSize(R.dimen.dialog_padding)
-            setPadding(p, p / 2, p, p / 2)
+        // A Service hívja ezt a lambdát — rotáció/tab-close közben a Fragment
+        // detached is lehet. Ha detached, a callback-nek null-t adunk
+        // (az SshSession értelmezi: nincs jelszó → auth cancel).
+        val ctx = if (isAdded) context else null
+        if (ctx == null) {
+            callback(null)
+        } else {
+            val editText = android.widget.EditText(ctx).apply {
+                inputType = android.text.InputType.TYPE_CLASS_TEXT or
+                        android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+                hint = getString(R.string.password)
+                setTextColor(Color.WHITE)
+                setHintTextColor(Color.GRAY)
+                setBackgroundColor(Color.TRANSPARENT)
+                val p = resources.getDimensionPixelSize(R.dimen.dialog_padding)
+                setPadding(p, p / 2, p, p / 2)
+            }
+            androidx.appcompat.app.AlertDialog.Builder(ctx, R.style.KonsoleDialog)
+                .setTitle(displayHost)
+                .setMessage(getString(R.string.password_prompt_message))
+                .setView(editText)
+                .setPositiveButton(R.string.action_ok) { _, _ -> callback(editText.text.toString()) }
+                .setNegativeButton(R.string.action_cancel) { _, _ -> callback(null) }
+                .setCancelable(false)
+                .show()
         }
-        androidx.appcompat.app.AlertDialog.Builder(requireContext(), R.style.KonsoleDialog)
-            .setTitle(displayHost)
-            .setMessage(getString(R.string.password_prompt_message))
-            .setView(editText)
-            .setPositiveButton(R.string.action_ok) { _, _ -> callback(editText.text.toString()) }
-            .setNegativeButton(R.string.action_cancel) { _, _ -> callback(null) }
-            .setCancelable(false)
-            .show()
     }
 
     // ── Static content ────────────────────────────────────────────────────────

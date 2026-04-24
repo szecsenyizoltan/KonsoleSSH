@@ -148,12 +148,77 @@ class TerminalBufferTest {
         assertEquals(" ", l1c0.ch)
     }
 
+    // ── Lépés 5: resize ──────────────────────────────────────────────────────
+
     @Test
-    fun `resize is NOOP in Step 3 (Lépés 5-ig)`() {
+    fun `resize grows dimensions and fills new cells with blanks`() {
+        val buf = TerminalBuffer(initialCols = 5, initialRows = 3)
+        buf.writeString("A")
+        buf.resize(10, 6)
+        assertEquals(10, buf.cols)
+        assertEquals(6, buf.rows)
+        assertEquals("A", buf.cellAt(0, 0)!!.ch)
+        assertEquals(" ", buf.cellAt(0, 9)!!.ch)
+        assertEquals(" ", buf.cellAt(5, 0)!!.ch)
+    }
+
+    @Test
+    fun `resize shrinks dimensions and truncates cols`() {
+        val buf = TerminalBuffer(initialCols = 10, initialRows = 5)
+        buf.writeString("1234567890")
+        buf.resize(5, 3)
+        assertEquals(5, buf.cols)
+        assertEquals(3, buf.rows)
+        assertEquals("1", buf.cellAt(0, 0)!!.ch)
+        assertEquals("5", buf.cellAt(0, 4)!!.ch)
+    }
+
+    @Test
+    fun `resize coerces cursor to new bounds`() {
+        val buf = TerminalBuffer(initialCols = 20, initialRows = 10)
+        buf.writeString(ESC + "[8;15H")  // 1-based → row 7, col 14
+        assertEquals(7, buf.cursorRow)
+        assertEquals(14, buf.cursorCol)
+        buf.resize(10, 5)
+        assertEquals(4, buf.cursorRow)
+        assertEquals(9, buf.cursorCol)
+    }
+
+    @Test
+    fun `resize preserves scrollback`() {
+        val buf = TerminalBuffer(initialCols = 3, initialRows = 2)
+        buf.writeString("X\r\nY\r\nZ")  // scrolls at least one line
+        val sbBefore = buf.scrollbackSize
+        assertTrue(sbBefore >= 1)
+        buf.resize(5, 4)
+        assertEquals(sbBefore, buf.scrollbackSize)
+    }
+
+    @Test
+    fun `resize noop when dimensions unchanged`() {
         val buf = TerminalBuffer(initialCols = 80, initialRows = 24)
-        buf.resize(120, 40)
-        assertEquals(80, buf.cols)
-        assertEquals(24, buf.rows)
+        var changeCount = 0
+        buf.setChangeListener { changeCount++ }
+        buf.resize(80, 24)
+        assertEquals(0, changeCount)
+    }
+
+    @Test
+    fun `resize invalidates alt screen backup`() {
+        val buf = TerminalBuffer(initialCols = 5, initialRows = 3)
+        buf.writeString(ESC + "[?1049h")
+        buf.resize(10, 5)
+        buf.writeString(ESC + "[?1049l")
+        assertFalse(buf.altScreenActive)
+    }
+
+    @Test
+    fun `resize notifies change listener`() {
+        val buf = TerminalBuffer()
+        var count = 0
+        buf.setChangeListener { count++ }
+        buf.resize(100, 30)
+        assertEquals(1, count)
     }
 
     // ── Lépés 3: NORMAL ág — print + control karakterek ──────────────────────

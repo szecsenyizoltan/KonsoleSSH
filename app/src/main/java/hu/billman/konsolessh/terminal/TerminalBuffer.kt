@@ -423,11 +423,32 @@ class TerminalBuffer(
     // ── Lifecycle ────────────────────────────────────────────────────────────
 
     /**
-     * Lépés 5-ben véglegesedik a resize szemantikája; ebben a commitban még
-     * szándékosan NOOP, hogy a Lépés 4 (CSI/SGR) tesztjei függetlenül futhassanak.
+     * Átméretezi a screen-rácsot [newCols] × [newRows]-re. A scrollback
+     * érintetlen; az alt-screen backup (savedMainScreen) eldobásra kerül,
+     * mivel az méretben már nem lenne visszaállítható; a kurzor az új
+     * határokba szorul. A scroll region teljes képernyőre visszaáll.
+     *
+     * A ChangeListener-t meghívja, így a renderer-t tájékoztatja a rácsról.
      */
     fun resize(newCols: Int, newRows: Int) {
-        // Lépés 5
+        if (newCols == _cols && newRows == _rows) return
+        if (newCols <= 0 || newRows <= 0) return
+        val old = screen
+        val oldCols = _cols
+        val oldRows = _rows
+        _cols = newCols
+        _rows = newRows
+        screen = Array(newRows) { r ->
+            Array(newCols) { c ->
+                if (r < oldRows && c < oldCols) old[r][c].copy() else TermCell.blank()
+            }
+        }
+        savedMainScreen = null
+        scrollTop = 0
+        scrollBot = newRows - 1
+        _cursorRow = _cursorRow.coerceIn(0, newRows - 1)
+        _cursorCol = _cursorCol.coerceIn(0, newCols - 1)
+        notifyChanged()
     }
 
     /** ESC c: teljes reset (állapot, scrollback, módok, SGR-stílus). */

@@ -406,21 +406,9 @@ class TerminalBuffer(
         curBold = false; curUnderline = false; curReverse = false
     }
 
-    private fun ansi16(i: Int): TermColor {
-        val c = intArrayOf(
-            0x000000, 0xAA0000, 0x00AA00, 0xAA5500, 0x0000AA, 0xAA00AA, 0x00AAAA, 0xAAAAAA,
-            0x555555, 0xFF5555, 0x55FF55, 0xFFFF55, 0x5555FF, 0xFF55FF, 0x55FFFF, 0xFFFFFF,
-        )[i.coerceIn(0, 15)]
-        return TermColor.rgb(c shr 16 and 0xFF, c shr 8 and 0xFF, c and 0xFF)
-    }
-
-    private fun xterm256(i: Int): TermColor {
-        if (i < 16) return ansi16(i)
-        if (i >= 232) { val v = 8 + (i - 232) * 10; return TermColor.rgb(v, v, v) }
-        val idx = i - 16
-        fun comp(c: Int) = if (c == 0) 0 else c * 40 + 55
-        return TermColor.rgb(comp(idx / 36), comp((idx % 36) / 6), comp(idx % 6))
-    }
+    // SGR-paletta a közös SgrPalette object-ből (az AnsiParser is ezt hívja).
+    private fun ansi16(i: Int): TermColor = SgrPalette.ansi16(i)
+    private fun xterm256(i: Int): TermColor = SgrPalette.xterm256(i)
 
     // ── Lifecycle ────────────────────────────────────────────────────────────
 

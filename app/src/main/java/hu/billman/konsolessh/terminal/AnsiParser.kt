@@ -1,6 +1,5 @@
 package hu.billman.konsolessh.terminal
 
-import android.graphics.Color
 import android.text.SpannableStringBuilder
 import android.text.style.BackgroundColorSpan
 import android.text.style.ForegroundColorSpan
@@ -12,49 +11,12 @@ import android.graphics.Typeface
  * Android Spannable markup. Handles:
  *  - SGR (Select Graphic Rendition): colors (3/4/8-bit), bold, reset
  *  - Cursor movement / erase sequences (stripped silently)
+ *
+ * A 16- és 256-színű paletta a [SgrPalette] közös objektumból jön, amit a
+ * [TerminalBuffer] is használ — így a két ANSI-feldolgozó útvonal (cellarács
+ * + Spannable) bit-azonos színekkel dolgozik.
  */
 object AnsiParser {
-
-    // Standard 16-color palette (matches xterm defaults)
-    private val ANSI_COLORS = intArrayOf(
-        Color.rgb(0,   0,   0),   // 0 black
-        Color.rgb(170, 0,   0),   // 1 red
-        Color.rgb(0,   170, 0),   // 2 green
-        Color.rgb(170, 170, 0),   // 3 yellow
-        Color.rgb(0,   0,   170), // 4 blue
-        Color.rgb(170, 0,   170), // 5 magenta
-        Color.rgb(0,   170, 170), // 6 cyan
-        Color.rgb(170, 170, 170), // 7 white
-        Color.rgb(85,  85,  85),  // 8 bright black (gray)
-        Color.rgb(255, 85,  85),  // 9 bright red
-        Color.rgb(85,  255, 85),  // 10 bright green
-        Color.rgb(255, 255, 85),  // 11 bright yellow
-        Color.rgb(85,  85,  255), // 12 bright blue
-        Color.rgb(255, 85,  255), // 13 bright magenta
-        Color.rgb(85,  255, 255), // 14 bright cyan
-        Color.rgb(255, 255, 255)  // 15 bright white
-    )
-
-    // xterm 256-color cube
-    private val XTERM_256: IntArray by lazy {
-        IntArray(256).also { arr ->
-            for (i in 0..15) arr[i] = ANSI_COLORS[i]
-            // 216-color cube
-            var idx = 16
-            for (r in 0..5) for (g in 0..5) for (b in 0..5) {
-                arr[idx++] = Color.rgb(
-                    if (r == 0) 0 else 55 + r * 40,
-                    if (g == 0) 0 else 55 + g * 40,
-                    if (b == 0) 0 else 55 + b * 40
-                )
-            }
-            // 24 grayscale
-            for (i in 0..23) {
-                val v = 8 + i * 10
-                arr[idx++] = Color.rgb(v, v, v)
-            }
-        }
-    }
 
     private data class SgrState(
         var fg: Int? = null,
@@ -128,20 +90,20 @@ object AnsiParser {
                 0  -> state.reset()
                 1  -> state.bold = true
                 22 -> state.bold = false
-                in 30..37 -> state.fg = ANSI_COLORS[code - 30]
+                in 30..37 -> state.fg = SgrPalette.ansi16(code - 30).argb
                 38 -> {
                     val color = readExtendedColor(codes, i + 1)
                     if (color != null) { state.fg = color.first; i += color.second }
                 }
                 39 -> state.fg = null
-                in 40..47 -> state.bg = ANSI_COLORS[code - 40]
+                in 40..47 -> state.bg = SgrPalette.ansi16(code - 40).argb
                 48 -> {
                     val color = readExtendedColor(codes, i + 1)
                     if (color != null) { state.bg = color.first; i += color.second }
                 }
                 49 -> state.bg = null
-                in 90..97  -> state.fg = ANSI_COLORS[code - 90 + 8]
-                in 100..107 -> state.bg = ANSI_COLORS[code - 100 + 8]
+                in 90..97  -> state.fg = SgrPalette.ansi16(code - 90 + 8).argb
+                in 100..107 -> state.bg = SgrPalette.ansi16(code - 100 + 8).argb
             }
             i++
         }
@@ -154,15 +116,14 @@ object AnsiParser {
             5 -> {
                 // 256-color: ESC[38;5;n
                 if (start + 1 < codes.size) {
-                    val n = codes[start + 1].coerceIn(0, 255)
-                    Pair(XTERM_256[n], 2)
+                    Pair(SgrPalette.xterm256(codes[start + 1]).argb, 2)
                 } else null
             }
             2 -> {
                 // Truecolor: ESC[38;2;r;g;b
                 if (start + 3 < codes.size) {
                     val r = codes[start + 1]; val g = codes[start + 2]; val b = codes[start + 3]
-                    Pair(Color.rgb(r, g, b), 4)
+                    Pair(TermColor.rgb(r, g, b).argb, 4)
                 } else null
             }
             else -> null

@@ -1,7 +1,7 @@
 [versions]
 agp = "9.2.0"
 kotlin = "2.2.10"
-coreKtx = "1.16.0"
+coreKtx = "1.18.0"
 appcompat = "1.7.1"
 material = "1.13.0"
 viewpager2 = "1.1.0"

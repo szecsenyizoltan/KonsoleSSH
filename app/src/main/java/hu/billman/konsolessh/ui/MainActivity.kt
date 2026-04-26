@@ -803,6 +803,9 @@ class MainActivity : AppCompatActivity(), TabStatusListener {
         R.id.action_language -> {
             showLanguagePicker(); true
         }
+        R.id.action_exit -> {
+            closeApp(); true
+        }
         else -> super.onOptionsItemSelected(item)
     }
 

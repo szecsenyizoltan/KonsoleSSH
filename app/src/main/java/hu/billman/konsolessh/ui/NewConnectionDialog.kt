@@ -216,28 +216,29 @@ class NewConnectionDialog : DialogFragment() {
         val privateKey = binding.editPrivateKey.text.toString().trim()
         val useKey     = binding.radioPrivateKey.isChecked
 
-        if (host.isEmpty() || username.isEmpty()) {
-            setTestStatus(getString(R.string.test_needs_host_user), successful = false)
-            return
+        val validationErrorRes: Int? = when {
+            host.isEmpty() || username.isEmpty() -> R.string.test_needs_host_user
+            useKey  && privateKey.isEmpty()      -> R.string.test_needs_private_key
+            !useKey && password.isEmpty()        -> R.string.test_needs_password
+            else                                 -> null
         }
-        if (useKey) {
-            if (privateKey.isEmpty()) {
-                setTestStatus(getString(R.string.test_needs_private_key), successful = false)
-                return
-            }
-        } else {
-            if (password.isEmpty()) {
-                setTestStatus(getString(R.string.test_needs_password), successful = false)
-                return
-            }
+        if (validationErrorRes != null) {
+            setTestStatus(getString(validationErrorRes), successful = false)
+            return
         }
         val port = binding.editPort.text.toString().toIntOrNull()?.coerceIn(1, 65535) ?: 22
 
+        val authType = if (useKey) {
+            ConnectionConfig.AuthType.PRIVATE_KEY
+        } else {
+            ConnectionConfig.AuthType.PASSWORD
+        }
         val probeConfig = ConnectionConfig(
-            host = host, port = port, username = username,
-            authType = if (useKey) ConnectionConfig.AuthType.PRIVATE_KEY
-                       else ConnectionConfig.AuthType.PASSWORD,
-            password   = if (useKey) "" else password,
+            host = host,
+            port = port,
+            username = username,
+            authType = authType,
+            password = if (useKey) "" else password,
             privateKey = if (useKey) privateKey else "",
         )
         binding.btnTestConnection.isEnabled = false

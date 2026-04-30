@@ -71,8 +71,7 @@ object SshKeyProvisioner {
         val useKey = allowKey && cfg.privateKey.isNotBlank()
         if (useKey) {
             val keyBytes = cfg.privateKey.toByteArray()
-            val pp = if (cfg.privateKeyPassphrase.isNotBlank())
-                cfg.privateKeyPassphrase.toByteArray() else null
+            val pp = cfg.privateKeyPassphrase.takeIf { it.isNotBlank() }?.toByteArray()
             jsch.addIdentity("probe_${cfg.username}@${cfg.host}", keyBytes, null, pp)
         }
         val hasPassword = cfg.password.isNotBlank()

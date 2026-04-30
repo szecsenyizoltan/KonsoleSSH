@@ -210,21 +210,35 @@ class NewConnectionDialog : DialogFragment() {
     }
 
     private fun onTestClicked() {
-        val host     = binding.editHost.text.toString().trim()
-        val username = binding.editUsername.text.toString().trim()
-        val password = binding.editPassword.text.toString()
+        val host       = binding.editHost.text.toString().trim()
+        val username   = binding.editUsername.text.toString().trim()
+        val password   = binding.editPassword.text.toString()
+        val privateKey = binding.editPrivateKey.text.toString().trim()
+        val useKey     = binding.radioPrivateKey.isChecked
+
         if (host.isEmpty() || username.isEmpty()) {
             setTestStatus(getString(R.string.test_needs_host_user), successful = false)
             return
         }
-        if (password.isEmpty()) {
-            setTestStatus(getString(R.string.test_needs_password), successful = false)
-            return
+        if (useKey) {
+            if (privateKey.isEmpty()) {
+                setTestStatus(getString(R.string.test_needs_private_key), successful = false)
+                return
+            }
+        } else {
+            if (password.isEmpty()) {
+                setTestStatus(getString(R.string.test_needs_password), successful = false)
+                return
+            }
         }
         val port = binding.editPort.text.toString().toIntOrNull()?.coerceIn(1, 65535) ?: 22
 
         val probeConfig = ConnectionConfig(
-            host = host, port = port, username = username, password = password
+            host = host, port = port, username = username,
+            authType = if (useKey) ConnectionConfig.AuthType.PRIVATE_KEY
+                       else ConnectionConfig.AuthType.PASSWORD,
+            password   = if (useKey) "" else password,
+            privateKey = if (useKey) privateKey else "",
         )
         binding.btnTestConnection.isEnabled = false
         binding.btnGenerateKey.isEnabled = false
@@ -234,9 +248,11 @@ class NewConnectionDialog : DialogFragment() {
             when (val result = viewModel.testConnection(probeConfig)) {
                 is NewConnectionViewModel.TestResult.Success -> {
                     testedServerType = result.serverType
+                    // A "Generate & upload" gomb csak jelszavas tesztből oldódik fel —
+                    // a publikus kulcs feltöltéséhez interaktív jelszós auth kell.
                     setTestStatus(
                         getString(R.string.test_success, result.serverVersion.ifBlank { "?" }),
-                        successful = true,
+                        successful = !useKey,
                     )
                 }
                 is NewConnectionViewModel.TestResult.Failure -> {

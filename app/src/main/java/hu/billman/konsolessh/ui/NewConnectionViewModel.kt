@@ -47,7 +47,7 @@ class NewConnectionViewModel : ViewModel() {
      * Kivételt nem dob — a hibát [TestResult.Failure] rögzíti.
      */
     suspend fun testConnection(config: ConnectionConfig): TestResult = try {
-        val outcome = SshKeyProvisioner.testPasswordConnection(config)
+        val outcome = SshKeyProvisioner.testConnection(config)
         TestResult.Success(outcome.serverVersion, outcome.serverType)
     } catch (e: Exception) {
         TestResult.Failure(friendlyShortError(e))

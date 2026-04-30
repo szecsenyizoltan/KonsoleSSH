@@ -38,6 +38,7 @@
     <string name="action_test_connection">🔌 Test connection</string>
     <string name="test_needs_host_user">Fill host and username first.</string>
     <string name="test_needs_password">Enter a password to test with.</string>
+    <string name="test_needs_private_key">Pick or paste a private key to test with.</string>
     <string name="test_running">Testing connection…</string>
     <string name="test_success">✓ Connected (%1$s)</string>
     <string name="test_failure">❌ %1$s</string>

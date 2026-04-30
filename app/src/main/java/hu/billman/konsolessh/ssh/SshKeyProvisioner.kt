@@ -11,9 +11,9 @@ import java.util.Properties
 
 /**
  * Short-lived SSH helpers for:
- *   1) testing that a password-based connection works before committing to
- *      key-based migration;
- *   2) uploading a public key to the server using that working password
+ *   1) testing that a connection works (password OR private key) before
+ *      committing the credentials to the saved-connection store;
+ *   2) uploading a public key to the server using the password auth
  *      (OpenSSH / Dropbear via `authorized_keys`, Mikrotik RouterOS via
  *      SFTP + `/user ssh-keys import`).
  *
@@ -29,10 +29,14 @@ object SshKeyProvisioner {
 
     data class TestOutcome(val serverVersion: String, val serverType: ServerType)
 
-    /** Returns the server version banner on success; throws on failure. */
-    suspend fun testPasswordConnection(cfg: ConnectionConfig): TestOutcome =
+    /**
+     * Returns the server version banner on success; throws on failure.
+     * Honours whichever credentials the config carries: privát kulcs
+     * (publickey), jelszó (password,keyboard-interactive), vagy mindkettő.
+     */
+    suspend fun testConnection(cfg: ConnectionConfig): TestOutcome =
         withContext(Dispatchers.IO) {
-            val session = openPasswordSession(cfg)
+            val session = openSession(cfg, allowKey = true)
             try {
                 session.connect(CONNECT_TIMEOUT_MS)
                 val version = session.serverVersion ?: ""
@@ -45,7 +49,7 @@ object SshKeyProvisioner {
     /** Uploads the public key to the server using the password auth. */
     suspend fun uploadPublicKey(cfg: ConnectionConfig, publicKey: String): ServerType =
         withContext(Dispatchers.IO) {
-            val session = openPasswordSession(cfg)
+            val session = openSession(cfg, allowKey = false)
             try {
                 session.connect(CONNECT_TIMEOUT_MS)
                 val version = session.serverVersion ?: ""
@@ -62,12 +66,25 @@ object SshKeyProvisioner {
 
     // ── Internals ─────────────────────────────────────────────────────────────
 
-    private fun openPasswordSession(cfg: ConnectionConfig): Session {
+    private fun openSession(cfg: ConnectionConfig, allowKey: Boolean): Session {
         val jsch = JSch()
+        val useKey = allowKey && cfg.privateKey.isNotBlank()
+        if (useKey) {
+            val keyBytes = cfg.privateKey.toByteArray()
+            val pp = if (cfg.privateKeyPassphrase.isNotBlank())
+                cfg.privateKeyPassphrase.toByteArray() else null
+            jsch.addIdentity("probe_${cfg.username}@${cfg.host}", keyBytes, null, pp)
+        }
+        val hasPassword = cfg.password.isNotBlank()
+        val auths = when {
+            useKey && hasPassword -> "publickey,password,keyboard-interactive"
+            useKey                -> "publickey"
+            else                  -> "password,keyboard-interactive"
+        }
         val session = jsch.getSession(cfg.username, cfg.host, cfg.port)
         val props = Properties().apply {
             set("StrictHostKeyChecking", "no")
-            set("PreferredAuthentications", "password,keyboard-interactive")
+            set("PreferredAuthentications", auths)
             // Legacy ssh-rsa (SHA-1 RSA) re-enabled for old routers / embedded
             // SSH servers; see SshSession for the same list.
             set(
@@ -77,7 +94,7 @@ object SshKeyProvisioner {
             )
         }
         session.setConfig(props)
-        if (cfg.password.isNotBlank()) session.setPassword(cfg.password)
+        if (hasPassword) session.setPassword(cfg.password)
         // No UserInfo — we do not want retry loops or interactive prompts here.
         return session
     }

@@ -38,6 +38,7 @@
     <string name="action_test_connection">🔌 Kapcsolat tesztelése</string>
     <string name="test_needs_host_user">Először töltsd ki a hostot és a felhasználónevet.</string>
     <string name="test_needs_password">Adj meg egy jelszót a teszteléshez.</string>
+    <string name="test_needs_private_key">Válassz vagy illessz be egy privát kulcsot a teszteléshez.</string>
     <string name="test_running">Tesztelés…</string>
     <string name="test_success">✓ Csatlakozott (%1$s)</string>
     <string name="test_failure">❌ %1$s</string>

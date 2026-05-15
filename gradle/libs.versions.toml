@@ -19,7 +19,7 @@ androidxTestCore = "1.7.0"
 espresso = "3.7.0"
 mockk = "1.14.9"
 securityCrypto = "1.1.0"
-detekt = "1.23.7"
+detekt = "1.23.8"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }

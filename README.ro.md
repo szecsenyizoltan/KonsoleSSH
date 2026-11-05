@@ -304,12 +304,12 @@ app/src/main/java/hu/billman/konsolessh/
 
 ```
 Kotlin       2.2.10
-AGP          9.2.0
-Gradle       9.4.1
+AGP          9.5.0
+Gradle       9.6.0
 Java target  17
 namespace    hu.billman.konsolessh
 minSdk       26   (Android 8.0)
-targetSdk    35   (Android 15)
+targetSdk    37   (Android 17)
 ```
 
 ```bash
@@ -334,6 +334,7 @@ Build-ul **release** este minificat cu R8 și are resursele reduse. Codul care f
 | `FOREGROUND_SERVICE`                  | Pornirea serviciului de fundal                         |
 | `FOREGROUND_SERVICE_CONNECTED_DEVICE` | Foreground service de rețea (API 34+)                  |
 | `POST_NOTIFICATIONS`                  | Notificare persistentă pentru sesiune (API 33+)        |
+| `ACCESS_LOCAL_NETWORK`                | Gazde SSH din rețeaua locală pe Android 17+ (API 37+) |
 
 Nu se colectează, nu se distribuie și nu se încarcă nicio dată. Credențialele rămân pe dispozitiv în stocarea criptată ancorată în Keystore.
 

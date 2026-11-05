@@ -318,12 +318,12 @@ app/src/main/java/hu/billman/konsolessh/
 
 ```
 Kotlin       2.2.10
-AGP          9.2.0
-Gradle       9.4.1
+AGP          9.5.0
+Gradle       9.6.0
 Java target  17
 namespace    hu.billman.konsolessh
 minSdk       26   (Android 8.0)
-targetSdk    35   (Android 15)
+targetSdk    37   (Android 17)
 ```
 
 ```bash
@@ -372,6 +372,7 @@ tudja a crash-stack-eket.
 | `FOREGROUND_SERVICE`                  | Háttér-service indítás                                     |
 | `FOREGROUND_SERVICE_CONNECTED_DEVICE` | Hálózati foreground service (API 34+)                      |
 | `POST_NOTIFICATIONS`                  | Tartós session-kezelő értesítés (API 33+)                  |
+| `ACCESS_LOCAL_NETWORK`                | Helyi hálózati SSH-szerverek Android 17+ alatt (API 37+) |
 
 Adatot nem gyűjtünk, nem továbbítunk. A hitelesítő adatok titkosítva maradnak a készüléken.
 

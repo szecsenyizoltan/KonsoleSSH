@@ -383,6 +383,8 @@ class SshForegroundService : Service() {
         }
         val full = parts.joinToString(" ").lowercase()
         return when {
+            LocalNetworkAccess.isDenied(this) &&
+                LocalNetworkAccess.looksBlocked(full) -> getString(R.string.err_local_network_blocked)
             "connection refused"     in full -> getString(R.string.err_connection_refused)
             "connection timed out"   in full ||
             "connect timed out"      in full ||

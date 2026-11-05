@@ -14,14 +14,14 @@ val keystoreProperties = Properties().apply {
 
 android {
     namespace = "hu.billman.konsolessh"
-    compileSdk = 35
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "hu.billman.konsolessh"
         minSdk = 26
-        targetSdk = 35
-        versionCode = 35
-        versionName = "1.1.24"
+        targetSdk = 37
+        versionCode = 36
+        versionName = "1.1.25"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

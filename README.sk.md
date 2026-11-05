@@ -304,12 +304,12 @@ app/src/main/java/hu/billman/konsolessh/
 
 ```
 Kotlin       2.2.10
-AGP          9.2.0
-Gradle       9.4.1
+AGP          9.5.0
+Gradle       9.6.0
 Java target  17
 namespace    hu.billman.konsolessh
 minSdk       26   (Android 8.0)
-targetSdk    35   (Android 15)
+targetSdk    37   (Android 17)
 ```
 
 ```bash
@@ -334,6 +334,7 @@ targetSdk    35   (Android 15)
 | `FOREGROUND_SERVICE`                  | Spustenie služby na pozadí                                |
 | `FOREGROUND_SERVICE_CONNECTED_DEVICE` | Sieťový foreground service (API 34+)                      |
 | `POST_NOTIFICATIONS`                  | Trvalé oznámenie o relácii (API 33+)                      |
+| `ACCESS_LOCAL_NETWORK`                | SSH hostitelia v lokálnej sieti na Android 17+ (API 37+) |
 
 Nezbierame, nezdieľame ani neposielame žiadne údaje. Prihlasovacie údaje zostávajú na zariadení v šifrovanom úložisku podopretom Keystore.
 

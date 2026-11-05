@@ -304,12 +304,12 @@ app/src/main/java/hu/billman/konsolessh/
 
 ```
 Kotlin       2.2.10
-AGP          9.2.0
-Gradle       9.4.1
+AGP          9.5.0
+Gradle       9.6.0
 Java target  17
 namespace    hu.billman.konsolessh
 minSdk       26   (Android 8.0)
-targetSdk    35   (Android 15)
+targetSdk    37   (Android 17)
 ```
 
 ```bash
@@ -334,6 +334,7 @@ erzeugt, damit Play Console Stack-Traces deobfuszifizieren kann.
 | `FOREGROUND_SERVICE`                  | Start des Hintergrunddienstes                            |
 | `FOREGROUND_SERVICE_CONNECTED_DEVICE` | Netzwerk-Foreground-Service (API 34+)                    |
 | `POST_NOTIFICATIONS`                  | Persistente Sitzungs-Benachrichtigung (API 33+)          |
+| `ACCESS_LOCAL_NETWORK`                | SSH-Hosts im lokalen Netz unter Android 17+ (API 37+) |
 
 Es werden keine Daten erhoben, geteilt oder hochgeladen. Zugangsdaten bleiben auf dem Gerät im Keystore-gestützten verschlüsselten Speicher.
 

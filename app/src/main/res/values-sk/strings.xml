@@ -128,6 +128,7 @@
     <!-- Friendly errors -->
     <string name="err_connection_refused">Pripojenie odmietnuté — server na tomto porte nepríma pripojenia.</string>
     <string name="err_timeout">Čas vypršal — server neodpovedá.</string>
+    <string name="err_local_network_blocked">Čas vypršal. Ak je server v lokálnej sieti, povoľte povolenie Zariadenia v okolí v nastaveniach aplikácie.</string>
     <string name="err_no_route">Server je nedostupný — skontroluj sieť a IP adresu.</string>
     <string name="err_network_unreachable">Sieť je nedostupná.</string>
     <string name="err_unknown_host">Neznámy názov hostiteľa — chyba DNS alebo preklep.</string>

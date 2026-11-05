@@ -304,12 +304,12 @@ app/src/main/java/hu/billman/konsolessh/
 
 ```
 Kotlin       2.2.10
-AGP          9.2.0
-Gradle       9.4.1
+AGP          9.5.0
+Gradle       9.6.0
 Java target  17
 namespace    hu.billman.konsolessh
 minSdk       26   (Android 8.0)
-targetSdk    35   (Android 15)
+targetSdk    37   (Android 17)
 ```
 
 ```bash
@@ -334,6 +334,7 @@ de réflexion (JSch, modèles Gson) est préservé via `app/proguard-rules.pro`.
 | `FOREGROUND_SERVICE`                  | Démarrage du service en arrière-plan                    |
 | `FOREGROUND_SERVICE_CONNECTED_DEVICE` | Foreground service réseau (API 34+)                     |
 | `POST_NOTIFICATIONS`                  | Notification persistante de session (API 33+)           |
+| `ACCESS_LOCAL_NETWORK`                | Hôtes SSH du réseau local sous Android 17+ (API 37+) |
 
 Aucune donnée n'est collectée, partagée ni envoyée. Les identifiants restent sur l'appareil dans le stockage chiffré adossé au Keystore.
 

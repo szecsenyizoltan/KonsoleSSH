@@ -6,7 +6,9 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.content.pm.PackageManager
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.view.KeyEvent
@@ -18,6 +20,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
+import androidx.activity.addCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -25,8 +28,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import androidx.viewpager2.widget.ViewPager2
-import android.content.pm.PackageManager
-import android.os.Build
 import com.google.android.material.tabs.TabLayout
 import hu.billman.konsolessh.R
 import hu.billman.konsolessh.databinding.ActivityMainBinding
@@ -126,7 +127,11 @@ class MainActivity : AppCompatActivity(), TabStatusListener {
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayShowTitleEnabled(false)
-        requestNotificationPermissionIfNeeded()
+        requestRuntimePermissionsIfNeeded()
+
+        // targetSdk 36+ alatt az onBackPressed már nem hívódik meg. A Vissza
+        // nem zárja be az appot, csak háttérbe teszi, hogy a session-ök éljenek.
+        onBackPressedDispatcher.addCallback(this) { moveTaskToBack(true) }
 
         setupViewPager()
         setupKeybar()
@@ -198,11 +203,6 @@ class MainActivity : AppCompatActivity(), TabStatusListener {
         binding.fnbarScrollView.viewTreeObserver.removeOnGlobalLayoutListener(fnbarLayoutListener)
     }
 
-    @Suppress("OVERRIDE_DEPRECATION")
-    override fun onBackPressed() {
-        moveTaskToBack(true)
-    }
-
     private fun closeApp() {
         val activeCount = tabStatusMap.values.count { it == ConnectionStatus.CONNECTED }
         if (activeCount > 0) {
@@ -230,13 +230,21 @@ class MainActivity : AppCompatActivity(), TabStatusListener {
     private fun currentFragment(): TerminalFragment? =
         pagerAdapter.getFragment(binding.viewPager.currentItem)
 
-    private fun requestNotificationPermissionIfNeeded() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS)
-                != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this,
-                    arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1)
+    // Egy kérésben kell összefogni: párhuzamos requestPermissions-hívás esetén
+    // a rendszer a másodikat elutasítja.
+    private fun requestRuntimePermissionsIfNeeded() {
+        val missing = buildList {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                add(android.Manifest.permission.POST_NOTIFICATIONS)
             }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN) {
+                add(android.Manifest.permission.ACCESS_LOCAL_NETWORK)
+            }
+        }.filter {
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }
+        if (missing.isNotEmpty()) {
+            ActivityCompat.requestPermissions(this, missing.toTypedArray(), 1)
         }
     }
 

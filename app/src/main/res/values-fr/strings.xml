@@ -128,6 +128,7 @@
     <!-- Friendly errors -->
     <string name="err_connection_refused">Connexion refusée — le serveur n\'accepte pas de connexion sur ce port.</string>
     <string name="err_timeout">Délai dépassé — le serveur ne répond pas.</string>
+    <string name="err_local_network_blocked">Délai dépassé. Si le serveur est sur votre réseau local, accordez l\'autorisation Appareils à proximité dans les paramètres de l\'application.</string>
     <string name="err_no_route">Serveur inaccessible — vérifie le réseau et l\'adresse IP.</string>
     <string name="err_network_unreachable">Le réseau est inaccessible.</string>
     <string name="err_unknown_host">Hôte inconnu — erreur DNS ou faute de frappe.</string>

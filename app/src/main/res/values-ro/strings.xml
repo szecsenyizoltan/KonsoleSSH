@@ -128,6 +128,7 @@
     <!-- Friendly errors -->
     <string name="err_connection_refused">Conexiune refuzată — serverul nu acceptă conexiuni pe acest port.</string>
     <string name="err_timeout">Timp expirat — serverul nu răspunde.</string>
+    <string name="err_local_network_blocked">Timp expirat. Dacă serverul este în rețeaua locală, acordă permisiunea Dispozitive din apropiere în setările aplicației.</string>
     <string name="err_no_route">Server inaccesibil — verifică rețeaua și adresa IP.</string>
     <string name="err_network_unreachable">Rețeaua este inaccesibilă.</string>
     <string name="err_unknown_host">Nume de gazdă necunoscut — eroare DNS sau greșeală de scriere.</string>

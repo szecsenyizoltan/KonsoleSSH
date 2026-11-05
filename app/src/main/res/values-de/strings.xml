@@ -128,6 +128,7 @@
     <!-- Friendly errors -->
     <string name="err_connection_refused">Verbindung abgelehnt — der Server akzeptiert auf diesem Port keine Verbindungen.</string>
     <string name="err_timeout">Zeitüberschreitung — der Server antwortet nicht.</string>
+    <string name="err_local_network_blocked">Zeitüberschreitung. Wenn sich der Server im lokalen Netzwerk befindet, erlaube die Berechtigung „Geräte in der Nähe“ in den App-Einstellungen.</string>
     <string name="err_no_route">Server nicht erreichbar — prüfe Netzwerk und IP-Adresse.</string>
     <string name="err_network_unreachable">Das Netzwerk ist nicht erreichbar.</string>
     <string name="err_unknown_host">Unbekannter Hostname — DNS-Fehler oder Tippfehler.</string>

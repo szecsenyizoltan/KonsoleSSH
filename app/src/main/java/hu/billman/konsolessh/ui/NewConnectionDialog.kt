@@ -16,6 +16,7 @@ import hu.billman.konsolessh.R
 import hu.billman.konsolessh.databinding.DialogNewConnectionBinding
 import hu.billman.konsolessh.model.ConnectionConfig
 import hu.billman.konsolessh.model.SavedConnections
+import hu.billman.konsolessh.ssh.LocalNetworkAccess
 import hu.billman.konsolessh.ssh.SshKeyProvisioner
 import kotlinx.coroutines.launch
 
@@ -258,7 +259,10 @@ class NewConnectionDialog : DialogFragment() {
                 }
                 is NewConnectionViewModel.TestResult.Failure -> {
                     setTestStatus(
-                        getString(R.string.test_failure, result.errorMessage),
+                        getString(
+                            R.string.test_failure,
+                            LocalNetworkAccess.explain(requireContext(), result.errorMessage),
+                        ),
                         successful = false,
                     )
                 }
@@ -313,7 +317,10 @@ class NewConnectionDialog : DialogFragment() {
                 is NewConnectionViewModel.UploadResult.UploadFailure -> {
                     binding.btnGenerateKey.isEnabled = true
                     setTestStatus(
-                        getString(R.string.upload_failure, result.errorMessage),
+                        getString(
+                            R.string.upload_failure,
+                            LocalNetworkAccess.explain(requireContext(), result.errorMessage),
+                        ),
                         // keep the green test state so user can retry
                         successful = true,
                     )

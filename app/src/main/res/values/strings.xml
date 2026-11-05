@@ -128,6 +128,7 @@
     <!-- Friendly errors -->
     <string name="err_connection_refused">Connection refused — the server does not accept connections on this port.</string>
     <string name="err_timeout">Timeout — the server is not responding.</string>
+    <string name="err_local_network_blocked">Timeout. If the server is on your local network, allow the Nearby devices permission in the app settings.</string>
     <string name="err_no_route">Server unreachable — check the network and the IP address.</string>
     <string name="err_network_unreachable">The network is unreachable.</string>
     <string name="err_unknown_host">Unknown hostname — DNS error or typo.</string>

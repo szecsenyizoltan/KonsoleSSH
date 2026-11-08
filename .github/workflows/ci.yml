@@ -27,7 +27,13 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Unit tests
+      # The SSH integration tests start their own sshd instances.
+      - name: Install OpenSSH server
+        run: sudo apt-get update -q && sudo apt-get install -y -q openssh-server
+
+      - name: Unit and integration tests
+        env:
+          KONSOLE_REQUIRE_SSHD: '1'
         run: ./gradlew :app:testDebugUnitTest --no-daemon
 
       - name: Android lint

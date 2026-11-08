@@ -360,12 +360,13 @@ A `mapping.txt` is produced so the Play Console can deobfuscate stack traces.
 | ------------------ | ----------------- | ----------------------------------------- |
 | JSch (mwiede fork) | 0.2.16            | SSH + SFTP                                |
 | Bouncy Castle      | 1.86              | Ed25519 / curve25519 for JSch             |
-| kotlinx-coroutines | 1.8.1             | Async SSH I/O                             |
+| kotlinx-coroutines | 1.10.2            | Async SSH I/O                             |
+| AndroidX Lifecycle | 2.10.0            | ViewModel, StateFlow-based UI state       |
 | ViewPager2         | 1.1.0             | Tab navigation                            |
-| Material Design    | 1.12.0            | UI components                             |
-| Gson               | 2.10.1            | Connection profile (de)serialisation      |
+| Material Design    | 1.13.0            | UI components                             |
+| Gson               | 2.14.0            | Connection profile (de)serialisation      |
 | androidx.security  | 1.1.0             | Legacy EncryptedSharedPreferences migration only |
-| AndroidX Core      | 1.13+             | ServiceCompat, WindowInsetsCompat         |
+| AndroidX Core      | 1.16.0            | ServiceCompat, WindowInsetsCompat         |
 
 ## Permissions
 

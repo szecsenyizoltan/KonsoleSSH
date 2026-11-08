@@ -361,12 +361,13 @@ tudja a crash-stack-eket.
 | ------------------ | ----------------- | ------------------------------------------- |
 | JSch (mwiede fork) | 0.2.16            | SSH + SFTP                                  |
 | Bouncy Castle      | 1.86              | Ed25519 / curve25519 a JSch-hez             |
-| kotlinx-coroutines | 1.8.1             | Async SSH I/O                               |
+| kotlinx-coroutines | 1.10.2            | Async SSH I/O                               |
+| AndroidX Lifecycle | 2.10.0            | ViewModel, StateFlow-alapú UI-állapot       |
 | ViewPager2         | 1.1.0             | Fül-navigáció                               |
-| Material Design    | 1.12.0            | UI komponensek                              |
-| Gson               | 2.10.1            | Kapcsolat-profil (de)szerializáció          |
+| Material Design    | 1.13.0            | UI komponensek                              |
+| Gson               | 2.14.0            | Kapcsolat-profil (de)szerializáció          |
 | androidx.security  | 1.1.0             | Csak a régi EncryptedSharedPreferences-adatok migrációja |
-| AndroidX Core      | 1.13+             | ServiceCompat, WindowInsetsCompat           |
+| AndroidX Core      | 1.16.0            | ServiceCompat, WindowInsetsCompat           |
 
 ## Engedélyek
 

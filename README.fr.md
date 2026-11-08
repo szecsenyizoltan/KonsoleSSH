@@ -367,6 +367,9 @@ L'application est publiée sous licence **GPL-3.0-or-later** — le texte comple
 
 ## Historique des versions
 
+- **1.1.28** — la sortie du terminal est traitée sur un thread d'arrière-plan, par
+  tranches : une sortie volumineuse (`cat` d'un gros journal, `find /`) ne bloque plus
+  l'interface ; les caractères UTF-8 coupés entre deux lectures réseau restent intacts
 - **1.1.27** — architecture en couches après un audit du code : un gestionnaire de
   sessions unique comme source de vérité, les questions arrivent sous forme d'état
   et survivent à la rotation, erreurs typées avec un seul traducteur de messages ;

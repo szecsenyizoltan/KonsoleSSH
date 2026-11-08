@@ -367,6 +367,9 @@ Aplikácia je vydaná pod licenciou **GPL-3.0-or-later** — úplný text v súb
 
 ## História verzií
 
+- **1.1.28** — výstup terminálu sa spracúva vo vlákne na pozadí po častiach, takže
+  veľký výstup (`cat` veľkého logu, `find /`) už neblokuje rozhranie; znaky UTF-8
+  rozdelené medzi dve sieťové čítania sa už nepoškodia
 - **1.1.27** — vrstvená architektúra po audite kódu: jediný správca relácií ako
   zdroj pravdy, otázky prichádzajú ako stav a prežijú otočenie, typované chyby s
   jedným prekladačom správ; nečitateľné úložisko pripojení sa už neprepíše a nič sa

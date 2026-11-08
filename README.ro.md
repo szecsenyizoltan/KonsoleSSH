@@ -367,6 +367,9 @@ Aplicația este distribuită sub licența **GPL-3.0-or-later** — textul comple
 
 ## Istoricul versiunilor
 
+- **1.1.28** — ieșirea terminalului este procesată pe un fir de fundal, pe bucăți,
+  astfel că o ieșire mare (`cat` pe un log mare, `find /`) nu mai blochează interfața;
+  caracterele UTF-8 tăiate între două citiri din rețea nu se mai strică
 - **1.1.27** — arhitectură pe straturi după un audit de cod: un singur manager de
   sesiuni ca sursă de adevăr, întrebările vin ca stare și supraviețuiesc rotirii,
   erori tipizate cu un singur traducător de mesaje; un depozit de conexiuni ilizibil

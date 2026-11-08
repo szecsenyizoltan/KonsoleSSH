@@ -367,6 +367,9 @@ La aplicación se distribuye bajo la licencia **GPL-3.0-or-later** — el texto 
 
 ## Historial de versiones
 
+- **1.1.28** — la salida del terminal se procesa en un hilo en segundo plano y por
+  fragmentos, así una salida grande (`cat` de un log grande, `find /`) ya no bloquea la
+  interfaz; los caracteres UTF-8 partidos entre lecturas de red ya no se corrompen
 - **1.1.27** — arquitectura por capas tras una auditoría de código: un único gestor
   de sesiones como fuente de verdad, las preguntas llegan como estado y sobreviven
   al giro, errores tipados con un solo traductor de mensajes; un almacén de

@@ -20,8 +20,8 @@ android {
         applicationId = "hu.billman.konsolessh"
         minSdk = 26
         targetSdk = 37
-        versionCode = 38
-        versionName = "1.1.27"
+        versionCode = 39
+        versionName = "1.1.28"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

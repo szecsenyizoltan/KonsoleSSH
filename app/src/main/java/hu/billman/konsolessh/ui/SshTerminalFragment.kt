@@ -17,11 +17,14 @@ import hu.billman.konsolessh.session.ConnectionStatus
 import hu.billman.konsolessh.session.OutputChunk
 import hu.billman.konsolessh.session.TabState
 import hu.billman.konsolessh.terminal.TerminalView
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Egy SSH-fül megjelenítése. A munkamenet a [hu.billman.konsolessh.session.SessionManager]-ben
@@ -39,6 +42,9 @@ class SshTerminalFragment : Fragment(), TerminalPage {
 
     /** A nézetbe már kirajzolt kimenet vége (abszolút folyampozíció). */
     private var renderedEnd = 0L
+
+    /** Az ANSI-feldolgozás itt fut, hogy nagy kimenet ne akassza a felületet. */
+    private val renderDispatcher: CoroutineDispatcher = Dispatchers.Default
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
         FragmentTerminalBinding.inflate(inflater, container, false).also { _binding = it }.root
@@ -72,19 +78,28 @@ class SshTerminalFragment : Fragment(), TerminalPage {
     }
 
     // Subscribe first, then draw the stored snapshot; chunk positions make the
-    // seam exact, so nothing is drawn twice or skipped.
+    // seam exact, so nothing is drawn twice or skipped. If the live flow dropped
+    // chunks while rendering lagged, the gap is filled from the snapshot.
     private suspend fun collectOutput() {
+        val view = terminalView ?: return
         val flow = viewModel.output(tabId) ?: return
-        flow.onSubscription { viewModel.snapshot(tabId)?.let(::render) }.collect(::render)
+        flow.onSubscription { renderSnapshot(view) }.collect { chunk ->
+            if (chunk.start > renderedEnd) renderSnapshot(view)
+            render(view, chunk)
+        }
     }
 
-    private fun render(chunk: OutputChunk) {
-        val view = terminalView ?: return
+    private suspend fun renderSnapshot(view: TerminalView) {
+        viewModel.snapshot(tabId)?.let { render(view, it) }
+    }
+
+    // Sequential calls from one collector, so renderedEnd needs no lock.
+    private suspend fun render(view: TerminalView, chunk: OutputChunk) {
         if (chunk.end <= renderedEnd) return
         val from = maxOf(chunk.start, renderedEnd)
         val offset = (from - chunk.start).toInt()
         val bytes = if (offset == 0) chunk.bytes else chunk.bytes.copyOfRange(offset, chunk.bytes.size)
-        view.append(bytes, bytes.size)
+        withContext(renderDispatcher) { view.append(bytes, bytes.size) }
         renderedEnd = chunk.end
     }
 

@@ -553,4 +553,75 @@ class TerminalBufferTest {
         assertEquals("X", buf.cellAt(0, 1)!!.ch)
         assertEquals(2, buf.cursorCol)
     }
+
+    // ── Szálkezelés és darabolt bemenet ─────────────────────────────────────
+
+    @Test
+    fun `multibyte character split across writes is decoded once`() {
+        val buf = TerminalBuffer()
+        val bytes = "ő€🔥".toByteArray(Charsets.UTF_8)
+        // Minden lehetséges vágási pont: a karakterek nem romolhatnak el.
+        for (cut in 1 until bytes.size) {
+            buf.reset()
+            buf.write(bytes.copyOfRange(0, cut))
+            buf.write(bytes.copyOfRange(cut, bytes.size))
+            assertEquals("cut=$cut", "ő", buf.cellAt(0, 0)!!.ch)
+            assertEquals("cut=$cut", "€", buf.cellAt(0, 1)!!.ch)
+            assertEquals("cut=$cut", "🔥", buf.cellAt(0, 2)!!.ch)
+            assertEquals("cut=$cut", 3, buf.cursorCol)
+        }
+    }
+
+    @Test
+    fun `incomplete utf8 tail length`() {
+        assertEquals(0, TerminalBuffer.incompleteUtf8Tail("a".toByteArray()))
+        assertEquals(0, TerminalBuffer.incompleteUtf8Tail("ő".toByteArray()))
+        assertEquals(1, TerminalBuffer.incompleteUtf8Tail(byteArrayOf(0x41, 0xC5.toByte())))
+        assertEquals(2, TerminalBuffer.incompleteUtf8Tail(byteArrayOf(0xE2.toByte(), 0x82.toByte())))
+        assertEquals(3, TerminalBuffer.incompleteUtf8Tail(byteArrayOf(0xF0.toByte(), 0x9F.toByte(), 0x94.toByte())))
+        assertEquals(0, TerminalBuffer.incompleteUtf8Tail(ByteArray(0)))
+    }
+
+    @Test
+    fun `large write is processed in slices with a notification per slice`() {
+        val buf = TerminalBuffer(initialCols = 80, initialRows = 24)
+        var notifications = 0
+        buf.setChangeListener { notifications++ }
+        // Ékezetes sorok: a szelethatár UTF-8 karakter közepére is esik.
+        val line = "árvíztűrő tükörfúrógép 0123456789\r\n"
+        val text = line.repeat(1000)
+        buf.write(text.toByteArray(Charsets.UTF_8))
+        val expectedSlices = (text.toByteArray(Charsets.UTF_8).size + TerminalBuffer.WRITE_SLICE - 1) /
+            TerminalBuffer.WRITE_SLICE
+        assertEquals(expectedSlices, notifications)
+        val lastLine = buf.lineAt(buf.scrollbackSize + buf.cursorRow - 1)!!
+        assertEquals(line.trimEnd(), lastLine.joinToString("") { it.ch }.trimEnd())
+        assertTrue(buf.scrollbackSize > 0)
+    }
+
+    @Test
+    fun `rendering reads under the lock while another thread writes`() {
+        val buf = TerminalBuffer(initialCols = 80, initialRows = 24, maxScrollback = 200)
+        val chunk = "\u001B[31mhello\u001B[0m világ\r\n".repeat(200).toByteArray(Charsets.UTF_8)
+        var failure: Throwable? = null
+        val writer = Thread {
+            try {
+                repeat(200) { buf.write(chunk) }
+            } catch (t: Throwable) {
+                failure = t
+            }
+        }
+        writer.start()
+        while (writer.isAlive) {
+            buf.withLock {
+                // Ugyanaz, amit az onDraw olvas: a sorok a zár alatt konzisztensek.
+                for (i in 0 until buf.totalLines) assertNotNull(buf.lineAt(i))
+                assertTrue(buf.cursorRow in 0 until buf.rows)
+            }
+            buf.resize(if (buf.cols == 80) 100 else 80, 24)
+        }
+        writer.join()
+        assertNull(failure)
+        assertEquals(200, buf.scrollbackSize)
+    }
 }

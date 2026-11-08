@@ -47,8 +47,8 @@
     <ID>CyclomaticComplexMethod:SshForegroundService.kt$SshForegroundService$private fun friendlyError(err: Throwable): String</ID>
     <ID>CyclomaticComplexMethod:TerminalBuffer.kt$TerminalBuffer$private fun handleCSI(cmd: Char, params: String)</ID>
     <ID>CyclomaticComplexMethod:TerminalBuffer.kt$TerminalBuffer$private fun handleSGR(params: String)</ID>
-    <ID>CyclomaticComplexMethod:TerminalBuffer.kt$TerminalBuffer$private fun processBytes(bytes: ByteArray, length: Int)</ID>
-    <ID>CyclomaticComplexMethod:TerminalView.kt$TerminalView$override fun onDraw(canvas: Canvas)</ID>
+    <ID>CyclomaticComplexMethod:TerminalBuffer.kt$TerminalBuffer$private fun processText(text: String)</ID>
+    <ID>CyclomaticComplexMethod:TerminalView.kt$TerminalView$private fun drawCells(canvas: Canvas)</ID>
     <ID>CyclomaticComplexMethod:TerminalView.kt$TerminalView$private fun keyCodeToBytes(keyCode: Int, event: KeyEvent): ByteArray?</ID>
     <ID>EmptyFunctionBlock:MainActivity.kt$MainActivity.&lt;no name provided&gt;${}</ID>
     <ID>EmptyFunctionBlock:NewConnectionDialog.kt$NewConnectionDialog.&lt;no name provided&gt;${}</ID>
@@ -88,8 +88,8 @@
     <ID>MultiLineIfElse:TerminalFragment.kt$TerminalFragment$termView.post { _binding?.terminalView?.setFontSize(savedSp) }</ID>
     <ID>MultiLineIfElse:TerminalView.kt$TerminalView$return true</ID>
     <ID>NestedBlockDepth:TerminalBuffer.kt$TerminalBuffer$private fun handleCSI(cmd: Char, params: String)</ID>
-    <ID>NestedBlockDepth:TerminalBuffer.kt$TerminalBuffer$private fun processBytes(bytes: ByteArray, length: Int)</ID>
-    <ID>NestedBlockDepth:TerminalView.kt$TerminalView$override fun onDraw(canvas: Canvas)</ID>
+    <ID>NestedBlockDepth:TerminalBuffer.kt$TerminalBuffer$private fun processText(text: String)</ID>
+    <ID>NestedBlockDepth:TerminalView.kt$TerminalView$private fun drawCells(canvas: Canvas)</ID>
     <ID>NestedBlockDepth:TerminalView.kt$TerminalView$override fun onTouchEvent(ev: MotionEvent): Boolean</ID>
     <ID>NoBlankLineBeforeRbrace:SshSession.kt$SshSession$ </ID>
     <ID>NoMultipleSpaces:AnsiParser.kt$AnsiParser$ </ID>

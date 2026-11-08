@@ -42,8 +42,9 @@ import kotlin.math.min
  *   - szöveg-szelekcióért + clipboard
  *   - kurzor-villogásért
  *
- * A Buffer ChangeListener-e automatikusan invalidate()-el, így a View nem
- * felejti el a rajzot újra kérni.
+ * A Buffer ChangeListener-e automatikusan újrarajzolást kér, így a View nem
+ * felejti el a rajzot újra kérni. Az [append] bármely szálról hívható: a
+ * bájtok feldolgozása a hívó szálán fut, a rajzolás a buffer zárja alatt olvas.
  */
 class TerminalView @JvmOverloads constructor(
     context: Context,
@@ -101,6 +102,9 @@ class TerminalView @JvmOverloads constructor(
     // ── View-scroll ──────────────────────────────────────────────────────────
 
     private var scrollRowOff = 0
+
+    /** Új kimenet érkezett: a következő rajzolás az aljára görget. */
+    @Volatile private var followOutput = false
     private var scrollColOff = 0
     private var touchScrollFrac = 0f
 
@@ -143,8 +147,9 @@ class TerminalView @JvmOverloads constructor(
         isFocusable = true
         isFocusableInTouchMode = true
         applyFontMetrics()
-        // A Buffer minden state-változás után értesít, a View automatikusan újrarajzol.
-        buffer.setChangeListener { invalidate() }
+        // A Buffer minden state-változás után értesít, akár háttérszálról is;
+        // a postInvalidateOnAnimation szálbiztos, és képkockánként egyszer rajzol.
+        buffer.setChangeListener { postInvalidateOnAnimation() }
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
@@ -213,7 +218,14 @@ class TerminalView @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas) {
         canvas.drawColor(DEFAULT_BG)
+        if (followOutput) {
+            followOutput = false
+            scrollRowOff = 0
+        }
+        buffer.withLock { drawCells(canvas) }
+    }
 
+    private fun drawCells(canvas: Canvas) {
         val rows = buffer.rows
         val cols = buffer.cols
         val scrollbackSize = buffer.scrollbackSize
@@ -278,10 +290,11 @@ class TerminalView @JvmOverloads constructor(
 
     // ── Publikus API ─────────────────────────────────────────────────────────
 
+    /** Bármely szálról hívható; nagy kimenetet háttérszálról érdemes. */
     fun append(bytes: ByteArray, length: Int) {
+        followOutput = true
         buffer.write(bytes, length)
-        scrollRowOff = 0
-        // invalidate: a buffer ChangeListener-e intézi
+        // újrarajzolás: a buffer ChangeListener-e intézi
     }
 
     fun clear() {
@@ -389,7 +402,9 @@ class TerminalView @JvmOverloads constructor(
         }
     }
 
-    private fun buildSelectedText(): String {
+    private fun buildSelectedText(): String = buffer.withLock { selectedTextLocked() }
+
+    private fun selectedTextLocked(): String {
         if (!selActive) return ""
         val ns = normalizedSel()
         val sl = ns[0]; val sc = ns[1]; val el = ns[2]; val ec = ns[3]

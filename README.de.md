@@ -367,6 +367,9 @@ Die Anwendung wird unter der **GPL-3.0-or-later**-Lizenz veröffentlicht — der
 
 ## Versionsgeschichte
 
+- **1.1.28** — die Terminalausgabe wird in einem Hintergrundthread in Abschnitten
+  verarbeitet, große Ausgaben (`cat` einer großen Logdatei, `find /`) blockieren die
+  Oberfläche nicht mehr; an Lesegrenzen geteilte UTF-8-Zeichen bleiben intakt
 - **1.1.27** — geschichtete Architektur nach einem Code-Audit: ein Sitzungsmanager
   als einzige Quelle der Wahrheit, Rückfragen kommen als Zustand und überstehen das
   Drehen, typisierte Fehler mit einem Text-Mapper; ein unlesbarer

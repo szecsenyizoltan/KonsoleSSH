@@ -392,6 +392,9 @@ Az alkalmazás **GPL-3.0-or-later** licenc alatt érhető el — a teljes szöve
 
 ## Verziótörténet
 
+- **1.1.28** — a terminálkimenet feldolgozása háttérszálon, szeletekben fut, így
+  nagy kimenet (`cat` egy nagy logra, `find /`) nem akasztja meg a felületet; a
+  hálózati olvasások határán kettévágott ékezetes / többbájtos karakter nem romlik el
 - **1.1.27** — rétegzett architektúra kódaudit alapján: egyetlen munkamenet-kezelő
   az igazságforrás, a kérdések állapotként érkeznek és túlélik a forgatást, típusos
   hibák egyetlen szövegleképezővel; olvashatatlan kapcsolattárat nem ír felül, és

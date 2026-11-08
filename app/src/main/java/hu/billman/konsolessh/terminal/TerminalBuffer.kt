@@ -16,6 +16,11 @@ package hu.billman.konsolessh.terminal
  *
  * Scrollback-plafon: [maxScrollback] sor (default 3000 — a korábbi TerminalView
  * értéke). Tartomány-túlfolyáskor a legrégebbi sor elvesz.
+ *
+ * Szálkezelés: a [write] bármely szálról hívható, és [WRITE_SLICE] méretű
+ * szeletenként veszi fel a zárat, így a renderelő a [withLock] blokkban
+ * nagy kimenet közben is csak rövid ideig vár. Több mezőt együtt olvasó hívó
+ * (rajzolás, kijelölés) a [withLock]-ban olvasson, hogy konzisztens képet lásson.
  */
 class TerminalBuffer(
     initialCols: Int = 80,
@@ -25,8 +30,10 @@ class TerminalBuffer(
 
     // ── Dimensions ───────────────────────────────────────────────────────────
 
-    private var _cols: Int = initialCols
-    private var _rows: Int = initialRows
+    @Volatile private var _cols: Int = initialCols
+
+    @Volatile private var _rows: Int = initialRows
+
     val cols: Int get() = _cols
     val rows: Int get() = _rows
 
@@ -34,7 +41,9 @@ class TerminalBuffer(
 
     private var screen: Array<TermLine> = newScreen(_cols, _rows)
     private var savedMainScreen: Array<TermLine>? = null
-    private var _altScreenActive: Boolean = false
+
+    @Volatile private var _altScreenActive: Boolean = false
+
     private val scrollback: ArrayDeque<TermLine> = ArrayDeque()
 
     val altScreenActive: Boolean get() = _altScreenActive
@@ -42,8 +51,10 @@ class TerminalBuffer(
 
     // ── Cursor ───────────────────────────────────────────────────────────────
 
-    private var _cursorRow: Int = 0
-    private var _cursorCol: Int = 0
+    @Volatile private var _cursorRow: Int = 0
+
+    @Volatile private var _cursorCol: Int = 0
+
     private var savedRow: Int = 0
     private var savedCol: Int = 0
     private var savedMainRow: Int = 0
@@ -59,9 +70,11 @@ class TerminalBuffer(
 
     // ── Terminal modes ───────────────────────────────────────────────────────
 
-    private var _appCursorKeys: Boolean = false
-    private var _cursorHidden: Boolean = false
-    private var _bracketedPasteMode: Boolean = false
+    @Volatile private var _appCursorKeys: Boolean = false
+
+    @Volatile private var _cursorHidden: Boolean = false
+
+    @Volatile private var _bracketedPasteMode: Boolean = false
 
     val appCursorKeys: Boolean get() = _appCursorKeys
     val cursorHidden: Boolean get() = _cursorHidden
@@ -81,6 +94,14 @@ class TerminalBuffer(
     private var ansiState: AnsiState = AnsiState.NORMAL
     private val csiParams: StringBuilder = StringBuilder()
 
+    /** Az előző írás végén félbemaradt UTF-8 szekvencia; a következő írás elejére kerül. */
+    private var utf8Carry: ByteArray = ByteArray(0)
+
+    private val lock = Any()
+
+    /** A [block] alatt a puffer nem változik; a renderelő ebben olvas. */
+    fun <T> withLock(block: () -> T): T = synchronized(lock, block)
+
     // ── Change notification ──────────────────────────────────────────────────
 
     fun interface ChangeListener { fun onBufferChanged() }
@@ -96,12 +117,18 @@ class TerminalBuffer(
 
     /**
      * PTY-bájtok etetése: UTF-8 dekódolás, ANSI FSM, cellarács-frissítés,
-     * scrollback-karbantartás. A hívás végén meghívja a ChangeListener-t,
-     * ha be van állítva.
+     * scrollback-karbantartás. Szeletenként meghívja a ChangeListener-t
+     * (a záron kívül), ha be van állítva. A darabok határán kettévágott UTF-8
+     * karakter a következő hívással egészül ki.
      */
     fun write(bytes: ByteArray, length: Int = bytes.size) {
-        processBytes(bytes, length)
-        notifyChanged()
+        var offset = 0
+        do {
+            val end = minOf(length, offset + WRITE_SLICE)
+            synchronized(lock) { processText(decodeUtf8(bytes, offset, end)) }
+            notifyChanged()
+            offset = end
+        } while (offset < length)
     }
 
     /** Konvencia: teszt-egyszerűsítő UTF-8 string-bemenet. */
@@ -109,8 +136,14 @@ class TerminalBuffer(
         write(text.toByteArray(Charsets.UTF_8))
     }
 
-    private fun processBytes(bytes: ByteArray, length: Int) {
-        val text = String(bytes, 0, length, Charsets.UTF_8)
+    private fun decodeUtf8(bytes: ByteArray, from: Int, to: Int): String {
+        val data = utf8Carry + bytes.copyOfRange(from, to)
+        val keep = incompleteUtf8Tail(data)
+        utf8Carry = data.copyOfRange(data.size - keep, data.size)
+        return String(data, 0, data.size - keep, Charsets.UTF_8)
+    }
+
+    private fun processText(text: String) {
         var i = 0
         while (i < text.length) {
             val ch = text[i]
@@ -421,8 +454,13 @@ class TerminalBuffer(
      * A ChangeListener-t meghívja, így a renderer-t tájékoztatja a rácsról.
      */
     fun resize(newCols: Int, newRows: Int) {
-        if (newCols == _cols && newRows == _rows) return
         if (newCols <= 0 || newRows <= 0) return
+        val changed = synchronized(lock) { resizeLocked(newCols, newRows) }
+        if (changed) notifyChanged()
+    }
+
+    private fun resizeLocked(newCols: Int, newRows: Int): Boolean {
+        if (newCols == _cols && newRows == _rows) return false
         val old = screen
         val oldCols = _cols
         val oldRows = _rows
@@ -438,12 +476,13 @@ class TerminalBuffer(
         scrollBot = newRows - 1
         _cursorRow = _cursorRow.coerceIn(0, newRows - 1)
         _cursorCol = _cursorCol.coerceIn(0, newCols - 1)
-        notifyChanged()
+        return true
     }
 
     /** ESC c: teljes reset (állapot, scrollback, módok, SGR-stílus). */
-    fun reset() {
+    fun reset() = synchronized(lock) {
         screen = newScreen(_cols, _rows)
+        utf8Carry = ByteArray(0)
         scrollback.clear()
         _cursorRow = 0; _cursorCol = 0
         savedRow = 0; savedCol = 0
@@ -462,9 +501,11 @@ class TerminalBuffer(
      * nem változik, a kurzor hazaugrik.
      */
     fun clearScreen() {
-        screen = newScreen(_cols, _rows)
-        _cursorRow = 0; _cursorCol = 0
-        resetStyle()
+        synchronized(lock) {
+            screen = newScreen(_cols, _rows)
+            _cursorRow = 0; _cursorCol = 0
+            resetStyle()
+        }
         notifyChanged()
     }
 
@@ -474,9 +515,9 @@ class TerminalBuffer(
      * A [index] logikai sor (0..scrollbackSize-1: scrollback; utána: élő képernyő).
      * A visszaadott tömböt a hívó **nem mutálhatja**.
      */
-    fun lineAt(index: Int): TermLine? {
+    fun lineAt(index: Int): TermLine? = synchronized(lock) {
         if (index < 0 || index >= totalLines) return null
-        return if (index < scrollback.size) scrollback[index] else screen[index - scrollback.size]
+        if (index < scrollback.size) scrollback[index] else screen[index - scrollback.size]
     }
 
     fun cellAt(lineIndex: Int, col: Int): TermCell? {
@@ -486,10 +527,12 @@ class TerminalBuffer(
     }
 
     /** Az élő képernyő sorai ([rows] darab, egyenként [cols] cellával). */
-    fun screenLines(): List<TermLine> = screen.toList()
+    fun screenLines(): List<TermLine> = synchronized(lock) { screen.toList() }
 
     /** Immutable meta-állapot a renderernek. */
-    fun snapshot(): TerminalSnapshot = TerminalSnapshot(
+    fun snapshot(): TerminalSnapshot = synchronized(lock) { snapshotLocked() }
+
+    private fun snapshotLocked() = TerminalSnapshot(
         size = TermSize(_cols, _rows),
         scrollbackSize = scrollback.size,
         cursor = CursorPos(_cursorRow, _cursorCol),
@@ -509,6 +552,29 @@ class TerminalBuffer(
     companion object {
         /** Az eredeti TerminalView.MAX_SCROLLBACK érték, bit-azonos viselkedéshez. */
         const val DEFAULT_MAX_SCROLLBACK = 3000
+
+        /** Ennyi bájtot dolgoz fel egy zárfelvétel alatt a [write]. */
+        const val WRITE_SLICE = 4096
+
+        /**
+         * A tömb végén álló, még nem teljes UTF-8 szekvencia hossza (0..3).
+         * Hibás bájtsornál 0: azt a dekóder cserekarakterre fordítja.
+         */
+        internal fun incompleteUtf8Tail(data: ByteArray): Int {
+            for (back in 1..minOf(3, data.size)) {
+                val b = data[data.size - back].toInt() and 0xFF
+                if (b and 0xC0 != 0x80) {
+                    val need = when {
+                        b >= 0xF0 -> 4
+                        b >= 0xE0 -> 3
+                        b >= 0xC0 -> 2
+                        else -> 1
+                    }
+                    return if (need > back) back else 0
+                }
+            }
+            return 0
+        }
 
         private fun newScreen(cols: Int, rows: Int): Array<TermLine> =
             Array(rows) { blankRow(cols) }

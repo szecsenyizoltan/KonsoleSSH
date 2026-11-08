@@ -391,6 +391,9 @@ This application is released under the **GPL-3.0-or-later** license — full tex
 
 ## Release history
 
+- **1.1.28** — terminal output is parsed on a background thread in slices, so
+  large output (`cat` of a big log, `find /`) no longer stalls the UI; multibyte
+  UTF-8 characters split across network reads are no longer garbled
 - **1.1.27** — layered architecture after a code audit: a single session manager is
   the source of truth, prompts arrive as state and survive rotation, typed errors
   with one message mapper; an unreadable connection store is no longer overwritten

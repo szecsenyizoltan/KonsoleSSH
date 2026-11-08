@@ -394,6 +394,16 @@ This application is released under the **GPL-3.0-or-later** license — full tex
 
 ## Release history
 
+- **1.1.30** — quality work driven by tests. Terminal: compared against tmux on
+  recorded bash, vim, less, htop and mc sessions; fixed CSI sequences with an
+  intermediate byte (vim's cursor shape printed a stray `q`), back colour erase
+  (mc's coloured panels), VPA/HPA/REP and tab-by-count (htop was one line off),
+  xterm alternate-screen modes, the main screen behind vim surviving a rotation,
+  SGR dim/italic/strikethrough, and huge repeat counts that could stall the
+  parser. SSH: closing a tab while it connects no longer leaves a half-open
+  connection behind (for up to 2 minutes); a damaged known_hosts line can no
+  longer become a trusted key. Real-sshd integration, fault-injection and
+  emulator UI tests run in CI, with coverage
 - **1.1.29** — terminal emulation: wide characters (CJK, emoji) take two cells
   as on the server, combining marks join the previous cell, DEC line drawing
   (`ESC ( 0`) for ncurses/dialog/mc frames, cursor position and device queries

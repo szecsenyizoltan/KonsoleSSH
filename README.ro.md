@@ -369,6 +369,17 @@ Aplicația este distribuită sub licența **GPL-3.0-or-later** — textul comple
 
 ## Istoricul versiunilor
 
+- **1.1.30** — îmbunătățiri de calitate conduse de teste. Terminal: comparat cu tmux
+  pe sesiuni înregistrate de bash, vim, less, htop și mc; corectate secvențele CSI
+  cu octet intermediar (forma cursorului din vim afișa un `q` rătăcit), ștergerea cu
+  culoarea de fundal (panourile colorate din mc), VPA/HPA/REP și tabularea cu număr
+  (htop era decalat cu un rând), modurile de ecran alternativ xterm, ecranul
+  principal din spatele vim la rotire, SGR estompat/cursiv/tăiat și numerele uriașe
+  de repetare care puteau bloca analizorul. SSH: o filă închisă în timpul conectării
+  nu mai lasă în urmă o conexiune pe jumătate deschisă (până la 2 minute); o linie
+  known_hosts deteriorată nu mai poate deveni o cheie de încredere. Teste de
+  integrare cu sshd real, de injectare de erori și de UI pe emulator rulează în CI,
+  cu măsurarea acoperirii
 - **1.1.29** — emularea terminalului: caracterele late (CJK, emoji) ocupă două
   celule ca pe server, semnele combinante se lipesc de celula anterioară, desen de
   linii DEC (`ESC ( 0`) pentru cadrele ncurses/dialog/mc, se răspunde la

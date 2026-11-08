@@ -87,7 +87,7 @@ class CryptoBoxConnectionRepository(
         }
         if (written) {
             deleteLegacyPrefs()
-            p.edit { putBoolean(KEY_MIGRATED_FLAG, true) }
+            p.edit(commit = true) { putBoolean(KEY_MIGRATED_FLAG, true) }
         }
         return migrated.sortedByName()
     }
@@ -101,7 +101,11 @@ class CryptoBoxConnectionRepository(
         } catch (e: Exception) {
             throw ConnectionStoreException("encryption failed, nothing was written", e)
         }
-        prefs().edit { putString(KEY_PAYLOAD, Base64.encodeToString(encrypted, Base64.NO_WRAP)) }
+        // Synchronous: we are on the IO dispatcher already, and saveOne/delete
+        // must not return before the data is on disk (apply() can be lost when
+        // the process dies right after).
+        val stored = prefs().edit().putString(KEY_PAYLOAD, Base64.encodeToString(encrypted, Base64.NO_WRAP)).commit()
+        if (!stored) throw ConnectionStoreException("writing the connection store failed")
     }
 
     private fun decryptAndParse(base64: String): List<ConnectionConfig> {

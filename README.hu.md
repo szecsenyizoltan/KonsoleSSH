@@ -395,6 +395,16 @@ Az alkalmazás **GPL-3.0-or-later** licenc alatt érhető el — a teljes szöve
 
 ## Verziótörténet
 
+- **1.1.30** — tesztekkel vezérelt minőségjavítás. Terminál: tmux-szal
+  összevetve rögzített bash, vim, less, htop és mc munkameneteken; javítva a köztes
+  bájtos CSI-szekvenciák (a vim kurzoralakja egy kósza `q`-t írt ki), a háttérszínes
+  törlés (az mc színes paneljei), a VPA/HPA/REP és a darabszámos tabulátor (a htop
+  egy sorral elcsúszott), az xterm-féle alt-screen módok, a vim mögötti fő képernyő
+  forgatáskor, az SGR halvány/dőlt/áthúzott, és a parsert percekre lefoglaló
+  óriási ismétlésszámok. SSH: a kapcsolódás közben bezárt fül nem hagy maga után
+  félig nyitott kapcsolatot (eddig akár 2 percig); sérült known_hosts sorból nem
+  lehet megbízható kulcs. Valódi sshd-s, hibainjektáló és emulátoros UI-tesztek
+  futnak a CI-ban, lefedettség-méréssel
 - **1.1.29** — terminál-emuláció: a széles karakterek (CJK, emoji) a szerverrel
   egyezően két cellát foglalnak, a kombináló jel az előző cellához tapad, DEC
   vonalrajzolás (`ESC ( 0`) az ncurses / dialog / mc keretekhez, válasz a

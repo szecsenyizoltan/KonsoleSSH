@@ -369,6 +369,18 @@ L'application est publiée sous licence **GPL-3.0-or-later** — le texte comple
 
 ## Historique des versions
 
+- **1.1.30** — qualité pilotée par les tests. Terminal : comparé à tmux sur des
+  sessions bash, vim, less, htop et mc enregistrées ; corrigés les séquences CSI à
+  octet intermédiaire (la forme du curseur de vim affichait un `q` parasite),
+  l'effacement avec couleur de fond (panneaux colorés de mc), VPA/HPA/REP et la
+  tabulation avec compteur (htop était décalé d'une ligne), les modes d'écran
+  alternatif de xterm, l'écran principal derrière vim lors d'une rotation, SGR
+  atténué/italique/barré et les compteurs énormes qui pouvaient bloquer
+  l'analyseur. SSH : un onglet fermé pendant la connexion ne laisse plus de
+  connexion à moitié ouverte (jusqu'à 2 minutes) ; une ligne known_hosts
+  endommagée ne peut plus devenir une clé de confiance. Tests d'intégration avec
+  un vrai sshd, d'injection de pannes et d'interface sur émulateur dans la CI, avec
+  mesure de couverture
 - **1.1.29** — émulation du terminal : les caractères larges (CJK, emoji) occupent
   deux cellules comme sur le serveur, les marques combinantes s'attachent à la
   cellule précédente, dessin de lignes DEC (`ESC ( 0`) pour les cadres

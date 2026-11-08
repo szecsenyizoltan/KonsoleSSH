@@ -369,6 +369,16 @@ Aplikácia je vydaná pod licenciou **GPL-3.0-or-later** — úplný text v súb
 
 ## História verzií
 
+- **1.1.30** — zlepšenie kvality vedené testami. Terminál: porovnaný s tmux na
+  nahraných reláciách bash, vim, less, htop a mc; opravené sekvencie CSI s
+  medzibajtom (tvar kurzora vo vim vypísal zablúdené `q`), mazanie farbou pozadia
+  (farebné panely mc), VPA/HPA/REP a tabulátor s počtom (htop bol posunutý o riadok),
+  režimy alternatívnej obrazovky xterm, hlavná obrazovka za vim pri otočení, SGR
+  stlmené/kurzíva/prečiarknuté a obrovské počty opakovaní, ktoré mohli zablokovať
+  parser. SSH: karta zatvorená počas pripájania už nenechá polootvorené spojenie
+  (až 2 minúty); poškodený riadok known_hosts sa už nemôže stať dôveryhodným
+  kľúčom. Integračné testy so skutočným sshd, testy so vkladaním chýb a UI testy na
+  emulátore bežia v CI, s meraním pokrytia
 - **1.1.29** — emulácia terminálu: široké znaky (CJK, emoji) zaberajú ako na serveri
   dve bunky, kombinujúce znaky sa pripoja k predchádzajúcej bunke, kreslenie čiar
   DEC (`ESC ( 0`) pre rámy ncurses/dialog/mc, odpovede na dotazy na pozíciu kurzora

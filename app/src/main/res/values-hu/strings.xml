@@ -53,8 +53,8 @@
     <string name="action_copy_public_key">Publikus kulcs másolása</string>
     <string name="key_copied">Publikus kulcs a vágólapon</string>
     <string name="configure_jump_host">🌐 Jump host beállítása…</string>
-    <string name="jump_host_section_title">Jump host (külső hálózat)</string>
-    <string name="jump_host_pick_hint">Válassz egy mentett külső kapcsolatot a csatlakozáshoz:</string>
+    <string name="jump_host_section_title">Jump host</string>
+    <string name="jump_host_pick_hint">Válassz egy mentett kapcsolatot, amelyen át csatlakozol (annak is lehet saját jump hostja):</string>
     <string name="jump_host_none">Nincs jump host (közvetlen)</string>
 
     <!-- Validation / warnings -->
@@ -101,13 +101,13 @@
     <string name="status_connecting">Csatlakozás: %1$s…</string>
     <string name="status_connected_suffix">%1$s ● Csatlakozva</string>
     <string name="status_disconnected_suffix">%1$s ○ Lecsatlakozva</string>
-    <string name="terminal_connecting_host">Csatlakozás: %1$s:%2$d…\r\n</string>
-    <string name="terminal_reconnecting">\r\n[Újracsatlakozás…]\r\n</string>
-    <string name="terminal_connection_closed">\r\n[Kapcsolat lezárva]\r\n</string>
-    <string name="terminal_jump_progress">Jump: %1$s:%2$d…\r\n</string>
-    <string name="terminal_jump_ok">Jump OK → Csatlakozás: %1$s:%2$d…\r\n</string>
-    <string name="error_jump_not_found">Hiba: a jump kapcsolat nem található a mentett kapcsolatok között.\r\n</string>
-    <string name="error_generic">Hiba: %1$s\r\n</string>
+    <string name="terminal_connecting_host">Csatlakozás: %1$s:%2$d…\u000D\n</string>
+    <string name="terminal_reconnecting">\u000D\n[Újracsatlakozás…]\u000D\n</string>
+    <string name="terminal_connection_closed">\u000D\n[Kapcsolat lezárva]\u000D\n</string>
+    <string name="terminal_jump_progress">Jump: %1$s:%2$d…\u000D\n</string>
+    <string name="terminal_jump_ok">Jump OK → Csatlakozás: %1$s:%2$d…\u000D\n</string>
+    <string name="error_jump_not_found">Hiba: a jump kapcsolat nem található a mentett kapcsolatok között.\u000D\n</string>
+    <string name="error_generic">Hiba: %1$s\u000D\n</string>
 
     <!-- Password prompt -->
     <string name="password_prompt_message">Jelszó megadása szükséges</string>
@@ -137,6 +137,7 @@
     <string name="hostkey_replace">Kulcs cseréje</string>
     <string name="err_hostkey_rejected">A kapcsolat megszakítva: a szerver kulcsát nem fogadtad el.</string>
     <string name="err_hostkey_changed">A kapcsolat elutasítva: a szerver kulcsa megváltozott, és nem lett elfogadva.</string>
+    <string name="err_jump_chain_invalid">A jump host lánc hibás: egy jump kapcsolat hiányzik, önmagára hivatkozik vissza, vagy a lánc hosszabb 5 ugrásnál.</string>
     <string name="err_no_route">Nem érhető el a szerver — ellenőrizd a hálózatot és az IP-t.</string>
     <string name="err_network_unreachable">A hálózat nem érhető el.</string>
     <string name="err_unknown_host">Ismeretlen hostnév — DNS hiba vagy elgépelés.</string>

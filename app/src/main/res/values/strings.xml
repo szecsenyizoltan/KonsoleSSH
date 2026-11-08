@@ -53,8 +53,8 @@
     <string name="action_copy_public_key">Copy public key</string>
     <string name="key_copied">Public key copied to clipboard</string>
     <string name="configure_jump_host">🌐 Configure jump host…</string>
-    <string name="jump_host_section_title">Jump host (external network)</string>
-    <string name="jump_host_pick_hint">Pick a saved external connection to connect through:</string>
+    <string name="jump_host_section_title">Jump host</string>
+    <string name="jump_host_pick_hint">Pick a saved connection to connect through (it may have its own jump host):</string>
     <string name="jump_host_none">No jump host (direct)</string>
 
     <!-- Validation / warnings -->
@@ -101,13 +101,13 @@
     <string name="status_connecting">Connecting: %1$s…</string>
     <string name="status_connected_suffix">%1$s ● Connected</string>
     <string name="status_disconnected_suffix">%1$s ○ Disconnected</string>
-    <string name="terminal_connecting_host">Connecting: %1$s:%2$d…\r\n</string>
-    <string name="terminal_reconnecting">\r\n[Reconnecting…]\r\n</string>
-    <string name="terminal_connection_closed">\r\n[Connection closed]\r\n</string>
-    <string name="terminal_jump_progress">Jump: %1$s:%2$d…\r\n</string>
-    <string name="terminal_jump_ok">Jump OK → Connecting: %1$s:%2$d…\r\n</string>
-    <string name="error_jump_not_found">Error: the jump connection was not found among saved connections.\r\n</string>
-    <string name="error_generic">Error: %1$s\r\n</string>
+    <string name="terminal_connecting_host">Connecting: %1$s:%2$d…\u000D\n</string>
+    <string name="terminal_reconnecting">\u000D\n[Reconnecting…]\u000D\n</string>
+    <string name="terminal_connection_closed">\u000D\n[Connection closed]\u000D\n</string>
+    <string name="terminal_jump_progress">Jump: %1$s:%2$d…\u000D\n</string>
+    <string name="terminal_jump_ok">Jump OK → Connecting: %1$s:%2$d…\u000D\n</string>
+    <string name="error_jump_not_found">Error: the jump connection was not found among saved connections.\u000D\n</string>
+    <string name="error_generic">Error: %1$s\u000D\n</string>
 
     <!-- Password prompt -->
     <string name="password_prompt_message">Password required</string>
@@ -137,6 +137,7 @@
     <string name="hostkey_replace">Replace key</string>
     <string name="err_hostkey_rejected">Connection cancelled: the server key was not accepted.</string>
     <string name="err_hostkey_changed">Connection refused: the server key has changed and was not accepted.</string>
+    <string name="err_jump_chain_invalid">The jump host chain is invalid: a jump connection is missing, refers back to itself, or the chain is longer than 5 hops.</string>
     <string name="err_no_route">Server unreachable — check the network and the IP address.</string>
     <string name="err_network_unreachable">The network is unreachable.</string>
     <string name="err_unknown_host">Unknown hostname — DNS error or typo.</string>

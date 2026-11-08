@@ -53,8 +53,8 @@
     <string name="action_copy_public_key">Copier la clé publique</string>
     <string name="key_copied">Clé publique copiée dans le presse-papiers</string>
     <string name="configure_jump_host">🌐 Configurer le jump host…</string>
-    <string name="jump_host_section_title">Jump host (réseau externe)</string>
-    <string name="jump_host_pick_hint">Choisis une connexion externe enregistrée à utiliser comme jump :</string>
+    <string name="jump_host_section_title">Jump host</string>
+    <string name="jump_host_pick_hint">Choisis une connexion enregistrée à utiliser comme rebond (elle peut avoir son propre jump host) :</string>
     <string name="jump_host_none">Pas de jump host (direct)</string>
 
     <!-- Validation / warnings -->
@@ -101,13 +101,13 @@
     <string name="status_connecting">Connexion : %1$s…</string>
     <string name="status_connected_suffix">%1$s ● Connecté</string>
     <string name="status_disconnected_suffix">%1$s ○ Déconnecté</string>
-    <string name="terminal_connecting_host">Connexion : %1$s:%2$d…\r\n</string>
-    <string name="terminal_reconnecting">\r\n[Reconnexion…]\r\n</string>
-    <string name="terminal_connection_closed">\r\n[Connexion fermée]\r\n</string>
-    <string name="terminal_jump_progress">Jump : %1$s:%2$d…\r\n</string>
-    <string name="terminal_jump_ok">Jump OK → Connexion : %1$s:%2$d…\r\n</string>
-    <string name="error_jump_not_found">Erreur : la connexion jump est introuvable dans les connexions enregistrées.\r\n</string>
-    <string name="error_generic">Erreur : %1$s\r\n</string>
+    <string name="terminal_connecting_host">Connexion : %1$s:%2$d…\u000D\n</string>
+    <string name="terminal_reconnecting">\u000D\n[Reconnexion…]\u000D\n</string>
+    <string name="terminal_connection_closed">\u000D\n[Connexion fermée]\u000D\n</string>
+    <string name="terminal_jump_progress">Jump : %1$s:%2$d…\u000D\n</string>
+    <string name="terminal_jump_ok">Jump OK → Connexion : %1$s:%2$d…\u000D\n</string>
+    <string name="error_jump_not_found">Erreur : la connexion jump est introuvable dans les connexions enregistrées.\u000D\n</string>
+    <string name="error_generic">Erreur : %1$s\u000D\n</string>
 
     <!-- Password prompt -->
     <string name="password_prompt_message">Mot de passe requis</string>
@@ -137,6 +137,7 @@
     <string name="hostkey_replace">Remplacer la clé</string>
     <string name="err_hostkey_rejected">Connexion annulée : la clé du serveur n\'a pas été acceptée.</string>
     <string name="err_hostkey_changed">Connexion refusée : la clé du serveur a changé et n\'a pas été acceptée.</string>
+    <string name="err_jump_chain_invalid">La chaîne de jump hosts est invalide : une connexion manque, renvoie à elle-même ou la chaîne dépasse 5 sauts.</string>
     <string name="err_no_route">Serveur inaccessible — vérifie le réseau et l\'adresse IP.</string>
     <string name="err_network_unreachable">Le réseau est inaccessible.</string>
     <string name="err_unknown_host">Hôte inconnu — erreur DNS ou faute de frappe.</string>

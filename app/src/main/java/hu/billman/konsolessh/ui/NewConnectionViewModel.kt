@@ -48,8 +48,12 @@ class NewConnectionViewModel(private val hostKeyStore: HostKeyStore) : ViewModel
      * Jelszóval csatlakozás-teszt, szerver-verzió és típus visszajelzéssel.
      * Kivételt nem dob — a hibát [TestResult.Failure] rögzíti.
      */
-    suspend fun testConnection(config: ConnectionConfig, hostKeyPrompter: HostKeyPrompterFn?): TestResult = try {
-        val outcome = SshKeyProvisioner.testConnection(config, hostKeyStore, hostKeyPrompter)
+    suspend fun testConnection(
+        config: ConnectionConfig,
+        jumps: List<ConnectionConfig>,
+        hostKeyPrompter: HostKeyPrompterFn?,
+    ): TestResult = try {
+        val outcome = SshKeyProvisioner.testConnection(config, jumps, hostKeyStore, hostKeyPrompter)
         TestResult.Success(outcome.serverVersion, outcome.serverType)
     } catch (e: Exception) {
         TestResult.Failure(friendlyShortError(e))
@@ -59,7 +63,11 @@ class NewConnectionViewModel(private val hostKeyStore: HostKeyStore) : ViewModel
      * Helyi RSA-3072 kulcspár generálása + authorized_keys feltöltés a
      * szerverre. Ha a kulcsgenerálás bukik, a feltöltésre nem kerül sor.
      */
-    suspend fun generateAndUploadKey(config: ConnectionConfig, hostKeyPrompter: HostKeyPrompterFn?): UploadResult {
+    suspend fun generateAndUploadKey(
+        config: ConnectionConfig,
+        jumps: List<ConnectionConfig>,
+        hostKeyPrompter: HostKeyPrompterFn?,
+    ): UploadResult {
         val generated = try {
             SshKeyGenerator.generateRsa3072(comment = "konsolessh:${config.username}@${config.host}")
         } catch (e: Exception) {
@@ -68,6 +76,7 @@ class NewConnectionViewModel(private val hostKeyStore: HostKeyStore) : ViewModel
         return try {
             val serverType = SshKeyProvisioner.uploadPublicKey(
                 config,
+                jumps,
                 generated.publicLine,
                 hostKeyStore,
                 hostKeyPrompter,

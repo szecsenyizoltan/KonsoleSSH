@@ -53,8 +53,8 @@
     <string name="action_copy_public_key">Öffentlichen Schlüssel kopieren</string>
     <string name="key_copied">Öffentlicher Schlüssel in die Zwischenablage kopiert</string>
     <string name="configure_jump_host">🌐 Jump-Host einrichten…</string>
-    <string name="jump_host_section_title">Jump-Host (externes Netzwerk)</string>
-    <string name="jump_host_pick_hint">Wähle eine gespeicherte externe Verbindung als Jump-Host:</string>
+    <string name="jump_host_section_title">Jump-Host</string>
+    <string name="jump_host_pick_hint">Wähle eine gespeicherte Verbindung, über die verbunden wird (sie kann selbst einen Jump-Host haben):</string>
     <string name="jump_host_none">Kein Jump-Host (direkt)</string>
 
     <!-- Validation / warnings -->
@@ -101,13 +101,13 @@
     <string name="status_connecting">Verbinde: %1$s…</string>
     <string name="status_connected_suffix">%1$s ● Verbunden</string>
     <string name="status_disconnected_suffix">%1$s ○ Getrennt</string>
-    <string name="terminal_connecting_host">Verbinde: %1$s:%2$d…\r\n</string>
-    <string name="terminal_reconnecting">\r\n[Verbinde erneut…]\r\n</string>
-    <string name="terminal_connection_closed">\r\n[Verbindung geschlossen]\r\n</string>
-    <string name="terminal_jump_progress">Jump: %1$s:%2$d…\r\n</string>
-    <string name="terminal_jump_ok">Jump OK → Verbinde: %1$s:%2$d…\r\n</string>
-    <string name="error_jump_not_found">Fehler: Die Jump-Verbindung wurde nicht in den gespeicherten Verbindungen gefunden.\r\n</string>
-    <string name="error_generic">Fehler: %1$s\r\n</string>
+    <string name="terminal_connecting_host">Verbinde: %1$s:%2$d…\u000D\n</string>
+    <string name="terminal_reconnecting">\u000D\n[Verbinde erneut…]\u000D\n</string>
+    <string name="terminal_connection_closed">\u000D\n[Verbindung geschlossen]\u000D\n</string>
+    <string name="terminal_jump_progress">Jump: %1$s:%2$d…\u000D\n</string>
+    <string name="terminal_jump_ok">Jump OK → Verbinde: %1$s:%2$d…\u000D\n</string>
+    <string name="error_jump_not_found">Fehler: Die Jump-Verbindung wurde nicht in den gespeicherten Verbindungen gefunden.\u000D\n</string>
+    <string name="error_generic">Fehler: %1$s\u000D\n</string>
 
     <!-- Password prompt -->
     <string name="password_prompt_message">Passwort erforderlich</string>
@@ -137,6 +137,7 @@
     <string name="hostkey_replace">Schlüssel ersetzen</string>
     <string name="err_hostkey_rejected">Verbindung abgebrochen: Der Serverschlüssel wurde nicht akzeptiert.</string>
     <string name="err_hostkey_changed">Verbindung abgelehnt: Der Serverschlüssel hat sich geändert und wurde nicht akzeptiert.</string>
+    <string name="err_jump_chain_invalid">Die Jump-Host-Kette ist ungültig: Eine Jump-Verbindung fehlt, verweist auf sich selbst zurück oder die Kette ist länger als 5 Sprünge.</string>
     <string name="err_no_route">Server nicht erreichbar — prüfe Netzwerk und IP-Adresse.</string>
     <string name="err_network_unreachable">Das Netzwerk ist nicht erreichbar.</string>
     <string name="err_unknown_host">Unbekannter Hostname — DNS-Fehler oder Tippfehler.</string>

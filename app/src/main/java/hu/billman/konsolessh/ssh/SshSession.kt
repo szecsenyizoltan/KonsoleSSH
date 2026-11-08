@@ -20,7 +20,8 @@ import java.util.concurrent.TimeUnit
 class SshSession(
     private val config: ConnectionConfig,
     private val hostKeyStore: HostKeyStore,
-    private val jumpConfig: ConnectionConfig? = null,
+    /** Jump hostok a célig, a legkülső elsőként ([JumpChain.resolve]). */
+    private val jumps: List<ConnectionConfig> = emptyList(),
     private val messages: Messages = Messages.Default
 ) {
 
@@ -57,7 +58,7 @@ class SshSession(
         serverAliveCountMax = SERVER_ALIVE_COUNT_MAX
     }
 
-    private var jumpSession: Session? = null
+    private var jumpSessions: List<Session> = emptyList()
     private var jschSession: Session? = null
     private var shellChannel: ChannelShell? = null
 
@@ -152,69 +153,19 @@ class SshSession(
                 )
             }
 
-            // ── Jump host (SSH -J) ────────────────────────────────────────────
-            if (jumpConfig != null) {
-                val jumpJsch = JSch()
-                val jumpHostKeys = jumpJsch.useTofu()
-                if (jumpConfig.privateKey.isNotBlank()) {
-                    val kb = jumpConfig.privateKey.toByteArray()
-                    val pp = if (jumpConfig.privateKeyPassphrase.isNotBlank()) jumpConfig.privateKeyPassphrase.toByteArray() else null
-                    jumpJsch.addIdentity("jump_${jumpConfig.id}", kb, null, pp)
-                }
-                val js = jumpJsch.getSession(jumpConfig.username, jumpConfig.host, jumpConfig.port)
-                js.setConfig(props)
-                js.setConfig("PreferredAuthentications", buildPreferredAuths(jumpConfig))
-                if (jumpConfig.password.isNotBlank()) js.setPassword(jumpConfig.password)
-                js.userInfo = JschUserInfo("${jumpConfig.username}@${jumpConfig.host}", jumpHostKeys)
-                withContext(Dispatchers.Main) {
-                    onProgress(messages.jumpProgress(jumpConfig.host, jumpConfig.port))
-                }
-                js.applyKeepAlive()
-                js.connect(CONNECT_TIMEOUT_MS)
-                jumpSession = js
-                // Local port forward through jump to target
-                val localPort = js.setPortForwardingL(0, config.host, config.port)
-                withContext(Dispatchers.Main) {
-                    onProgress(messages.jumpOk(config.host, config.port))
-                }
-
-                val jsch = JSch()
-                val hostKeys = jsch.useTofu()
-                if (config.privateKey.isNotBlank()) {
-                    val keyBytes = config.privateKey.toByteArray()
-                    val pp = if (config.privateKeyPassphrase.isNotBlank()) config.privateKeyPassphrase.toByteArray() else null
-                    jsch.addIdentity("key_${config.id}", keyBytes, null, pp)
-                }
-                val session = jsch.getSession(config.username, "127.0.0.1", localPort)
-                // Without the alias the key would be stored under 127.0.0.1:<random
-                // port> and look like a new host on every connection.
-                session.setHostKeyAlias(TofuHostKeyRepository.alias(config.host, config.port))
-                session.setConfig(props)
-                session.setConfig("PreferredAuthentications", buildPreferredAuths(config))
-                if (config.password.isNotBlank()) session.setPassword(config.password)
-                session.userInfo = JschUserInfo("${config.username}@${config.host}", hostKeys)
-                session.applyKeepAlive()
-                session.connect(CONNECT_TIMEOUT_MS)
-                jschSession = session
-
-            } else {
-                // ── Direct connection ─────────────────────────────────────────
-                val jsch = JSch()
-                val hostKeys = jsch.useTofu()
-                if (config.privateKey.isNotBlank()) {
-                    val keyBytes = config.privateKey.toByteArray()
-                    val pp = if (config.privateKeyPassphrase.isNotBlank()) config.privateKeyPassphrase.toByteArray() else null
-                    jsch.addIdentity("key_${config.id}", keyBytes, null, pp)
-                }
-                val session = jsch.getSession(config.username, config.host, config.port)
-                props["PreferredAuthentications"] = buildPreferredAuths(config)
-                session.setConfig(props)
-                if (config.password.isNotBlank()) session.setPassword(config.password)
-                session.userInfo = JschUserInfo("${config.username}@${config.host}", hostKeys)
-                session.applyKeepAlive()
-                session.connect(CONNECT_TIMEOUT_MS)
-                jschSession = session
-            }
+            // Direct connection = a chain with zero jumps.
+            val chain = JumpChain.connect(
+                jumps + config,
+                open = { hop, host, port, alias -> openHop(hop, host, port, alias, props) },
+                onJump = { hop ->
+                    withContext(Dispatchers.Main) { onProgress(messages.jumpProgress(hop.host, hop.port)) }
+                },
+                onForwarded = { next ->
+                    withContext(Dispatchers.Main) { onProgress(messages.jumpOk(next.host, next.port)) }
+                },
+            )
+            jumpSessions = chain.dropLast(1)
+            jschSession = chain.last()
 
             val channel = jschSession!!.openChannel("shell") as ChannelShell
             channel.setPtyType("xterm-256color")
@@ -319,12 +270,39 @@ class SshSession(
         writeThread.quitSafely()
         try { shellChannel?.disconnect() } catch (_: Exception) {}
         try { jschSession?.disconnect() } catch (_: Exception) {}
-        try { jumpSession?.disconnect() } catch (_: Exception) {}
+        // Innermost first: each jump carries the tunnel of the one after it.
+        jumpSessions.asReversed().forEach { try { it.disconnect() } catch (_: Exception) {} }
         shellChannel = null
         jschSession = null
-        jumpSession = null
+        jumpSessions = emptyList()
         inputStream = null
         outputStream = null
+    }
+
+    private fun openHop(
+        hop: ConnectionConfig,
+        host: String,
+        port: Int,
+        alias: String?,
+        props: Properties,
+    ): Session {
+        val jsch = JSch()
+        val hostKeys = jsch.useTofu()
+        if (hop.privateKey.isNotBlank()) {
+            val pp = hop.privateKeyPassphrase.takeIf { it.isNotBlank() }?.toByteArray()
+            jsch.addIdentity("key_${hop.id}", hop.privateKey.toByteArray(), null, pp)
+        }
+        val session = jsch.getSession(hop.username, host, port)
+        // Behind a jump the session goes to 127.0.0.1:<random port>; the alias
+        // keeps the host key under the real name so it is not "new" every time.
+        alias?.let { session.setHostKeyAlias(it) }
+        session.setConfig(props)
+        session.setConfig("PreferredAuthentications", buildPreferredAuths(hop))
+        if (hop.password.isNotBlank()) session.setPassword(hop.password)
+        session.userInfo = JschUserInfo("${hop.username}@${hop.host}", hostKeys)
+        session.applyKeepAlive()
+        session.connect(CONNECT_TIMEOUT_MS)
+        return session
     }
 
     private fun JSch.useTofu(): TofuHostKeyRepository =

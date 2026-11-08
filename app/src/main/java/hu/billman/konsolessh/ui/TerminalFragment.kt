@@ -19,6 +19,8 @@ import hu.billman.konsolessh.databinding.FragmentTerminalBinding
 import hu.billman.konsolessh.model.ConnectionConfig
 import hu.billman.konsolessh.model.SavedConnections
 import hu.billman.konsolessh.ssh.HostKeyPrompterFn
+import hu.billman.konsolessh.ssh.JumpChain
+import hu.billman.konsolessh.ssh.JumpChainException
 import hu.billman.konsolessh.ssh.SessionEvent
 import hu.billman.konsolessh.ssh.SshForegroundService
 import kotlinx.coroutines.Job
@@ -257,16 +259,22 @@ class TerminalFragment : Fragment() {
         service: SshForegroundService,
         isReconnect: Boolean = false,
     ) {
-        val jumpConfig = resolveJumpConfig(cfg)
-        if (cfg.jumpConnectionId.isNotBlank() && jumpConfig == null) {
-            val msg = getString(R.string.error_jump_not_found)
+        val ctx = context ?: return
+        val jumps = try {
+            JumpChain.resolve(cfg, SavedConnections.load(ctx))
+        } catch (e: JumpChainException) {
+            val msg = if (e.reason == JumpChainException.Reason.NOT_FOUND) {
+                getString(R.string.error_jump_not_found)
+            } else {
+                getString(R.string.err_jump_chain_invalid) + "\r\n"
+            }
             _binding?.terminalView?.append(msg.toByteArray(), msg.length)
             updateStatusUI(ConnectionStatus.DISCONNECTED)
             return
         }
         val cols = binding.terminalView.currentCols
         val rows = binding.terminalView.currentRows
-        service.connect(tabId, cfg, jumpConfig, cols, rows, isReconnect = isReconnect)
+        service.connect(tabId, cfg, jumps, cols, rows, isReconnect = isReconnect)
         // A connect új session-állapotot hoz létre, a korábban beállított
         // promptereket ezért újra kell regisztrálni, különben elutasítás lenne.
         service.setPasswordPrompter(tabId, buildPasswordPrompter())
@@ -334,20 +342,6 @@ class TerminalFragment : Fragment() {
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
-
-    private fun resolveJumpConfig(cfg: ConnectionConfig): ConnectionConfig? {
-        if (cfg.jumpConnectionId.isNotBlank()) {
-            val ctx = context ?: return null
-            return SavedConnections.load(ctx).find { it.id == cfg.jumpConnectionId }
-        }
-        if (cfg.jumpHost.isNotBlank()) {
-            return ConnectionConfig(
-                host = cfg.jumpHost, port = cfg.jumpPort,
-                username = cfg.jumpUsername, password = cfg.jumpPassword
-            )
-        }
-        return null
-    }
 
     private fun buildPasswordPrompter(): (String, (String?) -> Unit) -> Unit = { displayHost, callback ->
         // A Service hívja ezt a lambdát — rotáció/tab-close közben a Fragment

@@ -17,6 +17,8 @@ import hu.billman.konsolessh.databinding.DialogNewConnectionBinding
 import hu.billman.konsolessh.model.ConnectionConfig
 import hu.billman.konsolessh.model.SavedConnections
 import hu.billman.konsolessh.ssh.HostKeyPrompterFn
+import hu.billman.konsolessh.ssh.JumpChain
+import hu.billman.konsolessh.ssh.JumpChainException
 import hu.billman.konsolessh.ssh.LocalNetworkAccess
 import hu.billman.konsolessh.ssh.SshKeyProvisioner
 import kotlinx.coroutines.launch
@@ -236,19 +238,22 @@ class NewConnectionDialog : DialogFragment() {
             ConnectionConfig.AuthType.PASSWORD
         }
         val probeConfig = ConnectionConfig(
+            id = editConfig?.id ?: java.util.UUID.randomUUID().toString(),
             host = host,
             port = port,
             username = username,
             authType = authType,
             password = if (useKey) "" else password,
             privateKey = if (useKey) privateKey else "",
+            jumpConnectionId = selectedJumpConfig?.id.orEmpty(),
         )
+        val jumps = resolveJumpsOrReport(probeConfig) ?: return
         binding.btnTestConnection.isEnabled = false
         binding.btnGenerateKey.isEnabled = false
         binding.textTestStatus.text = getString(R.string.test_running)
 
         lifecycleScope.launch {
-            when (val result = viewModel.testConnection(probeConfig, hostKeyPrompter())) {
+            when (val result = viewModel.testConnection(probeConfig, jumps, hostKeyPrompter())) {
                 is NewConnectionViewModel.TestResult.Success -> {
                     testedServerType = result.serverType
                     // A "Generate & upload" gomb csak jelszavas tesztből oldódik fel —
@@ -274,6 +279,14 @@ class NewConnectionDialog : DialogFragment() {
 
     private fun friendlyShortError(err: Throwable): String =
         NewConnectionViewModel.friendlyShortError(err)
+
+    // A teszt és a kulcsfeltöltés ugyanazon a jump-láncon megy, mint a terminál.
+    private fun resolveJumpsOrReport(config: ConnectionConfig): List<ConnectionConfig>? = try {
+        JumpChain.resolve(config, SavedConnections.load(requireContext()))
+    } catch (_: JumpChainException) {
+        setTestStatus(getString(R.string.err_jump_chain_invalid), successful = false)
+        null
+    }
 
     // A JSch host key hibái nyersen angolul jönnének, ezért fordított szöveget kapnak.
     private fun explainFailure(message: String): String {
@@ -303,14 +316,20 @@ class NewConnectionDialog : DialogFragment() {
         val port     = binding.editPort.text.toString().toIntOrNull()?.coerceIn(1, 65535) ?: 22
 
         val uploadConfig = ConnectionConfig(
-            host = host, port = port, username = username, password = password,
+            id = editConfig?.id ?: java.util.UUID.randomUUID().toString(),
+            host = host,
+            port = port,
+            username = username,
+            password = password,
+            jumpConnectionId = selectedJumpConfig?.id.orEmpty(),
         )
+        val jumps = resolveJumpsOrReport(uploadConfig) ?: return
 
         binding.btnGenerateKey.isEnabled = false
         binding.textTestStatus.text = getString(R.string.upload_running)
 
         lifecycleScope.launch {
-            when (val result = viewModel.generateAndUploadKey(uploadConfig, hostKeyPrompter())) {
+            when (val result = viewModel.generateAndUploadKey(uploadConfig, jumps, hostKeyPrompter())) {
                 is NewConnectionViewModel.UploadResult.KeyGenerationFailure -> {
                     binding.btnGenerateKey.isEnabled = true
                     KonsoleToast.show(

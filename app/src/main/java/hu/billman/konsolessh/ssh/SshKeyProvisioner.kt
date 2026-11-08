@@ -37,31 +37,32 @@ object SshKeyProvisioner {
      */
     suspend fun testConnection(
         cfg: ConnectionConfig,
+        jumps: List<ConnectionConfig>,
         hostKeyStore: HostKeyStore,
         hostKeyPrompter: HostKeyPrompterFn?,
     ): TestOutcome =
         withContext(Dispatchers.IO) {
-            val session = openSession(cfg, allowKey = true, hostKeyStore, hostKeyPrompter)
+            val chain = openChain(cfg, jumps, allowKey = true, hostKeyStore, hostKeyPrompter)
             try {
-                session.connectProbe()
-                val version = session.serverVersion ?: ""
+                val version = chain.last().serverVersion ?: ""
                 TestOutcome(version, detectServerType(version))
             } finally {
-                runCatching { session.disconnect() }
+                closeChain(chain)
             }
         }
 
     /** Uploads the public key to the server using the password auth. */
     suspend fun uploadPublicKey(
         cfg: ConnectionConfig,
+        jumps: List<ConnectionConfig>,
         publicKey: String,
         hostKeyStore: HostKeyStore,
         hostKeyPrompter: HostKeyPrompterFn?,
     ): ServerType =
         withContext(Dispatchers.IO) {
-            val session = openSession(cfg, allowKey = false, hostKeyStore, hostKeyPrompter)
+            val chain = openChain(cfg, jumps, allowKey = false, hostKeyStore, hostKeyPrompter)
             try {
-                session.connectProbe()
+                val session = chain.last()
                 val version = session.serverVersion ?: ""
                 val type = detectServerType(version)
                 when (type) {
@@ -70,14 +71,37 @@ object SshKeyProvisioner {
                 }
                 type
             } finally {
-                runCatching { session.disconnect() }
+                closeChain(chain)
             }
         }
 
     // ── Internals ─────────────────────────────────────────────────────────────
 
+    // Jump hosts always use their saved credentials (key included); allowKey
+    // only restricts the target, where key upload needs password auth.
+    private suspend fun openChain(
+        cfg: ConnectionConfig,
+        jumps: List<ConnectionConfig>,
+        allowKey: Boolean,
+        hostKeyStore: HostKeyStore,
+        hostKeyPrompter: HostKeyPrompterFn?,
+    ): List<Session> =
+        JumpChain.connect(jumps + cfg, open = { hop, host, port, alias ->
+            val hopAllowsKey = hop !== cfg || allowKey
+            openSession(hop, host, port, alias, hopAllowsKey, hostKeyStore, hostKeyPrompter)
+                .also { it.connectProbe() }
+        })
+
+    private fun closeChain(chain: List<Session>) {
+        chain.asReversed().forEach { runCatching { it.disconnect() } }
+    }
+
+    @Suppress("LongParameterList")
     private fun openSession(
         cfg: ConnectionConfig,
+        host: String,
+        port: Int,
+        alias: String?,
         allowKey: Boolean,
         hostKeyStore: HostKeyStore,
         hostKeyPrompter: HostKeyPrompterFn?,
@@ -97,7 +121,8 @@ object SshKeyProvisioner {
             useKey                -> "publickey"
             else                  -> "password,keyboard-interactive"
         }
-        val session = jsch.getSession(cfg.username, cfg.host, cfg.port)
+        val session = jsch.getSession(cfg.username, host, port)
+        alias?.let { session.setHostKeyAlias(it) }
         val props = Properties().apply {
             set("StrictHostKeyChecking", "ask")
             set("PreferredAuthentications", auths)

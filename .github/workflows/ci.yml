@@ -31,10 +31,22 @@ jobs:
       - name: Install OpenSSH server
         run: sudo apt-get update -q && sudo apt-get install -y -q openssh-server
 
-      - name: Unit and integration tests
+      - name: Unit and integration tests, with coverage
         env:
           KONSOLE_REQUIRE_SSHD: '1'
-        run: ./gradlew :app:testDebugUnitTest --no-daemon
+        run: ./gradlew :app:createDebugUnitTestCoverageReport --no-daemon
+
+      - name: Coverage summary
+        run: |
+          echo "### JVM test line coverage" >> "$GITHUB_STEP_SUMMARY"
+          python3 tools/coverage-summary.py >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: app/build/reports/coverage/test/debug/
+          if-no-files-found: ignore
 
       - name: Android lint
         run: ./gradlew :app:lintDebug --no-daemon

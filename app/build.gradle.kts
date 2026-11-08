@@ -1,3 +1,4 @@
+import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 import java.util.Properties
 
 plugins {
@@ -28,6 +29,14 @@ android {
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
+            // Robolectric loads classes through its own class loader; without
+            // this JaCoCo does not see the code those tests run.
+            all {
+                it.extensions.configure<JacocoTaskExtension> {
+                    isIncludeNoLocationClasses = true
+                    excludes = listOf("jdk.internal.*")
+                }
+            }
         }
     }
 
@@ -44,6 +53,10 @@ android {
     }
 
     buildTypes {
+        debug {
+            // JaCoCo for the JVM tests: ./gradlew :app:createDebugUnitTestCoverageReport
+            enableUnitTestCoverage = true
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true

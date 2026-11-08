@@ -2,6 +2,8 @@ package hu.billman.konsolessh.ssh
 
 import com.jcraft.jsch.Session
 import hu.billman.konsolessh.model.ConnectionConfig
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 
 /** A jump-lánc nem építhető fel a mentett kapcsolatokból. */
 class JumpChainException(val reason: Reason) : IllegalStateException("jump chain: $reason") {
@@ -64,6 +66,8 @@ object JumpChain {
         try {
             var localPort = 0
             hops.forEachIndexed { i, hop ->
+                // A cancelled connect stops between hops instead of finishing the chain.
+                currentCoroutineContext().ensureActive()
                 val last = i == hops.lastIndex
                 if (!last) onJump(hop)
                 val session = if (i == 0) {

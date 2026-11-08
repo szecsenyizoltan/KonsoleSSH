@@ -76,10 +76,21 @@ class TerminalView @JvmOverloads constructor(
         private const val OPAQUE = 0xFF shl 24
         private const val LOW_24 = 0xFFFFFFL
         private const val LOW_32 = 0xFFFFFFFFL
-        private const val BG_SHIFT = 2
-        private const val FG_SHIFT = 34
+        private const val BG_SHIFT = 4
+        private const val FG_SHIFT = 36
         private const val LOOK_BOLD = 1L
         private const val LOOK_UNDERLINE = 2L
+        private const val LOOK_ITALIC = 4L
+        private const val LOOK_STRIKE = 8L
+
+        /** Szintetikus dőlés: a beépített NerdFontnak nincs dőlt változata. */
+        private const val ITALIC_SKEW = -0.2f
+
+        /** Halvány (SGR 2) szín: az előtér és a háttér közepe. */
+        private fun halfway(fg: Int, bg: Int): Int {
+            fun mix(shift: Int) = (((fg ushr shift) and 0xFF) + ((bg ushr shift) and 0xFF)) / 2
+            return (0xFF shl 24) or (mix(16) shl 16) or (mix(8) shl 8) or mix(0)
+        }
 
         /** Eddig a kódpontig (Latin-1 + Latin Extended-A/B) próbál futamban rajzolni. */
         private const val FIXED_ADVANCE_LIMIT = 0x250
@@ -291,8 +302,8 @@ class TerminalView @JvmOverloads constructor(
      */
     private fun lookAt(row: TermLine, lineIdx: Int, c: Int, cursorCol: Int, selection: IntArray?): Long {
         val cell = row[c]
-        val fg = if (cell.reverse) cell.bg.argb else cell.fg.argb
         val bg = if (cell.reverse) cell.fg.argb else cell.bg.argb
+        val fg = (if (cell.reverse) cell.bg.argb else cell.fg.argb).let { if (cell.dim) halfway(it, bg) else it }
         val isCursor = c == cursorCol
         val effectiveBg = when {
             selection != null && isInSelection(selection, lineIdx, c) -> SELECTION_BG
@@ -300,7 +311,10 @@ class TerminalView @JvmOverloads constructor(
             else -> bg
         }
         val effectiveFg = if (isCursor) bg else fg
-        val flags = (if (cell.bold) LOOK_BOLD else 0L) or (if (cell.underline) LOOK_UNDERLINE else 0L)
+        val flags = (if (cell.bold) LOOK_BOLD else 0L) or
+            (if (cell.underline) LOOK_UNDERLINE else 0L) or
+            (if (cell.italic) LOOK_ITALIC else 0L) or
+            (if (cell.strikethrough) LOOK_STRIKE else 0L)
         return ((effectiveFg.toLong() and LOW_24) shl FG_SHIFT) or
             ((effectiveBg.toLong() and LOW_32) shl BG_SHIFT) or flags
     }
@@ -316,6 +330,7 @@ class TerminalView @JvmOverloads constructor(
         }
         val paint = if (look and LOOK_BOLD != 0L) boldPaint else normPaint
         paint.color = OPAQUE or ((look ushr FG_SHIFT) and LOW_24).toInt()
+        paint.textSkewX = if (look and LOOK_ITALIC != 0L) ITALIC_SKEW else 0f
         if (!drawFixedAdvanceRun(canvas, row, from, to, x, y, paint)) {
             for (c in from until to) {
                 val ch = row[c].ch
@@ -327,6 +342,11 @@ class TerminalView @JvmOverloads constructor(
         if (look and LOOK_UNDERLINE != 0L) {
             canvas.drawLine(x, y + cellH - 1f, x + width, y + cellH - 1f, paint)
         }
+        if (look and LOOK_STRIKE != 0L) {
+            val mid = y + cellH / 2f
+            canvas.drawLine(x, mid, x + width, mid, paint)
+        }
+        paint.textSkewX = 0f
     }
 
     /** Egy hívással rajzolja a futamot, ha minden karakterének pontosan cellányi a szélessége. */

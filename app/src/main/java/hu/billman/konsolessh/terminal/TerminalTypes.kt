@@ -42,6 +42,9 @@ data class TermCell(
     var bold: Boolean = false,
     var underline: Boolean = false,
     var reverse: Boolean = false,
+    var dim: Boolean = false,
+    var italic: Boolean = false,
+    var strikethrough: Boolean = false,
 ) {
     companion object {
         /**

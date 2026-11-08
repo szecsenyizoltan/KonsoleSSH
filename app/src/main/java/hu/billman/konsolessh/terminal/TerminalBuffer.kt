@@ -60,8 +60,6 @@ class TerminalBuffer(
 
     private var savedRow: Int = 0
     private var savedCol: Int = 0
-    private var savedMainRow: Int = 0
-    private var savedMainCol: Int = 0
 
     val cursorRow: Int get() = _cursorRow
     val cursorCol: Int get() = _cursorCol
@@ -90,6 +88,9 @@ class TerminalBuffer(
     private var curBold: Boolean = false
     private var curUnderline: Boolean = false
     private var curReverse: Boolean = false
+    private var curDim: Boolean = false
+    private var curItalic: Boolean = false
+    private var curStrike: Boolean = false
 
     // ── ANSI FSM ─────────────────────────────────────────────────────────────
 
@@ -219,11 +220,8 @@ class TerminalBuffer(
                         ']' -> ansiState = AnsiState.OSC
                         'P', 'X', '^', '_' -> ansiState = AnsiState.DCS
                         'M' -> reverseIndex()
-                        '7' -> { savedRow = _cursorRow; savedCol = _cursorCol }
-                        '8' -> {
-                            _cursorRow = savedRow.coerceIn(0, _rows - 1)
-                            _cursorCol = savedCol.coerceIn(0, _cols - 1)
-                        }
+                        '7' -> saveCursor()
+                        '8' -> restoreCursor()
                         'c' -> reset()
                         '(', ')', '*', '+' -> {
                             charsetTarget = when (ch) {
@@ -305,6 +303,9 @@ class TerminalBuffer(
             bold = curBold
             underline = curUnderline
             reverse = curReverse
+            dim = curDim
+            italic = curItalic
+            strikethrough = curStrike
         }
     }
 
@@ -415,11 +416,8 @@ class TerminalBuffer(
             'm' -> handleSGR(cleaned)
             'h' -> if (isPrivate) handleMode(n1, true)
             'l' -> if (isPrivate) handleMode(n1, false)
-            's' -> { savedRow = _cursorRow; savedCol = _cursorCol }
-            'u' -> {
-                _cursorRow = savedRow.coerceIn(0, _rows - 1)
-                _cursorCol = savedCol.coerceIn(0, _cols - 1)
-            }
+            's' -> saveCursor()
+            'u' -> restoreCursor()
             'n' -> reportStatus(params)
             'c' -> reportDeviceAttributes(params)
             // 't', others: silently ignore
@@ -430,7 +428,16 @@ class TerminalBuffer(
         when (mode) {
             1 -> _appCursorKeys = enable
             25 -> _cursorHidden = !enable
-            47, 1049 -> if (enable) enterAltScreen() else leaveAltScreen()
+            // As in xterm: 47 and 1047 only switch buffers, 1048 saves and
+            // restores the cursor, 1049 does both around the switch.
+            47, 1047 -> if (enable) enterAltScreen() else leaveAltScreen(restoreCursor = false)
+            1048 -> if (enable) saveCursor() else restoreCursor()
+            1049 -> if (enable) {
+                saveCursor()
+                enterAltScreen()
+            } else {
+                leaveAltScreen(restoreCursor = true)
+            }
             2004 -> _bracketedPasteMode = enable
         }
     }
@@ -438,22 +445,28 @@ class TerminalBuffer(
     private fun enterAltScreen() {
         if (_altScreenActive) return
         savedMainScreen = screen
-        savedMainRow = _cursorRow; savedMainCol = _cursorCol
         screen = newScreen(_cols, _rows)
-        _cursorRow = 0; _cursorCol = 0
         scrollTop = 0; scrollBot = _rows - 1
         _altScreenActive = true
     }
 
-    private fun leaveAltScreen() {
+    private fun leaveAltScreen(restoreCursor: Boolean) {
         if (!_altScreenActive) return
         screen = savedMainScreen ?: newScreen(_cols, _rows)
         savedMainScreen = null
         _altScreenActive = false
-        _cursorRow = savedMainRow.coerceIn(0, _rows - 1)
-        _cursorCol = 0   // prompt sorkezdő oszlopban induljon
-        for (r in _cursorRow + 1 until _rows) screen[r] = blankRow(_cols)
+        if (restoreCursor) restoreCursor()
         scrollTop = 0; scrollBot = _rows - 1
+    }
+
+    // DECSC / DECRC (ESC 7 / 8, CSI ?1048 h/l, and the cursor half of ?1049).
+    private fun saveCursor() {
+        savedRow = _cursorRow; savedCol = _cursorCol
+    }
+
+    private fun restoreCursor() {
+        _cursorRow = savedRow.coerceIn(0, _rows - 1)
+        _cursorCol = savedCol.coerceIn(0, _cols - 1)
     }
 
     private fun eraseLineEnd() {
@@ -488,16 +501,22 @@ class TerminalBuffer(
             when (val p = parts[i].toIntOrNull() ?: 0) {
                 0 -> resetStyle()
                 1 -> curBold = true
-                2 -> { /* dim: no dedicated rendering */ }
-                3 -> { /* italic: skip */ }
+                2 -> curDim = true
+                3 -> curItalic = true
                 4 -> curUnderline = true
                 5, 6 -> { /* blink: ignore */ }
                 7 -> curReverse = true
                 8 -> { /* conceal: skip */ }
-                9 -> { /* strikethrough: skip */ }
-                21, 24 -> curUnderline = false
-                22 -> curBold = false
-                23 -> { /* italic off */ }
+                9 -> curStrike = true
+                // 21 is double underline in ECMA-48 / current xterm; drawn single.
+                21 -> curUnderline = true
+                24 -> curUnderline = false
+                22 -> {
+                    curBold = false
+                    curDim = false
+                }
+                23 -> curItalic = false
+                29 -> curStrike = false
                 27 -> curReverse = false
                 28 -> { /* reveal */ }
                 39 -> curFg = TermColor.DEFAULT_FG
@@ -534,6 +553,7 @@ class TerminalBuffer(
     private fun resetStyle() {
         curFg = TermColor.DEFAULT_FG; curBg = TermColor.DEFAULT_BG
         curBold = false; curUnderline = false; curReverse = false
+        curDim = false; curItalic = false; curStrike = false
     }
 
     // SGR-paletta: SgrPalette.
@@ -543,10 +563,11 @@ class TerminalBuffer(
     // ── Lifecycle ────────────────────────────────────────────────────────────
 
     /**
-     * Átméretezi a screen-rácsot [newCols] × [newRows]-re. A scrollback
-     * érintetlen; az alt-screen backup (savedMainScreen) eldobásra kerül,
-     * mivel az méretben már nem lenne visszaállítható; a kurzor az új
-     * határokba szorul. A scroll region teljes képernyőre visszaáll.
+     * Átméretezi a screen-rácsot [newCols] × [newRows]-re. Ha a képernyő
+     * alacsonyabb lesz, a kurzor feletti sorok tolódnak ki (a fő képernyőn a
+     * görgetési előzménybe), így a kurzor sora megmarad. Az alt-screen mögötti
+     * fő képernyő is átméreteződik, nem vész el. A scroll region teljes
+     * képernyőre visszaáll.
      *
      * A ChangeListener-t meghívja, így a renderer-t tájékoztatja a rácsról.
      */
@@ -558,21 +579,24 @@ class TerminalBuffer(
 
     private fun resizeLocked(newCols: Int, newRows: Int): Boolean {
         if (newCols == _cols && newRows == _rows) return false
-        val old = screen
-        val oldCols = _cols
-        val oldRows = _rows
+        // When the screen gets shorter, the lines above the cursor give way
+        // (into the scrollback on the main screen), so the cursor line stays.
+        val shift = maxOf(0, _cursorRow - (newRows - 1))
+        if (shift > 0 && !_altScreenActive) {
+            for (r in 0 until shift) scrollback.addLast(screen[r])
+            while (scrollback.size > maxScrollback) scrollback.removeFirst()
+        }
+        screen = resizeGrid(screen, shift, newCols, newRows)
+        // The main screen behind vim/less keeps its content across a rotation.
+        savedMainScreen = savedMainScreen?.let { resizeGrid(it, 0, newCols, newRows) }
         _cols = newCols
         _rows = newRows
-        screen = Array(newRows) { r ->
-            Array(newCols) { c ->
-                if (r < oldRows && c < oldCols) old[r][c].copy() else TermCell.blank()
-            }
-        }
-        savedMainScreen = null
         scrollTop = 0
         scrollBot = newRows - 1
-        _cursorRow = _cursorRow.coerceIn(0, newRows - 1)
+        _cursorRow = (_cursorRow - shift).coerceIn(0, newRows - 1)
         _cursorCol = _cursorCol.coerceIn(0, newCols - 1)
+        savedRow = savedRow.coerceIn(0, newRows - 1)
+        savedCol = savedCol.coerceIn(0, newCols - 1)
         return true
     }
 
@@ -583,7 +607,6 @@ class TerminalBuffer(
         scrollback.clear()
         _cursorRow = 0; _cursorCol = 0
         savedRow = 0; savedCol = 0
-        savedMainRow = 0; savedMainCol = 0
         scrollTop = 0; scrollBot = _rows - 1
         _altScreenActive = false
         savedMainScreen = null
@@ -683,6 +706,12 @@ class TerminalBuffer(
             }
             return 0
         }
+
+        private fun resizeGrid(old: Array<TermLine>, shift: Int, cols: Int, rows: Int): Array<TermLine> =
+            Array(rows) { r ->
+                val src = old.getOrNull(r + shift)
+                Array(cols) { c -> src?.getOrNull(c)?.copy() ?: TermCell.blank() }
+            }
 
         private fun newScreen(cols: Int, rows: Int): Array<TermLine> =
             Array(rows) { blankRow(cols) }

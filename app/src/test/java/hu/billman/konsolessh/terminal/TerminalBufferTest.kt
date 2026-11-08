@@ -204,12 +204,14 @@ class TerminalBufferTest {
     }
 
     @Test
-    fun `resize invalidates alt screen backup`() {
+    fun `main screen behind the alt screen survives a resize`() {
         val buf = TerminalBuffer(initialCols = 5, initialRows = 3)
+        buf.writeString("main")
         buf.writeString(ESC + "[?1049h")
         buf.resize(10, 5)
         buf.writeString(ESC + "[?1049l")
         assertFalse(buf.altScreenActive)
+        assertEquals("main", (0 until 4).joinToString("") { buf.cellAt(0, it)!!.ch })
     }
 
     @Test
@@ -697,5 +699,74 @@ class TerminalBufferTest {
         assertTrue(answers.isEmpty())
         buf.writeString("\u001B[6n")
         assertEquals(1, answers.size)
+    }
+
+    // ── xterm alt-screen módok és átméretezés ───────────────────────────────
+
+    private fun TerminalBuffer.row(r: Int) =
+        (0 until cols).joinToString("") { cellAt(scrollbackSize + r, it)!!.ch }.trimEnd()
+
+    @Test
+    fun `1049 restores the cursor column and keeps the main screen intact`() {
+        val buf = TerminalBuffer(initialCols = 20, initialRows = 5)
+        buf.writeString("line1\r\nline2\r\n\$ ls")
+        buf.writeString(ESC + "[?1049h" + ESC + "[2J" + ESC + "[Hfull screen app")
+        buf.writeString(ESC + "[?1049l")
+        assertEquals(2, buf.cursorRow)
+        assertEquals(4, buf.cursorCol)
+        assertEquals("line1", buf.row(0))
+        assertEquals("line2", buf.row(1))
+        assertEquals("\$ ls", buf.row(2))
+    }
+
+    @Test
+    fun `47 and 1047 switch buffers without moving the cursor back`() {
+        for (mode in listOf("47", "1047")) {
+            val buf = TerminalBuffer(initialCols = 20, initialRows = 5)
+            buf.writeString("ab")
+            buf.writeString(ESC + "[?${mode}h" + ESC + "[3;5H")
+            buf.writeString(ESC + "[?${mode}l")
+            assertEquals(mode, 2, buf.cursorRow)
+            assertEquals(mode, 4, buf.cursorCol)
+            assertEquals(mode, "ab", buf.row(0))
+        }
+    }
+
+    @Test
+    fun `1048 saves and restores the cursor`() {
+        val buf = TerminalBuffer(initialCols = 20, initialRows = 5)
+        buf.writeString(ESC + "[2;7H" + ESC + "[?1048h" + ESC + "[5;1H" + ESC + "[?1048l")
+        assertEquals(1, buf.cursorRow)
+        assertEquals(6, buf.cursorCol)
+    }
+
+    @Test
+    fun `shrinking keeps the cursor line and moves the top into the scrollback`() {
+        val buf = TerminalBuffer(initialCols = 10, initialRows = 5)
+        buf.writeString("a\r\nb\r\nc\r\nd\r\ne")
+        buf.resize(10, 3)
+        assertEquals(2, buf.cursorRow)
+        assertEquals(listOf("c", "d", "e"), (0 until 3).map { buf.row(it) })
+        assertEquals(2, buf.scrollbackSize)
+    }
+
+    @Test
+    fun `dim, italic and strikethrough are set and reset`() {
+        val buf = TerminalBuffer()
+        buf.writeString(ESC + "[2;3;9ma" + ESC + "[22;23;29mb" + ESC + "[2;3;9mc" + ESC + "[0md")
+        val styled = (0..3).map { buf.cellAt(0, it)!!.run { listOf(dim, italic, strikethrough) } }
+        assertEquals(
+            listOf(List(3) { true }, List(3) { false }, List(3) { true }, List(3) { false }),
+            styled,
+        )
+    }
+
+    @Test
+    fun `SGR 22 clears bold and dim, 21 underlines`() {
+        val buf = TerminalBuffer()
+        buf.writeString(ESC + "[1;2ma" + ESC + "[22mb" + ESC + "[21mc")
+        assertTrue(buf.cellAt(0, 0)!!.bold && buf.cellAt(0, 0)!!.dim)
+        assertFalse(buf.cellAt(0, 1)!!.bold || buf.cellAt(0, 1)!!.dim)
+        assertTrue(buf.cellAt(0, 2)!!.underline)
     }
 }

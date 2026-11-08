@@ -7,7 +7,9 @@ import com.jcraft.jsch.SftpProgressMonitor
 import com.jcraft.jsch.UIKeyboardInteractive
 import com.jcraft.jsch.UserInfo
 import hu.billman.konsolessh.model.ConnectionConfig
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import java.io.InputStream
 import java.io.OutputStream
@@ -54,6 +56,9 @@ class SshSession(
 
     @Volatile private var jumpSessions: List<Session> = emptyList()
 
+    /** A [disconnect] lefutott; egy még futó [connect] eredményét azonnal lebontja. */
+    @Volatile private var closed = false
+
     @Volatile private var jschSession: Session? = null
 
     @Volatile private var shellChannel: ChannelShell? = null
@@ -87,17 +92,16 @@ class SshSession(
                     onJump = { hop -> onProgress(messages.jumpProgress(hop.host, hop.port)) },
                     onForwarded = { next -> onProgress(messages.jumpOk(next.host, next.port)) },
                 )
-                jumpSessions = chain.dropLast(1)
-                val session = chain.last()
-                jschSession = session
-
-                val channel = session.openChannel("shell") as ChannelShell
-                channel.setPtyType("xterm-256color")
-                channel.setPtySize(cols, rows, cols * CELL_W_PX, rows * CELL_H_PX)
-                input = channel.inputStream
-                output = channel.outputStream
-                channel.connect(SHELL_CONNECT_TIMEOUT_MS)
-                shellChannel = channel
+                // The blocking JSch calls do not notice a cancel or a disconnect()
+                // that arrived meanwhile; whatever was built must not outlive them.
+                try {
+                    openShell(chain, cols, rows)
+                    if (closed) throw CancellationException("disconnected while connecting")
+                    coroutineContext.ensureActive()
+                } catch (e: Throwable) {
+                    closeChain(chain)
+                    throw e
+                }
             } catch (e: com.jcraft.jsch.JSchException) {
                 // The server really rejected a credential; JSch's "Auth cancel"
                 // would point the user at the wrong cause.
@@ -107,6 +111,30 @@ class SshSession(
                 throw e
             }
         }
+
+    private fun openShell(chain: List<Session>, cols: Int, rows: Int) {
+        jumpSessions = chain.dropLast(1)
+        val session = chain.last()
+        jschSession = session
+        val channel = session.openChannel("shell") as ChannelShell
+        channel.setPtyType("xterm-256color")
+        channel.setPtySize(cols, rows, cols * CELL_W_PX, rows * CELL_H_PX)
+        input = channel.inputStream
+        output = channel.outputStream
+        channel.connect(SHELL_CONNECT_TIMEOUT_MS)
+        shellChannel = channel
+    }
+
+    // Innermost first: each jump carries the tunnel of the one after it.
+    private fun closeChain(chain: List<Session>) {
+        runCatching { shellChannel?.disconnect() }
+        chain.asReversed().forEach { runCatching { it.disconnect() } }
+        shellChannel = null
+        jschSession = null
+        jumpSessions = emptyList()
+        input = null
+        output = null
+    }
 
     override fun read(buffer: ByteArray): Int = input?.read(buffer) ?: -1
 
@@ -175,16 +203,9 @@ class SshSession(
     }
 
     override fun disconnect() {
+        closed = true
         writer.shutdown()
-        runCatching { shellChannel?.disconnect() }
-        runCatching { jschSession?.disconnect() }
-        // Innermost first: each jump carries the tunnel of the one after it.
-        jumpSessions.asReversed().forEach { runCatching { it.disconnect() } }
-        shellChannel = null
-        jschSession = null
-        jumpSessions = emptyList()
-        input = null
-        output = null
+        closeChain(jumpSessions + listOfNotNull(jschSession))
     }
 
     private fun openHop(hop: ConnectionConfig, host: String, port: Int, alias: String?): Session {

@@ -28,20 +28,21 @@ class PromptBrokerTest {
         val prompt = awaitPending(broker) as PendingPrompt.Password
         assertEquals("u@srv", prompt.displayHost)
 
-        broker.answer(prompt.id, "s3cret")
+        broker.answer(prompt.id, PromptAnswer.Password("s3cret"))
 
         assertEquals("s3cret", result.get(TIMEOUT_MS, TimeUnit.MILLISECONDS))
         assertNull(broker.pending.value)
     }
 
     @Test
-    fun `answer with a stale id is ignored`() {
+    fun `answer with a stale id or of the wrong kind is ignored`() {
         val broker = PromptBroker()
         val result = CompletableFuture.supplyAsync { broker.confirmHostKey(hostKey) }
         val prompt = awaitPending(broker)
 
-        broker.answer(prompt.id + 1000, true)
-        broker.answer(prompt.id, false)
+        broker.answer(prompt.id + 1000, PromptAnswer.HostKey(true))
+        broker.answer(prompt.id, PromptAnswer.Password("wrong kind"))
+        broker.answer(prompt.id, PromptAnswer.HostKey(false))
 
         assertFalse(result.get(TIMEOUT_MS, TimeUnit.MILLISECONDS))
     }

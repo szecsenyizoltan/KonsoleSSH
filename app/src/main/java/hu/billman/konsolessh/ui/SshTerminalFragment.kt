@@ -56,6 +56,8 @@ class SshTerminalFragment : Fragment(), TerminalPage {
 
         viewModel.fontSizeSp.takeIf { it > 0f }?.let { sp -> terminal.post { terminalView?.setFontSize(sp) } }
         terminal.onKeyInput = { bytes -> viewModel.send(tabId, bytes) }
+        // Query answers are not keystrokes: sticky modifiers must not touch them.
+        terminal.onTerminalResponse = { bytes -> viewModel.sendRaw(tabId, bytes) }
         terminal.onTerminalResize = { cols, rows -> viewModel.resize(tabId, cols, rows) }
         _binding?.btnReconnect?.setOnClickListener {
             viewModel.reconnect(tabId, terminal.currentCols, terminal.currentRows)
@@ -80,26 +82,27 @@ class SshTerminalFragment : Fragment(), TerminalPage {
     // Subscribe first, then draw the stored snapshot; chunk positions make the
     // seam exact, so nothing is drawn twice or skipped. If the live flow dropped
     // chunks while rendering lagged, the gap is filled from the snapshot.
+    // Replayed output was answered when it first arrived, so it is not answered again.
     private suspend fun collectOutput() {
         val view = terminalView ?: return
         val flow = viewModel.output(tabId) ?: return
         flow.onSubscription { renderSnapshot(view) }.collect { chunk ->
             if (chunk.start > renderedEnd) renderSnapshot(view)
-            render(view, chunk)
+            render(view, chunk, respond = true)
         }
     }
 
     private suspend fun renderSnapshot(view: TerminalView) {
-        viewModel.snapshot(tabId)?.let { render(view, it) }
+        viewModel.snapshot(tabId)?.let { render(view, it, respond = false) }
     }
 
     // Sequential calls from one collector, so renderedEnd needs no lock.
-    private suspend fun render(view: TerminalView, chunk: OutputChunk) {
+    private suspend fun render(view: TerminalView, chunk: OutputChunk, respond: Boolean) {
         if (chunk.end <= renderedEnd) return
         val from = maxOf(chunk.start, renderedEnd)
         val offset = (from - chunk.start).toInt()
         val bytes = if (offset == 0) chunk.bytes else chunk.bytes.copyOfRange(offset, chunk.bytes.size)
-        withContext(renderDispatcher) { view.append(bytes, bytes.size) }
+        withContext(renderDispatcher) { view.append(bytes, bytes.size, respond) }
         renderedEnd = chunk.end
     }
 

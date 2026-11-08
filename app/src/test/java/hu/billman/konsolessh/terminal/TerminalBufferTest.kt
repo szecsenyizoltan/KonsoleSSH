@@ -546,12 +546,13 @@ class TerminalBufferTest {
     }
 
     @Test
-    fun `emoji surrogate pair stored as single cell`() {
+    fun `emoji surrogate pair is one wide character over two cells`() {
         val buf = TerminalBuffer()
         buf.writeString("🔥X")
         assertEquals("🔥", buf.cellAt(0, 0)!!.ch)
-        assertEquals("X", buf.cellAt(0, 1)!!.ch)
-        assertEquals(2, buf.cursorCol)
+        assertEquals(TerminalBuffer.WIDE_TAIL, buf.cellAt(0, 1)!!.ch)
+        assertEquals("X", buf.cellAt(0, 2)!!.ch)
+        assertEquals(3, buf.cursorCol)
     }
 
     // ── Szálkezelés és darabolt bemenet ─────────────────────────────────────
@@ -568,7 +569,7 @@ class TerminalBufferTest {
             assertEquals("cut=$cut", "ő", buf.cellAt(0, 0)!!.ch)
             assertEquals("cut=$cut", "€", buf.cellAt(0, 1)!!.ch)
             assertEquals("cut=$cut", "🔥", buf.cellAt(0, 2)!!.ch)
-            assertEquals("cut=$cut", 3, buf.cursorCol)
+            assertEquals("cut=$cut", 4, buf.cursorCol)
         }
     }
 
@@ -623,5 +624,78 @@ class TerminalBufferTest {
         writer.join()
         assertNull(failure)
         assertEquals(200, buf.scrollbackSize)
+    }
+
+    // ── Szélesség, karakterkészlet, lekérdezések ────────────────────────────
+
+    @Test
+    fun `cjk character takes two cells and wraps when only one is left`() {
+        val buf = TerminalBuffer(initialCols = 5, initialRows = 3)
+        buf.writeString("abcd中")
+        // Az 5. oszlopba nem fér két cella: üres marad, a karakter új sorba kerül.
+        assertEquals(" ", buf.cellAt(0, 4)!!.ch)
+        assertEquals("中", buf.cellAt(1, 0)!!.ch)
+        assertEquals(TerminalBuffer.WIDE_TAIL, buf.cellAt(1, 1)!!.ch)
+        assertEquals(1, buf.cursorRow)
+        assertEquals(2, buf.cursorCol)
+    }
+
+    @Test
+    fun `combining mark joins the previous cell`() {
+        val buf = TerminalBuffer()
+        buf.writeString("e\u0301x")
+        assertEquals("e\u0301", buf.cellAt(0, 0)!!.ch)
+        assertEquals("x", buf.cellAt(0, 1)!!.ch)
+        assertEquals(2, buf.cursorCol)
+    }
+
+    @Test
+    fun `overwriting half of a wide character clears the other half`() {
+        val buf = TerminalBuffer()
+        buf.writeString("中\r\u001B[1Ca")
+        assertEquals(" ", buf.cellAt(0, 0)!!.ch)
+        assertEquals("a", buf.cellAt(0, 1)!!.ch)
+        buf.writeString("\r中\rb")
+        assertEquals("b", buf.cellAt(0, 0)!!.ch)
+        assertEquals(" ", buf.cellAt(0, 1)!!.ch)
+    }
+
+    @Test
+    fun `dec special graphics draws boxes and ascii comes back`() {
+        val buf = TerminalBuffer()
+        buf.writeString("\u001B(0lqk\u001B(Bq")
+        assertEquals("┌", buf.cellAt(0, 0)!!.ch)
+        assertEquals("─", buf.cellAt(0, 1)!!.ch)
+        assertEquals("┐", buf.cellAt(0, 2)!!.ch)
+        assertEquals("q", buf.cellAt(0, 3)!!.ch)
+    }
+
+    @Test
+    fun `shift out selects g1`() {
+        val buf = TerminalBuffer()
+        buf.writeString("\u001B)0x\u000Ex\u000Fx")
+        assertEquals("x", buf.cellAt(0, 0)!!.ch)
+        assertEquals("│", buf.cellAt(0, 1)!!.ch)
+        assertEquals("x", buf.cellAt(0, 2)!!.ch)
+    }
+
+    @Test
+    fun `status and device queries are answered`() {
+        val buf = TerminalBuffer()
+        val answers = mutableListOf<String>()
+        buf.setResponseListener { answers += String(it, Charsets.UTF_8) }
+        buf.writeString("\r\n\r\nabc\u001B[6n\u001B[5n\u001B[c\u001B[>c")
+        assertEquals(listOf("\u001B[3;4R\u001B[0n\u001B[?62;22c\u001B[>1;0;0c"), answers)
+    }
+
+    @Test
+    fun `replayed output does not answer queries`() {
+        val buf = TerminalBuffer()
+        val answers = mutableListOf<ByteArray>()
+        buf.setResponseListener { answers += it }
+        buf.write("\u001B[6n".toByteArray(), respond = false)
+        assertTrue(answers.isEmpty())
+        buf.writeString("\u001B[6n")
+        assertEquals(1, answers.size)
     }
 }

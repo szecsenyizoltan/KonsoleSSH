@@ -1,11 +1,8 @@
 package hu.billman.konsolessh.terminal
 
 /**
- * Közös ANSI/xterm színpaletta. A két használat — a [TerminalBuffer] cellarács-
- * renderje és az [AnsiParser] Spannable-kimenete — ugyanarra az RGB-re képezi
- * le az SGR-kódokat, csak más típust (TermColor vs Int-span) használ a hívó
- * oldalon. Itt **egy** helyen definiált, egyszer pre-kalkulált paletta,
- * mindkét ág a [TermColor.argb]-ben kapja az eredményt.
+ * Az ANSI/xterm színpaletta (16 + 256 szín), egyszer előre kiszámolva; a
+ * [TerminalBuffer] SGR-kezelése ebből képez [TermColor]-t.
  *
  * Pure JVM, [android.graphics.Color]-ra nem hivatkozik — a [TermColor] ARGB-
  * Int-je bit-azonos az `android.graphics.Color.rgb`-vel.

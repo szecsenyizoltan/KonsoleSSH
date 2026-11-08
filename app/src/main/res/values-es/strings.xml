@@ -162,4 +162,13 @@
     <string name="welcome_line_8">son accesibles.</string>
     <string name="welcome_line_9">Nueva conexión: botón \'+\'</string>
     <string name="welcome_swipe_hint">Desliza a la derecha para ayuda.</string>
+
+    <!-- Hibajelentés -->
+    <string name="menu_problem_report">Enviar informe de error</string>
+    <string name="report_title">KonsoleSSH dejó de responder o se cerró</string>
+    <string name="report_message">La última vez la app se bloqueó o se cerró inesperadamente. Se guardó un informe en este dispositivo: versión de la app y de Android, modelo del dispositivo y el rastro técnico. No contiene contraseñas ni claves. ¿Compartirlo con el desarrollador?</string>
+    <string name="report_share">Compartir informe</string>
+    <string name="report_dismiss">Ahora no</string>
+    <string name="report_subject">Informe de error de KonsoleSSH</string>
+    <string name="report_none">No hay ningún informe de error registrado.</string>
 </resources>

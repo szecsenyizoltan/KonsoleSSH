@@ -8,11 +8,14 @@ package hu.billman.konsolessh.terminal
  * metódusokon keresztül olvas, és a [setChangeListener]-en keresztül kap invalidáció-
  * jelzést minden állapotmódosítás után.
  *
- * Támogatott: ASCII + surrogate-pair (emoji), CR/LF/BS/TAB, CSI kurzor-mozgás és
- * törlések, SGR (16 + 256 + truecolor), DECCKM (?1), cursor hide (?25), alt-screen
- * (?47 / ?1049), bracketed paste (?2004), scroll region (CSI r), save/restore
- * cursor (ESC 7/8, CSI s/u), reverse index (ESC M), charset designator
- * (ESC-zárójel-változatok elnyelve), OSC/DCS payload csendes konszumálása.
+ * Támogatott: Unicode wcwidth szerinti cellaszélességgel (széles CJK / emoji két
+ * cellán, kombináló jel az előző cellához tapad), CR/LF/BS/TAB, CSI kurzor-mozgás
+ * és törlések, SGR (16 + 256 + truecolor), DECCKM (?1), cursor hide (?25),
+ * alt-screen (?47 / ?1049), bracketed paste (?2004), scroll region (CSI r),
+ * save/restore cursor (ESC 7/8, CSI s/u), reverse index (ESC M), G0/G1
+ * karakterkészlet DEC vonalrajzolással (ESC ( 0, SO/SI), állapot- és
+ * eszközlekérdezések (CSI 5n / 6n, DA1, DA2) válasza a [ResponseListener]-en,
+ * OSC/DCS payload csendes konszumálása.
  *
  * Scrollback-plafon: [maxScrollback] sor (default 3000 — a korábbi TerminalView
  * értéke). Tartomány-túlfolyáskor a legrégebbi sor elvesz.
@@ -94,6 +97,23 @@ class TerminalBuffer(
     private var ansiState: AnsiState = AnsiState.NORMAL
     private val csiParams: StringBuilder = StringBuilder()
 
+    // ── Karakterkészletek (G0/G1) ────────────────────────────────────────────
+
+    /** G0 és G1: true = DEC Special Graphics (vonalrajzolás). */
+    private val decGraphics = BooleanArray(2)
+    private var shiftedOut = false
+
+    /** Melyik G-készletet jelöli ki a folyamatban lévő ESC ( / ESC ) (-1: G2/G3, elnyelve). */
+    private var charsetTarget = 0
+
+    // ── Válaszok a lekérdezésekre ────────────────────────────────────────────
+
+    fun interface ResponseListener { fun onResponse(bytes: ByteArray) }
+    private var responseListener: ResponseListener? = null
+    fun setResponseListener(listener: ResponseListener?) { responseListener = listener }
+
+    private val pendingResponse = StringBuilder()
+
     /** Az előző írás végén félbemaradt UTF-8 szekvencia; a következő írás elejére kerül. */
     private var utf8Carry: ByteArray = ByteArray(0)
 
@@ -121,14 +141,30 @@ class TerminalBuffer(
      * (a záron kívül), ha be van állítva. A darabok határán kettévágott UTF-8
      * karakter a következő hívással egészül ki.
      */
-    fun write(bytes: ByteArray, length: Int = bytes.size) {
+    /**
+     * [respond] false: a bemenetben lévő lekérdezésekre nem megy válasz. Ez a
+     * már egyszer feldolgozott kimenet visszajátszásához kell (pl. forgatás
+     * után), különben a régi lekérdezések válasza bemenetként érne a shellhez.
+     */
+    fun write(bytes: ByteArray, length: Int = bytes.size, respond: Boolean = true) {
         var offset = 0
         do {
             val end = minOf(length, offset + WRITE_SLICE)
-            synchronized(lock) { processText(decodeUtf8(bytes, offset, end)) }
+            val response = synchronized(lock) {
+                processText(decodeUtf8(bytes, offset, end))
+                takeResponse()
+            }
+            if (respond && response != null) responseListener?.onResponse(response)
             notifyChanged()
             offset = end
         } while (offset < length)
+    }
+
+    private fun takeResponse(): ByteArray? {
+        if (pendingResponse.isEmpty()) return null
+        val bytes = pendingResponse.toString().toByteArray(Charsets.UTF_8)
+        pendingResponse.setLength(0)
+        return bytes
     }
 
     /** Konvencia: teszt-egyszerűsítő UTF-8 string-bemenet. */
@@ -147,10 +183,12 @@ class TerminalBuffer(
         var i = 0
         while (i < text.length) {
             val ch = text[i]
-            // Supplementary character (emoji, symbols above U+FFFF):
-            // tárolás surrogate-pair stringként egyetlen cellában.
+            // Supplementary character (emoji, symbols above U+FFFF): one cell
+            // string holds the surrogate pair.
             if (ch.isHighSurrogate() && i + 1 < text.length && text[i + 1].isLowSurrogate()) {
-                if (ansiState == AnsiState.NORMAL) printChar(text.substring(i, i + 2))
+                if (ansiState == AnsiState.NORMAL) {
+                    printText(text.substring(i, i + 2), CharWidth.of(text.codePointAt(i)))
+                }
                 i += 2
                 continue
             }
@@ -166,7 +204,8 @@ class TerminalBuffer(
                         if (_cursorCol >= _cols) _cursorCol = _cols - 1
                     }
                     '\u0007'              -> { /* BEL */ }
-                    '\u000E', '\u000F'    -> { /* SO/SI: ignore */ }
+                    '\u000E'              -> shiftedOut = true    // SO: G1
+                    '\u000F'              -> shiftedOut = false   // SI: G0
                     '\u009B'              -> { ansiState = AnsiState.CSI; csiParams.clear() }
                     '\u009D'              -> ansiState = AnsiState.OSC
                     '\u0090'              -> ansiState = AnsiState.DCS
@@ -186,11 +225,19 @@ class TerminalBuffer(
                             _cursorCol = savedCol.coerceIn(0, _cols - 1)
                         }
                         'c' -> reset()
-                        '(', ')', '*', '+' -> ansiState = AnsiState.CHARSET
+                        '(', ')', '*', '+' -> {
+                            charsetTarget = when (ch) {
+                                '(' -> 0
+                                ')' -> 1
+                                else -> -1
+                            }
+                            ansiState = AnsiState.CHARSET
+                        }
                         // ESC \ = ST terminator — már konszumálva, NORMAL-ban maradunk
                     }
                 }
                 AnsiState.CHARSET -> {
+                    if (charsetTarget >= 0) decGraphics[charsetTarget] = ch == '0'
                     ansiState = AnsiState.NORMAL
                 }
                 AnsiState.CSI -> {
@@ -213,11 +260,45 @@ class TerminalBuffer(
         }
     }
 
-    private fun printChar(ch: Char) = printChar(ch.toString())
+    private fun printChar(ch: Char) {
+        val mapped = if (decGraphics[if (shiftedOut) 1 else 0]) DecGraphics.map(ch) else ch
+        printText(mapped.toString(), CharWidth.of(mapped.code))
+    }
 
-    private fun printChar(ch: String) {
-        if (_cursorCol >= _cols) { _cursorCol = 0; lineFeed() }
-        screen[_cursorRow][_cursorCol].apply {
+    /**
+     * Egy karakter a kurzorhoz. [width] 0: az előző cellához fűződik
+     * (kombináló jel); 2: a cella mellé egy üres folytatócella ([WIDE_TAIL])
+     * kerül, és ha a sor végén már nem fér el, új sorba tördel.
+     */
+    private fun printText(ch: String, width: Int) {
+        if (width == 0) {
+            appendToPreviousCell(ch)
+            return
+        }
+        if (_cursorCol + width > _cols) {
+            if (width == 2 && _cursorCol < _cols) putCell(_cursorRow, _cursorCol, " ")
+            _cursorCol = 0
+            lineFeed()
+        }
+        putCell(_cursorRow, _cursorCol, ch)
+        if (width == 2) putCell(_cursorRow, _cursorCol + 1, WIDE_TAIL)
+        _cursorCol += width
+    }
+
+    private fun appendToPreviousCell(mark: String) {
+        var col = _cursorCol - 1
+        if (col < 0) return
+        val row = screen[_cursorRow]
+        if (row[col].ch == WIDE_TAIL && col > 0) col--
+        row[col].ch += mark
+    }
+
+    // Overwriting half of a wide character must clear its other half.
+    private fun putCell(r: Int, c: Int, ch: String) {
+        val row = screen[r]
+        if (row[c].ch == WIDE_TAIL && c > 0 && ch != WIDE_TAIL) row[c - 1].ch = " "
+        if (ch != WIDE_TAIL && c + 1 < _cols && row[c + 1].ch == WIDE_TAIL) row[c + 1].ch = " "
+        row[c].apply {
             this.ch = ch
             fg = curFg
             bg = curBg
@@ -225,7 +306,21 @@ class TerminalBuffer(
             underline = curUnderline
             reverse = curReverse
         }
-        _cursorCol++
+    }
+
+    private fun reportStatus(params: String) {
+        when (params) {
+            "5" -> pendingResponse.append("\u001B[0n")
+            "6" -> pendingResponse.append("\u001B[${_cursorRow + 1};${minOf(_cursorCol, _cols - 1) + 1}R")
+            "?6" -> pendingResponse.append("\u001B[?${_cursorRow + 1};${minOf(_cursorCol, _cols - 1) + 1}R")
+        }
+    }
+
+    private fun reportDeviceAttributes(params: String) {
+        when (params) {
+            "", "0" -> pendingResponse.append(PRIMARY_DA)
+            ">", ">0" -> pendingResponse.append(SECONDARY_DA)
+        }
     }
 
     private fun lineFeed() {
@@ -325,7 +420,9 @@ class TerminalBuffer(
                 _cursorRow = savedRow.coerceIn(0, _rows - 1)
                 _cursorCol = savedCol.coerceIn(0, _cols - 1)
             }
-            // 'n', 't', others: silently ignore
+            'n' -> reportStatus(params)
+            'c' -> reportDeviceAttributes(params)
+            // 't', others: silently ignore
         }
     }
 
@@ -439,7 +536,7 @@ class TerminalBuffer(
         curBold = false; curUnderline = false; curReverse = false
     }
 
-    // SGR-paletta a közös SgrPalette object-ből (az AnsiParser is ezt hívja).
+    // SGR-paletta: SgrPalette.
     private fun ansi16(i: Int): TermColor = SgrPalette.ansi16(i)
     private fun xterm256(i: Int): TermColor = SgrPalette.xterm256(i)
 
@@ -493,6 +590,8 @@ class TerminalBuffer(
         _appCursorKeys = false
         _cursorHidden = false
         _bracketedPasteMode = false
+        decGraphics.fill(false)
+        shiftedOut = false
         resetStyle()
     }
 
@@ -552,6 +651,15 @@ class TerminalBuffer(
     companion object {
         /** Az eredeti TerminalView.MAX_SCROLLBACK érték, bit-azonos viselkedéshez. */
         const val DEFAULT_MAX_SCROLLBACK = 3000
+
+        /** A széles karakter második cellája: üres, a rajzoló és a kijelölés kihagyja. */
+        const val WIDE_TAIL = ""
+
+        /** DA1: VT220, ANSI-színekkel (mint sok xterm-kompatibilis terminál). */
+        private const val PRIMARY_DA = "\u001B[?62;22c"
+
+        /** DA2: típus 1 (VT220), verzió 0. */
+        private const val SECONDARY_DA = "\u001B[>1;0;0c"
 
         /** Ennyi bájtot dolgoz fel egy zárfelvétel alatt a [write]. */
         const val WRITE_SLICE = 4096

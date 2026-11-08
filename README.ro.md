@@ -306,8 +306,9 @@ ssh/SshError.kt                        — erori SSH tipizate și clasificatorul
 session/SessionManager.kt              — sursă unică de adevăr: file, stare, ieșire, întrebări
 session/PromptBroker.kt                — întrebări de parolă și cheie de gazdă ca stare
 service/SshForegroundService.kt        — menține procesul activ, notificare
+diagnostics/AndroidProblemReports.kt   — rapoarte de eroare după ANR sau închidere neașteptată (partajate doar la cerere)
 terminal/TerminalView.kt               — emulator de terminal pe Canvas (VT100/xterm-256color)
-terminal/AnsiParser.kt                 — automat de stări ANSI/VT
+terminal/TerminalBuffer.kt             — modelul terminalului: analizor VT/xterm, grilă de celule, caractere late, istoric
 terminal/KeyModifiers.kt               — logica tastelor fixe Ctrl/Shift/Alt/AltGr
 ui/MainActivity.kt                     — ecranul principal: file, pagini, întrebări, erori
 ui/MainViewModel.kt                    — starea și comenzile ecranului principal
@@ -367,6 +368,16 @@ Aplicația este distribuită sub licența **GPL-3.0-or-later** — textul comple
 
 ## Istoricul versiunilor
 
+- **1.1.29** — emularea terminalului: caracterele late (CJK, emoji) ocupă două
+  celule ca pe server, semnele combinante se lipesc de celula anterioară, desen de
+  linii DEC (`ESC ( 0`) pentru cadrele ncurses/dialog/mc, se răspunde la
+  interogările de poziție a cursorului și de dispozitiv (`CSI 6n`, DA) — dar nu din
+  nou la redarea ieșirii după rotire; textul se desenează pe segmente, nu celulă cu
+  celulă. Rapoarte de eroare: după un ANR sau o închidere neașteptată, aplicația
+  oferă partajarea unui raport (versiune, dispozitiv, urmă — fără secrete); nimic nu
+  se trimite automat. Serviciul în prim-plan rulează doar cât există o sesiune
+  activă. Fișierele de cheie se citesc în afara firului principal. Remediat:
+  fișele de comenzi apăreau de două ori după redimensionare
 - **1.1.28** — ieșirea terminalului este procesată pe un fir de fundal, pe bucăți,
   astfel că o ieșire mare (`cat` pe un log mare, `find /`) nu mai blochează interfața;
   caracterele UTF-8 tăiate între două citiri din rețea nu se mai strică

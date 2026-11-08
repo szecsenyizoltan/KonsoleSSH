@@ -38,6 +38,7 @@ import hu.billman.konsolessh.terminal.Modifier
 import hu.billman.konsolessh.terminal.TerminalView
 import hu.billman.konsolessh.ui.keybar.KeybarController
 import kotlinx.coroutines.launch
+import java.io.File
 
 /**
  * A főképernyő: fülsáv, termináloldalak, billentyűsor. Állapotot nem
@@ -59,6 +60,8 @@ class MainActivity : AppCompatActivity(), KeybarController.Host {
 
     private var promptDialog: Dialog? = null
     private var shownPromptId: Long? = null
+    private var lastActiveCount = 0
+    private var reportDialog: Dialog? = null
 
     private val pickFileForUpload = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) uploads.upload(currentTabId(), uri)
@@ -91,11 +94,6 @@ class MainActivity : AppCompatActivity(), KeybarController.Host {
         observeViewModel()
     }
 
-    override fun onStart() {
-        super.onStart()
-        SshForegroundService.start(this)
-    }
-
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         keybar.saveState(outState)
@@ -104,6 +102,7 @@ class MainActivity : AppCompatActivity(), KeybarController.Host {
     override fun onDestroy() {
         // The prompt stays pending; the recreated activity shows it again.
         promptDialog?.dismiss()
+        reportDialog?.dismiss()
         keybar.dispose()
         super.onDestroy()
     }
@@ -114,6 +113,7 @@ class MainActivity : AppCompatActivity(), KeybarController.Host {
                 launch { viewModel.sessionsState.collect(::render) }
                 launch { viewModel.selectTab.collect { applyPendingSelection() } }
                 launch { viewModel.modifiers.state.collect(keybar::render) }
+                launch { viewModel.problemReport.collect(::offerProblemReport) }
                 launch {
                     viewModel.storeError.collect { error ->
                         error ?: return@collect
@@ -125,7 +125,30 @@ class MainActivity : AppCompatActivity(), KeybarController.Host {
         }
     }
 
+    private fun offerProblemReport(report: File?) {
+        if (report == null || reportDialog != null) return
+        reportDialog = ProblemReportUi.offer(this, report) {
+            reportDialog = null
+            viewModel.onProblemReportHandled()
+        }
+    }
+
+    private fun shareLatestProblemReport() {
+        lifecycleScope.launch {
+            val report = viewModel.latestProblemReport()
+            if (report == null) {
+                KonsoleToast.show(binding.root, getString(R.string.report_none))
+            } else {
+                ProblemReportUi.share(this@MainActivity, report)
+            }
+        }
+    }
+
     private fun render(state: SessionsState) {
+        // The service runs only while a session needs it and stops itself when
+        // none is left; starting it here keeps the start in the foreground.
+        if (state.activeCount > 0 && lastActiveCount == 0) SshForegroundService.start(this)
+        lastActiveCount = state.activeCount
         renderTabs(state.tabs)
         renderPrompt(state.tabs)
         state.tabs.filter { it.error != null }.forEach(::showConnectError)
@@ -383,6 +406,10 @@ class MainActivity : AppCompatActivity(), KeybarController.Host {
         }
         R.id.action_language -> {
             showLanguagePicker()
+            true
+        }
+        R.id.action_problem_report -> {
+            shareLatestProblemReport()
             true
         }
         R.id.action_exit -> {

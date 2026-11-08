@@ -162,4 +162,13 @@
     <string name="welcome_line_8">erreichbar.</string>
     <string name="welcome_line_9">Neue Verbindung: \'+\'-Taste</string>
     <string name="welcome_swipe_hint">Nach rechts wischen für Hilfe.</string>
+
+    <!-- Hibajelentés -->
+    <string name="menu_problem_report">Fehlerbericht senden</string>
+    <string name="report_title">KonsoleSSH reagierte nicht oder ist abgestürzt</string>
+    <string name="report_message">Beim letzten Mal ist die App eingefroren oder unerwartet beendet worden. Auf dem Gerät wurde ein Bericht gespeichert: App- und Android-Version, Gerätemodell und die technische Spur. Er enthält keine Passwörter oder Schlüssel. Mit dem Entwickler teilen?</string>
+    <string name="report_share">Bericht teilen</string>
+    <string name="report_dismiss">Jetzt nicht</string>
+    <string name="report_subject">KonsoleSSH-Fehlerbericht</string>
+    <string name="report_none">Es wurde kein Fehlerbericht aufgezeichnet.</string>
 </resources>

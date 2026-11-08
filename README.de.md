@@ -306,8 +306,9 @@ ssh/SshError.kt                        — typisierte SSH-Fehler und ihr Klassif
 session/SessionManager.kt              — einzige Quelle der Wahrheit: Tabs, Status, Ausgabe, Rückfragen
 session/PromptBroker.kt                — Passwort- und Host-Key-Rückfragen als Zustand
 service/SshForegroundService.kt        — hält den Prozess am Leben, Benachrichtigung
+diagnostics/AndroidProblemReports.kt   — Fehlerberichte nach ANR oder Absturz (nur auf Wunsch geteilt)
 terminal/TerminalView.kt               — Canvas-basierter Terminal-Emulator (VT100/xterm-256color)
-terminal/AnsiParser.kt                 — ANSI/VT-Zustandsautomat
+terminal/TerminalBuffer.kt             — Terminalmodell: VT/xterm-Parser, Zellraster, breite Zeichen, Scrollback
 terminal/KeyModifiers.kt               — Logik für feststehende Strg/Umschalt/Alt/AltGr
 ui/MainActivity.kt                     — Hauptbildschirm: Tab-Leiste, Seiten, Rückfragen, Fehler
 ui/MainViewModel.kt                    — Zustand und Befehle des Hauptbildschirms
@@ -367,6 +368,16 @@ Die Anwendung wird unter der **GPL-3.0-or-later**-Lizenz veröffentlicht — der
 
 ## Versionsgeschichte
 
+- **1.1.29** — Terminalemulation: breite Zeichen (CJK, Emoji) belegen wie auf dem
+  Server zwei Zellen, kombinierende Zeichen hängen an der vorigen Zelle,
+  DEC-Liniengrafik (`ESC ( 0`) für ncurses-/dialog-/mc-Rahmen, Cursorpositions- und
+  Geräteabfragen (`CSI 6n`, DA) werden beantwortet — beim Wiedergeben nach einer
+  Drehung aber nicht erneut; Text wird in Läufen statt zellenweise gezeichnet.
+  Fehlerberichte: nach einem ANR oder Absturz bietet die App das Teilen eines
+  Berichts an (Version, Gerät, Trace — ohne Geheimnisse); nichts wird automatisch
+  gesendet. Der Vordergrunddienst läuft nur bei aktiver Sitzung. Schlüsseldateien
+  werden außerhalb des Hauptthreads gelesen. Behoben: Spickzettel erschienen nach
+  einer Größenänderung doppelt
 - **1.1.28** — die Terminalausgabe wird in einem Hintergrundthread in Abschnitten
   verarbeitet, große Ausgaben (`cat` einer großen Logdatei, `find /`) blockieren die
   Oberfläche nicht mehr; an Lesegrenzen geteilte UTF-8-Zeichen bleiben intakt

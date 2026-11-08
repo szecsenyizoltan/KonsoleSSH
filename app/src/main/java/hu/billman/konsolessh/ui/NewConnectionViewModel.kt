@@ -6,6 +6,7 @@ import hu.billman.konsolessh.data.ConnectionRepository
 import hu.billman.konsolessh.data.ConnectionStoreException
 import hu.billman.konsolessh.model.ConnectionConfig
 import hu.billman.konsolessh.session.PendingPrompt
+import hu.billman.konsolessh.session.PromptAnswer
 import hu.billman.konsolessh.session.PromptBroker
 import hu.billman.konsolessh.ssh.JumpChain
 import hu.billman.konsolessh.ssh.SshError
@@ -97,7 +98,7 @@ class NewConnectionViewModel(
 
     var selectedJumpId: String? = null
 
-    fun answerPrompt(promptId: Long, value: Any?) = broker.answer(promptId, value)
+    fun answerPrompt(promptId: Long, answer: PromptAnswer) = broker.answer(promptId, answer)
 
     suspend fun loadForEdit(id: String): ConnectionConfig? =
         editConfig ?: repository.get(id).also { config ->

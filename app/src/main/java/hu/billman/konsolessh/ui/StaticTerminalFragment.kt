@@ -37,11 +37,12 @@ class StaticTerminalFragment : Fragment(), TerminalPage {
         binding.btnReconnect.visibility = View.GONE
         when (mode) {
             Mode.WELCOME -> showWelcome(binding)
-            // The sheets are laid out for the current width, so redraw on resize.
+            // The sheets are laid out for the current width, so redraw on resize;
+            // the old copy must leave the scrollback too, or it shows twice.
             Mode.LINUX, Mode.TMUX -> {
                 showSheet()
                 binding.terminalView.onTerminalResize = { _, _ ->
-                    binding.terminalView.clear()
+                    binding.terminalView.resetContent()
                     showSheet()
                 }
             }

@@ -306,8 +306,9 @@ ssh/SshError.kt                        — errores SSH tipados y su clasificador
 session/SessionManager.kt              — única fuente de verdad: pestañas, estado, salida, preguntas
 session/PromptBroker.kt                — preguntas de contraseña y clave de host como estado
 service/SshForegroundService.kt        — mantiene vivo el proceso, notificación
+diagnostics/AndroidProblemReports.kt   — informes de error tras un ANR o cierre (solo se comparten a petición)
 terminal/TerminalView.kt               — emulador de terminal sobre Canvas (VT100/xterm-256color)
-terminal/AnsiParser.kt                 — máquina de estados ANSI/VT
+terminal/TerminalBuffer.kt             — modelo del terminal: analizador VT/xterm, rejilla de celdas, caracteres anchos, historial
 terminal/KeyModifiers.kt               — lógica de Ctrl/Shift/Alt/AltGr fijos
 ui/MainActivity.kt                     — pantalla principal: pestañas, páginas, preguntas, errores
 ui/MainViewModel.kt                    — estado y comandos de la pantalla principal
@@ -367,6 +368,16 @@ La aplicación se distribuye bajo la licencia **GPL-3.0-or-later** — el texto 
 
 ## Historial de versiones
 
+- **1.1.29** — emulación de terminal: los caracteres anchos (CJK, emoji) ocupan dos
+  celdas como en el servidor, las marcas combinantes se unen a la celda anterior,
+  dibujo de líneas DEC (`ESC ( 0`) para marcos de ncurses/dialog/mc, se responden
+  las consultas de posición del cursor y de dispositivo (`CSI 6n`, DA), pero no de
+  nuevo al reproducir la salida tras una rotación; el texto se dibuja por tramos y
+  no celda a celda. Informes de error: tras un ANR o cierre, la app ofrece compartir
+  un informe (versión, dispositivo, traza, sin secretos); no se envía nada
+  automáticamente. El servicio en primer plano solo funciona con una sesión activa.
+  Los archivos de clave se leen fuera del hilo principal. Corregido: las chuletas
+  aparecían duplicadas tras un cambio de tamaño
 - **1.1.28** — la salida del terminal se procesa en un hilo en segundo plano y por
   fragmentos, así una salida grande (`cat` de un log grande, `find /`) ya no bloquea la
   interfaz; los caracteres UTF-8 partidos entre lecturas de red ya no se corrompen

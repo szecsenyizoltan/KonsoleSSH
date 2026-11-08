@@ -306,8 +306,9 @@ ssh/SshError.kt                        — típusos SSH-hibák és osztályozój
 session/SessionManager.kt              — egyetlen igazságforrás: fülek, állapot, kimenet, kérdések
 session/PromptBroker.kt                — jelszó- és host key-kérdések állapotként
 service/SshForegroundService.kt        — életben tartja a folyamatot, értesítés
+diagnostics/AndroidProblemReports.kt   — hibajelentés ANR vagy összeomlás után (csak kérésre megosztva)
 terminal/TerminalView.kt               — Canvas-alapú terminálemulátor (VT100/xterm-256color)
-terminal/AnsiParser.kt                 — ANSI/VT állapotgép
+terminal/TerminalBuffer.kt             — terminálmodell: VT/xterm-értelmező, cellarács, széles karakterek, görgetési előzmény
 terminal/KeyModifiers.kt               — ragadós Ctrl/Shift/Alt/AltGr logika
 ui/MainActivity.kt                     — főképernyő: fülsáv, oldalak, kérdések, hibák
 ui/MainViewModel.kt                    — a főképernyő állapota és parancsai
@@ -392,6 +393,15 @@ Az alkalmazás **GPL-3.0-or-later** licenc alatt érhető el — a teljes szöve
 
 ## Verziótörténet
 
+- **1.1.29** — terminál-emuláció: a széles karakterek (CJK, emoji) a szerverrel
+  egyezően két cellát foglalnak, a kombináló jel az előző cellához tapad, DEC
+  vonalrajzolás (`ESC ( 0`) az ncurses / dialog / mc keretekhez, válasz a
+  kurzorpozíció- és eszközlekérdezésekre (`CSI 6n`, DA) — forgatás utáni
+  visszajátszáskor viszont nem még egyszer; a szöveg futamonként rajzolódik, nem
+  cellánként. Hibajelentés: ANR vagy összeomlás után az app felajánlja a jelentés
+  megosztását (verzió, készülék, nyom — titok nélkül); automatikusan semmi nem megy
+  el. A foreground service csak aktív munkamenet alatt fut. A kulcsfájl beolvasása
+  háttérszálon. Javítva: átméretezés után kétszer látszottak a puskák
 - **1.1.28** — a terminálkimenet feldolgozása háttérszálon, szeletekben fut, így
   nagy kimenet (`cat` egy nagy logra, `find /`) nem akasztja meg a felületet; a
   hálózati olvasások határán kettévágott ékezetes / többbájtos karakter nem romlik el

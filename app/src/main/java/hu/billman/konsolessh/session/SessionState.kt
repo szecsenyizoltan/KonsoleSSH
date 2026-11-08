@@ -13,6 +13,13 @@ sealed interface PendingPrompt {
     data class HostKey(override val id: Long, val prompt: HostKeyPrompt) : PendingPrompt
 }
 
+/** Válasz egy [PendingPrompt]-ra; a fajtájának egyeznie kell a kérdésével. */
+sealed interface PromptAnswer {
+    /** null: a felhasználó mégsem adott jelszót. */
+    data class Password(val password: String?) : PromptAnswer
+    data class HostKey(val accept: Boolean) : PromptAnswer
+}
+
 /** Egy SSH-fül teljes állapota; ez az egyetlen igazságforrás a felület számára. */
 data class TabState(
     val id: String,
@@ -28,6 +35,10 @@ data class TabState(
 
 data class SessionsState(val tabs: List<TabState> = emptyList()) {
     val connectedCount: Int get() = tabs.count { it.status == ConnectionStatus.CONNECTED }
+
+    /** Kapcsolódó vagy kapcsolódott fülek: ennyi ideig kell a foreground service. */
+    val activeCount: Int
+        get() = tabs.count { it.status == ConnectionStatus.CONNECTING || it.status == ConnectionStatus.CONNECTED }
 
     fun tab(id: String): TabState? = tabs.find { it.id == id }
 }

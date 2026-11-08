@@ -162,4 +162,13 @@
     <string name="welcome_line_8">elérhetők.</string>
     <string name="welcome_line_9">Új kapcsolat: \'+\' gomb</string>
     <string name="welcome_swipe_hint">Húzz jobbra a súgóért.</string>
+
+    <!-- Hibajelentés -->
+    <string name="menu_problem_report">Hibajelentés küldése</string>
+    <string name="report_title">A KonsoleSSH nem válaszolt vagy összeomlott</string>
+    <string name="report_message">Legutóbb az app lefagyott vagy váratlanul bezárult. A készüléken elmentődött egy jelentés: app- és Android-verzió, készüléktípus és a technikai nyom. Jelszót és kulcsot nem tartalmaz. Megosztod a fejlesztővel?</string>
+    <string name="report_share">Jelentés megosztása</string>
+    <string name="report_dismiss">Most nem</string>
+    <string name="report_subject">KonsoleSSH hibajelentés</string>
+    <string name="report_none">Nincs rögzített hibajelentés.</string>
 </resources>

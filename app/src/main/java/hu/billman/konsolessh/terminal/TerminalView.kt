@@ -53,6 +53,9 @@ class TerminalView @JvmOverloads constructor(
 
     var onKeyInput: ((ByteArray) -> Unit)? = null
     var onTerminalResize: ((cols: Int, rows: Int) -> Unit)? = null
+
+    /** A terminál válasza egy lekérdezésre (pl. kurzorpozíció); háttérszálról is jöhet. */
+    var onTerminalResponse: ((ByteArray) -> Unit)? = null
     var horizontalScrollEnabled = true
     val fontSize: Float get() = fontSizeSp
 
@@ -70,6 +73,17 @@ class TerminalView @JvmOverloads constructor(
         private const val MAX_FONT_SP = 40f
         private const val ID_COPY = 1
         private const val ID_PASTE = 2
+        private const val OPAQUE = 0xFF shl 24
+        private const val LOW_24 = 0xFFFFFFL
+        private const val LOW_32 = 0xFFFFFFFFL
+        private const val BG_SHIFT = 2
+        private const val FG_SHIFT = 34
+        private const val LOOK_BOLD = 1L
+        private const val LOOK_UNDERLINE = 2L
+
+        /** Eddig a kódpontig (Latin-1 + Latin Extended-A/B) próbál futamban rajzolni. */
+        private const val FIXED_ADVANCE_LIMIT = 0x250
+        private const val ADVANCE_TOLERANCE = 0.05f
     }
 
     // ── Logikai állapot: minden a Bufferben ──────────────────────────────────
@@ -94,6 +108,9 @@ class TerminalView @JvmOverloads constructor(
         typeface = Typeface.create(loadTypeface(context), Typeface.BOLD)
         isAntiAlias = true
     }
+    private var runChars = CharArray(MIN_COLS)
+    private val normAdvance = ByteArray(FIXED_ADVANCE_LIMIT)
+    private val boldAdvance = ByteArray(FIXED_ADVANCE_LIMIT)
     private var cellW = 1f
     private var cellH = 1f
     private var cellBase = 0f
@@ -150,6 +167,7 @@ class TerminalView @JvmOverloads constructor(
         // A Buffer minden state-változás után értesít, akár háttérszálról is;
         // a postInvalidateOnAnimation szálbiztos, és képkockánként egyszer rajzol.
         buffer.setChangeListener { postInvalidateOnAnimation() }
+        buffer.setResponseListener { bytes -> onTerminalResponse?.invoke(bytes) }
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
@@ -170,6 +188,8 @@ class TerminalView @JvmOverloads constructor(
         cellH = fm.descent - fm.ascent
         cellBase = -fm.ascent
         cellW = normPaint.measureText("M")
+        normAdvance.fill(0)
+        boldAdvance.fill(0)
     }
 
     /**
@@ -225,81 +245,146 @@ class TerminalView @JvmOverloads constructor(
         buffer.withLock { drawCells(canvas) }
     }
 
+    /** Egy rajzolás állandó adatai; a kijelölés határai egyszer számolódnak. */
+    private class Frame(
+        val scrollbackSize: Int,
+        val cursorRow: Int,
+        val cursorCol: Int,
+        val showCursor: Boolean,
+        val selection: IntArray?,
+    )
+
     private fun drawCells(canvas: Canvas) {
-        val rows = buffer.rows
-        val cols = buffer.cols
-        val scrollbackSize = buffer.scrollbackSize
-        val cursorRow = buffer.cursorRow
-        val cursorCol = buffer.cursorCol
-        val cursorHidden = buffer.cursorHidden
+        val frame = Frame(
+            scrollbackSize = buffer.scrollbackSize,
+            cursorRow = buffer.cursorRow,
+            cursorCol = buffer.cursorCol,
+            showCursor = !buffer.cursorHidden && scrollRowOff == 0 && cursorOn,
+            selection = if (selActive) normalizedSel() else null,
+        )
         val firstLine = computeFirstLine()
-
-        for (r in 0 until rows) {
+        for (r in 0 until buffer.rows) {
             val lineIdx = firstLine + r
-            if (lineIdx < 0) continue
-            val row = buffer.lineAt(lineIdx) ?: continue
+            val row = if (lineIdx < 0) null else buffer.lineAt(lineIdx)
+            if (row != null) drawRow(canvas, row, lineIdx, r * cellH, frame)
+        }
+    }
 
-            val screenRow = if (lineIdx < scrollbackSize) -1 else lineIdx - scrollbackSize
+    // Adjacent cells with the same look form a run: one background rectangle
+    // and, for fixed-advance glyphs, one drawText call instead of one per cell.
+    private fun drawRow(canvas: Canvas, row: TermLine, lineIdx: Int, y: Float, frame: Frame) {
+        val cursorCol = if (frame.showCursor && lineIdx - frame.scrollbackSize == frame.cursorRow) frame.cursorCol else -1
+        val cTo = min(row.size, scrollColOff + buffer.cols + 1)
+        var c = scrollColOff
+        while (c < cTo) {
+            val look = lookAt(row, lineIdx, c, cursorCol, frame.selection)
+            var end = c + 1
+            while (end < cTo && lookAt(row, lineIdx, end, cursorCol, frame.selection) == look) end++
+            drawRun(canvas, row, c, end, y, look)
+            c = end
+        }
+    }
 
-            val y = r * cellH
-            val cFrom = scrollColOff
-            val cTo = min(row.size, scrollColOff + cols + 1)
+    /**
+     * A cella megjelenése egy Long-ban: előtér (RGB, mindig átlátszatlan),
+     * háttér (ARGB, a kijelölés áttetsző), félkövér, aláhúzás.
+     */
+    private fun lookAt(row: TermLine, lineIdx: Int, c: Int, cursorCol: Int, selection: IntArray?): Long {
+        val cell = row[c]
+        val fg = if (cell.reverse) cell.bg.argb else cell.fg.argb
+        val bg = if (cell.reverse) cell.fg.argb else cell.bg.argb
+        val isCursor = c == cursorCol
+        val effectiveBg = when {
+            selection != null && isInSelection(selection, lineIdx, c) -> SELECTION_BG
+            isCursor -> fg
+            else -> bg
+        }
+        val effectiveFg = if (isCursor) bg else fg
+        val flags = (if (cell.bold) LOOK_BOLD else 0L) or (if (cell.underline) LOOK_UNDERLINE else 0L)
+        return ((effectiveFg.toLong() and LOW_24) shl FG_SHIFT) or
+            ((effectiveBg.toLong() and LOW_32) shl BG_SHIFT) or flags
+    }
 
-            for (c in cFrom until cTo) {
-                val cell = row[c]
-                val drawX = (c - scrollColOff) * cellW
-
-                val isCursor = !cursorHidden && scrollRowOff == 0 &&
-                    screenRow == cursorRow && c == cursorCol
-                val isSelected = isInSelection(lineIdx, c)
-
-                // Reverse videó feloldás, majd kurzor-invertálás, majd szelekció
-                val cellFg = if (cell.reverse) cell.bg.argb else cell.fg.argb
-                val cellBg = if (cell.reverse) cell.fg.argb else cell.bg.argb
-
-                val effectiveBg = when {
-                    isSelected -> SELECTION_BG
-                    isCursor && cursorOn -> cellFg
-                    else -> cellBg
-                }
-                val effectiveFg = when {
-                    isCursor && cursorOn -> cellBg
-                    else -> cellFg
-                }
-
-                if (effectiveBg != DEFAULT_BG || isSelected) {
-                    bgPaint.color = effectiveBg
-                    cellRect.set(drawX, y, drawX + cellW, y + cellH)
-                    canvas.drawRect(cellRect, bgPaint)
-                }
-
-                if (cell.ch != " ") {
-                    val p = if (cell.bold) boldPaint else normPaint
-                    p.color = effectiveFg
-                    canvas.drawText(cell.ch, drawX, y + cellBase, p)
-                }
-
-                if (cell.underline) {
-                    val p = if (cell.bold) boldPaint else normPaint
-                    p.color = effectiveFg
-                    canvas.drawLine(drawX, y + cellH - 1f, drawX + cellW, y + cellH - 1f, p)
+    private fun drawRun(canvas: Canvas, row: TermLine, from: Int, to: Int, y: Float, look: Long) {
+        val x = (from - scrollColOff) * cellW
+        val width = (to - from) * cellW
+        val bg = ((look ushr BG_SHIFT) and LOW_32).toInt()
+        if (bg != DEFAULT_BG) {
+            bgPaint.color = bg
+            cellRect.set(x, y, x + width, y + cellH)
+            canvas.drawRect(cellRect, bgPaint)
+        }
+        val paint = if (look and LOOK_BOLD != 0L) boldPaint else normPaint
+        paint.color = OPAQUE or ((look ushr FG_SHIFT) and LOW_24).toInt()
+        if (!drawFixedAdvanceRun(canvas, row, from, to, x, y, paint)) {
+            for (c in from until to) {
+                val ch = row[c].ch
+                if (ch != " " && ch != TerminalBuffer.WIDE_TAIL) {
+                    canvas.drawText(ch, (c - scrollColOff) * cellW, y + cellBase, paint)
                 }
             }
         }
+        if (look and LOOK_UNDERLINE != 0L) {
+            canvas.drawLine(x, y + cellH - 1f, x + width, y + cellH - 1f, paint)
+        }
+    }
+
+    /** Egy hívással rajzolja a futamot, ha minden karakterének pontosan cellányi a szélessége. */
+    private fun drawFixedAdvanceRun(
+        canvas: Canvas,
+        row: TermLine,
+        from: Int,
+        to: Int,
+        x: Float,
+        y: Float,
+        paint: Paint,
+    ): Boolean {
+        val n = to - from
+        if (runChars.size < n) runChars = CharArray(n)
+        var blank = true
+        for (i in 0 until n) {
+            val ch = row[from + i].ch
+            if (ch.length != 1 || !hasCellAdvance(ch[0], paint)) return false
+            runChars[i] = ch[0]
+            if (ch[0] != ' ') blank = false
+        }
+        if (!blank) canvas.drawText(runChars, 0, n, x, y + cellBase, paint)
+        return true
+    }
+
+    // Cached per paint: 0 = not measured yet, 1 = exactly one cell wide, 2 = not.
+    private fun hasCellAdvance(ch: Char, paint: Paint): Boolean {
+        if (ch.code >= FIXED_ADVANCE_LIMIT) return false
+        val cache = if (paint === boldPaint) boldAdvance else normAdvance
+        if (cache[ch.code] == 0.toByte()) {
+            cache[ch.code] = if (abs(paint.measureText(ch.toString()) - cellW) < ADVANCE_TOLERANCE) 1 else 2
+        }
+        return cache[ch.code] == 1.toByte()
     }
 
     // ── Publikus API ─────────────────────────────────────────────────────────
 
-    /** Bármely szálról hívható; nagy kimenetet háttérszálról érdemes. */
-    fun append(bytes: ByteArray, length: Int) {
+    /**
+     * Bármely szálról hívható; nagy kimenetet háttérszálról érdemes.
+     * [respond] false: visszajátszott kimenet, a benne lévő lekérdezésekre nem
+     * megy válasz (lásd [TerminalBuffer.write]).
+     */
+    fun append(bytes: ByteArray, length: Int, respond: Boolean = true) {
         followOutput = true
-        buffer.write(bytes, length)
+        buffer.write(bytes, length, respond)
         // újrarajzolás: a buffer ChangeListener-e intézi
     }
 
     fun clear() {
         buffer.clearScreen()
         // invalidate: ChangeListener
+    }
+
+    /** Mindent töröl, a görgetési előzményt is (újrarajzolt statikus tartalomhoz). */
+    fun resetContent() {
+        buffer.reset()
+        scrollRowOff = 0
+        invalidate()
     }
 
     fun scrollToBottom() {
@@ -389,9 +474,7 @@ class TerminalView @JvmOverloads constructor(
         }
     }
 
-    private fun isInSelection(lineIdx: Int, col: Int): Boolean {
-        if (!selActive) return false
-        val ns = normalizedSel()
+    private fun isInSelection(ns: IntArray, lineIdx: Int, col: Int): Boolean {
         val sl = ns[0]; val sc = ns[1]; val el = ns[2]; val ec = ns[3]
         return when {
             lineIdx < sl || lineIdx > el -> false
@@ -415,7 +498,7 @@ class TerminalView @JvmOverloads constructor(
             val from = if (li == sl) sc else 0
             val to = if (li == el) ec else cols - 1
             var line = ""
-            for (c in from..to.coerceAtMost(row.size - 1)) line += row[c].ch
+            for (c in from..to.coerceAtMost(row.size - 1)) line += row[c].ch // WIDE_TAIL is ""
             sb.append(line.trimEnd())
             if (li < el) sb.append('\n')
         }

@@ -306,8 +306,9 @@ ssh/SshError.kt                        — typované SSH chyby a ich klasifikát
 session/SessionManager.kt              — jediný zdroj pravdy: karty, stav, výstup, otázky
 session/PromptBroker.kt                — otázky na heslo a kľúč hostiteľa ako stav
 service/SshForegroundService.kt        — udržiava proces nažive, upozornenie
+diagnostics/AndroidProblemReports.kt   — hlásenia o chybách po ANR alebo páde (zdieľané len na požiadanie)
 terminal/TerminalView.kt               — terminálový emulátor na Canvas (VT100/xterm-256color)
-terminal/AnsiParser.kt                 — stavový automat ANSI/VT
+terminal/TerminalBuffer.kt             — model terminálu: parser VT/xterm, mriežka buniek, široké znaky, história
 terminal/KeyModifiers.kt               — logika prilepených Ctrl/Shift/Alt/AltGr
 ui/MainActivity.kt                     — hlavná obrazovka: karty, stránky, otázky, chyby
 ui/MainViewModel.kt                    — stav a príkazy hlavnej obrazovky
@@ -367,6 +368,15 @@ Aplikácia je vydaná pod licenciou **GPL-3.0-or-later** — úplný text v súb
 
 ## História verzií
 
+- **1.1.29** — emulácia terminálu: široké znaky (CJK, emoji) zaberajú ako na serveri
+  dve bunky, kombinujúce znaky sa pripoja k predchádzajúcej bunke, kreslenie čiar
+  DEC (`ESC ( 0`) pre rámy ncurses/dialog/mc, odpovede na dotazy na pozíciu kurzora
+  a zariadenie (`CSI 6n`, DA) — pri prehrávaní výstupu po otočení však nie znova;
+  text sa kreslí po úsekoch, nie po bunkách. Hlásenia o chybách: po ANR alebo páde
+  aplikácia ponúkne zdieľanie hlásenia (verzia, zariadenie, stopa — bez tajomstiev);
+  nič sa neodosiela automaticky. Služba v popredí beží iba počas aktívnej relácie.
+  Súbory s kľúčom sa čítajú mimo hlavného vlákna. Opravené: ťaháky sa po zmene
+  veľkosti zobrazovali dvakrát
 - **1.1.28** — výstup terminálu sa spracúva vo vlákne na pozadí po častiach, takže
   veľký výstup (`cat` veľkého logu, `find /`) už neblokuje rozhranie; znaky UTF-8
   rozdelené medzi dve sieťové čítania sa už nepoškodia

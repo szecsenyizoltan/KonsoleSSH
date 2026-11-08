@@ -21,31 +21,37 @@ class PromptBroker(private val timeoutMs: Long = DEFAULT_TIMEOUT_MS) : SessionPr
     private val _pending = MutableStateFlow<PendingPrompt?>(null)
     val pending: StateFlow<PendingPrompt?> = _pending.asStateFlow()
 
-    @Volatile private var waiting: Pair<Long, CompletableDeferred<Any?>>? = null
+    private class Waiting(val prompt: PendingPrompt, val deferred: CompletableDeferred<PromptAnswer?>)
+
+    @Volatile private var waiting: Waiting? = null
 
     override fun password(displayHost: String): String? =
-        ask { id -> PendingPrompt.Password(id, displayHost) } as? String
+        (ask { id -> PendingPrompt.Password(id, displayHost) } as? PromptAnswer.Password)?.password
 
     override fun confirmHostKey(prompt: HostKeyPrompt): Boolean =
-        ask { id -> PendingPrompt.HostKey(id, prompt) } == true
+        (ask { id -> PendingPrompt.HostKey(id, prompt) } as? PromptAnswer.HostKey)?.accept == true
 
-    /** A válasz típusa: jelszónál String? (null = mégse), host key-nél Boolean. */
-    fun answer(promptId: Long, value: Any?) {
-        val (id, deferred) = waiting ?: return
-        if (id == promptId) deferred.complete(value)
+    /** Egy elavult kérdésre vagy más fajtájú válasz figyelmen kívül marad. */
+    fun answer(promptId: Long, answer: PromptAnswer) {
+        val current = waiting ?: return
+        val matches = when (current.prompt) {
+            is PendingPrompt.Password -> answer is PromptAnswer.Password
+            is PendingPrompt.HostKey -> answer is PromptAnswer.HostKey
+        }
+        if (current.prompt.id == promptId && matches) current.deferred.complete(answer)
     }
 
     /** Lezárja a függő kérdést (pl. a fül bezárásakor). */
     fun cancel() {
-        waiting?.second?.complete(null)
+        waiting?.deferred?.complete(null)
     }
 
     // Called on the JSch IO thread, which must block until the user answers.
-    private fun ask(build: (Long) -> PendingPrompt): Any? {
-        val id = NEXT_ID.incrementAndGet()
-        val deferred = CompletableDeferred<Any?>()
-        waiting = id to deferred
-        _pending.value = build(id)
+    private fun ask(build: (Long) -> PendingPrompt): PromptAnswer? {
+        val prompt = build(NEXT_ID.incrementAndGet())
+        val deferred = CompletableDeferred<PromptAnswer?>()
+        waiting = Waiting(prompt, deferred)
+        _pending.value = prompt
         return try {
             runBlocking { withTimeoutOrNull(timeoutMs) { deferred.await() } }
         } finally {

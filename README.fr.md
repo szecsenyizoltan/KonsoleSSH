@@ -306,8 +306,9 @@ ssh/SshError.kt                        — erreurs SSH typées et leur classific
 session/SessionManager.kt              — source unique de vérité : onglets, état, sortie, questions
 session/PromptBroker.kt                — questions de mot de passe et de clé d'hôte sous forme d'état
 service/SshForegroundService.kt        — garde le processus actif, notification
+diagnostics/AndroidProblemReports.kt   — rapports d’erreur après un ANR ou un plantage (partagés uniquement sur demande)
 terminal/TerminalView.kt               — émulateur de terminal sur Canvas (VT100/xterm-256color)
-terminal/AnsiParser.kt                 — automate ANSI/VT
+terminal/TerminalBuffer.kt             — modèle du terminal : analyseur VT/xterm, grille de cellules, caractères larges, historique
 terminal/KeyModifiers.kt               — logique des Ctrl/Maj/Alt/AltGr verrouillables
 ui/MainActivity.kt                     — écran principal : onglets, pages, questions, erreurs
 ui/MainViewModel.kt                    — état et commandes de l'écran principal
@@ -367,6 +368,17 @@ L'application est publiée sous licence **GPL-3.0-or-later** — le texte comple
 
 ## Historique des versions
 
+- **1.1.29** — émulation du terminal : les caractères larges (CJK, emoji) occupent
+  deux cellules comme sur le serveur, les marques combinantes s'attachent à la
+  cellule précédente, dessin de lignes DEC (`ESC ( 0`) pour les cadres
+  ncurses/dialog/mc, réponse aux requêtes de position du curseur et d'appareil
+  (`CSI 6n`, DA) — mais pas une seconde fois lors de la relecture après une
+  rotation ; le texte est dessiné par segments et non cellule par cellule. Rapports
+  d'erreur : après un ANR ou un plantage, l'application propose de partager un
+  rapport (version, appareil, trace — sans secret) ; rien n'est envoyé
+  automatiquement. Le service de premier plan ne tourne que pendant une session
+  active. Les fichiers de clé sont lus hors du thread principal. Corrigé : les
+  aide-mémoire s'affichaient deux fois après un redimensionnement
 - **1.1.28** — la sortie du terminal est traitée sur un thread d'arrière-plan, par
   tranches : une sortie volumineuse (`cat` d'un gros journal, `find /`) ne bloque plus
   l'interface ; les caractères UTF-8 coupés entre deux lectures réseau restent intacts

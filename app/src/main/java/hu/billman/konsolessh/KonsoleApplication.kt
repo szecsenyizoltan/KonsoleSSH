@@ -1,5 +1,7 @@
 package hu.billman.konsolessh
 
+import hu.billman.konsolessh.diagnostics.CrashRecorder
+
 /**
  * Application-alosztály az [AppContainer] (manuális dependency-gráf)
  * konstrukciójához.
@@ -16,5 +18,6 @@ class KonsoleApplication : android.app.Application() {
     override fun onCreate() {
         super.onCreate()
         container = AppContainer(this)
+        CrashRecorder.install(container.crashFile)
     }
 }

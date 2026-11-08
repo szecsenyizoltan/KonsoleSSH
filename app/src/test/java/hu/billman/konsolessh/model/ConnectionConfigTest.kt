@@ -119,4 +119,18 @@ class ConnectionConfigTest {
         assertEquals("new.host", updated.host)
         assertEquals("user", updated.username)
     }
+
+    @Test
+    fun `toString hides every secret`() {
+        val text = ConnectionConfig(
+            host = "h",
+            username = "u",
+            password = "pw-SECRET",
+            privateKey = "-----BEGIN KEY-SECRET",
+            privateKeyPassphrase = "pp-SECRET",
+            jumpPassword = "jp-SECRET",
+        ).toString()
+        assertFalse(text, text.contains("SECRET"))
+        assertTrue(text.contains("host=h"))
+    }
 }

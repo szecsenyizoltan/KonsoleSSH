@@ -7,6 +7,8 @@ import hu.billman.konsolessh.data.CryptoBox
 import hu.billman.konsolessh.data.CryptoBoxConnectionRepository
 import hu.billman.konsolessh.data.PrefsSettingsRepository
 import hu.billman.konsolessh.data.SettingsRepository
+import hu.billman.konsolessh.diagnostics.AndroidProblemReports
+import hu.billman.konsolessh.diagnostics.ProblemReports
 import hu.billman.konsolessh.session.SessionManager
 import hu.billman.konsolessh.session.TerminalMessages
 import hu.billman.konsolessh.ssh.HostKeyStore
@@ -46,6 +48,12 @@ class AppContainer(context: Context) {
     }
 
     val keyProvisioner: SshKeyProvisioner by lazy { SshKeyProvisioner(hostKeyStore) }
+
+    private val androidProblemReports by lazy { AndroidProblemReports(appContext) }
+    val problemReports: ProblemReports get() = androidProblemReports
+
+    /** Ide írja a nem kezelt kivételt a [hu.billman.konsolessh.diagnostics.CrashRecorder]. */
+    val crashFile: File get() = androidProblemReports.crashFile
 
     private val terminalMessages: TerminalMessages by lazy { AndroidTerminalMessages(appContext) }
 

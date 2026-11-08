@@ -162,4 +162,13 @@
     <string name="welcome_line_8">de asemenea accesibile.</string>
     <string name="welcome_line_9">Conexiune nouă: butonul \'+\'</string>
     <string name="welcome_swipe_hint">Glisează la dreapta pentru ajutor.</string>
+
+    <!-- Hibajelentés -->
+    <string name="menu_problem_report">Trimite raport de eroare</string>
+    <string name="report_title">KonsoleSSH nu a mai răspuns sau s-a închis</string>
+    <string name="report_message">Ultima dată aplicația s-a blocat sau s-a închis neașteptat. Pe dispozitiv s-a salvat un raport: versiunea aplicației și a Android, modelul dispozitivului și urma tehnică. Nu conține parole sau chei. Îl trimiți dezvoltatorului?</string>
+    <string name="report_share">Distribuie raportul</string>
+    <string name="report_dismiss">Nu acum</string>
+    <string name="report_subject">Raport de eroare KonsoleSSH</string>
+    <string name="report_none">Nu a fost înregistrat niciun raport de eroare.</string>
 </resources>

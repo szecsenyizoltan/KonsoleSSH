@@ -30,8 +30,12 @@ import hu.billman.konsolessh.model.ConnectionConfig
 import hu.billman.konsolessh.session.PendingPrompt
 import hu.billman.konsolessh.ssh.SshError
 import hu.billman.konsolessh.ssh.SshKeyProvisioner
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.io.InputStream
 import java.util.UUID
 
 /**
@@ -50,6 +54,21 @@ class NewConnectionDialog : DialogFragment() {
         private const val ARG_OPEN_TAB = "open_tab"
         private const val MAX_PORT = 65535
         private const val DEFAULT_PORT = 22
+
+        /** Egy privát kulcs pár KB; ennél nagyobb fájl biztosan nem az. */
+        private const val MAX_KEY_FILE_BYTES = 64 * 1024
+        private const val READ_CHUNK = 8192
+
+        private fun InputStream.readAtMost(limit: Int): ByteArray {
+            val out = ByteArrayOutputStream()
+            val buf = ByteArray(READ_CHUNK)
+            while (out.size() < limit) {
+                val n = read(buf, 0, minOf(buf.size, limit - out.size()))
+                if (n < 0) break
+                out.write(buf, 0, n)
+            }
+            return out.toByteArray()
+        }
         private const val PUBLIC_KEY_TEXT_SP = 12f
 
         /** Új kapcsolat; [openTab] esetén mentés után fület is nyit. */
@@ -82,19 +101,31 @@ class NewConnectionDialog : DialogFragment() {
 
     private val pickKeyFile = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri ?: return@registerForActivityResult
-        try {
-            if (uri.path.orEmpty().lowercase().endsWith(".pub")) {
-                KonsoleToast.show(binding.root, getString(R.string.warning_public_key))
+        if (uri.path.orEmpty().lowercase().endsWith(".pub")) {
+            KonsoleToast.show(binding.root, getString(R.string.warning_public_key))
+        }
+        // A document provider (e.g. a cloud drive) may block: read off the main thread.
+        val resolver = requireContext().contentResolver
+        lifecycleScope.launch {
+            val content = try {
+                withContext(Dispatchers.IO) {
+                    resolver.openInputStream(uri)?.use { stream ->
+                        val bytes = stream.readAtMost(MAX_KEY_FILE_BYTES + 1)
+                        if (bytes.size > MAX_KEY_FILE_BYTES) throw IOException("file is too large for a key")
+                        String(bytes, Charsets.UTF_8)
+                    }
+                }
+            } catch (e: IOException) {
+                KonsoleToast.show(binding.root, getString(R.string.error_read_file, e.message.orEmpty()))
+                null
+            } catch (e: SecurityException) {
+                KonsoleToast.show(binding.root, getString(R.string.error_read_file, e.message.orEmpty()))
+                null
             }
-            requireContext().contentResolver.openInputStream(uri)?.use { stream ->
-                val content = stream.bufferedReader().readText()
+            if (content != null && _binding != null) {
                 binding.editPrivateKey.setText(content)
                 updateKeyStatus(content)
             }
-        } catch (e: IOException) {
-            KonsoleToast.show(binding.root, getString(R.string.error_read_file, e.message.orEmpty()))
-        } catch (e: SecurityException) {
-            KonsoleToast.show(binding.root, getString(R.string.error_read_file, e.message.orEmpty()))
         }
     }
 

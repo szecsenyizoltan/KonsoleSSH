@@ -18,6 +18,11 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/action_problem_report"
+        android:title="@string/menu_problem_report"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_exit"
         android:title="@string/exit"
         app:showAsAction="never" />

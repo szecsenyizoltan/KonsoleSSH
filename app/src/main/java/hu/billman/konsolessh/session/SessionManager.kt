@@ -157,8 +157,8 @@ class SessionManager(
     /** A felület megjelenítette a hibát. */
     fun clearError(tabId: String) = updateTab(tabId) { it.copy(error = null) }
 
-    fun answerPrompt(tabId: String, promptId: Long, value: Any?) {
-        runtimes[tabId]?.broker?.answer(promptId, value)
+    fun answerPrompt(tabId: String, promptId: Long, answer: PromptAnswer) {
+        runtimes[tabId]?.broker?.answer(promptId, answer)
     }
 
     fun output(tabId: String): SharedFlow<OutputChunk>? = runtimes[tabId]?.output?.asSharedFlow()

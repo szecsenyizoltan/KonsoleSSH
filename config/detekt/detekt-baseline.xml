@@ -54,7 +54,6 @@
     <ID>EmptyFunctionBlock:NewConnectionDialog.kt$NewConnectionDialog.&lt;no name provided&gt;${}</ID>
     <ID>EmptyFunctionBlock:SshForegroundService.kt$SshForegroundService.Companion.&lt;no name provided&gt;${}</ID>
     <ID>EmptyFunctionBlock:SshSession.kt$SshSession.JschUserInfo${}</ID>
-    <ID>ImportOrdering:AnsiParser.kt$import android.text.SpannableStringBuilder import android.text.style.BackgroundColorSpan import android.text.style.ForegroundColorSpan import android.text.style.StyleSpan import android.graphics.Typeface</ID>
     <ID>ImportOrdering:MainActivity.kt$import android.animation.ObjectAnimator import android.animation.ValueAnimator import android.content.ComponentName import android.content.Context import android.content.Intent import android.content.ServiceConnection import android.graphics.Color import android.os.Bundle import android.os.IBinder import android.view.KeyEvent import android.view.LayoutInflater import android.view.Menu import android.view.MenuItem import android.view.View import android.view.inputmethod.InputMethodManager import android.widget.Button import android.widget.EditText import android.widget.TextView import androidx.activity.result.contract.ActivityResultContracts import androidx.appcompat.app.AlertDialog import androidx.appcompat.app.AppCompatActivity import androidx.core.app.ActivityCompat import androidx.core.content.ContextCompat import androidx.core.content.getSystemService import androidx.viewpager2.widget.ViewPager2 import android.content.pm.PackageManager import android.os.Build import com.google.android.material.tabs.TabLayout import hu.billman.konsolessh.R import hu.billman.konsolessh.databinding.ActivityMainBinding import hu.billman.konsolessh.model.ConnectionConfig import hu.billman.konsolessh.ssh.SshForegroundService import hu.billman.konsolessh.terminal.TerminalClipboard</ID>
     <ID>Indentation:NewConnectionDialog.kt$NewConnectionDialog$ </ID>
     <ID>Indentation:SshForegroundService.kt$SshForegroundService$ </ID>
@@ -63,7 +62,6 @@
     <ID>Indentation:TerminalFragment.kt$TerminalFragment$ </ID>
     <ID>Indentation:TerminalPagerAdapter.kt$TerminalPagerAdapter$ </ID>
     <ID>LongMethod:SshSession.kt$SshSession$suspend fun connect( termCols: Int = 80, termRows: Int = 24, onProgress: (String) -&gt; Unit = {}, onConnected: () -&gt; Unit, onError: (Throwable) -&gt; Unit )</ID>
-    <ID>LoopWithTooManyJumpStatements:AnsiParser.kt$AnsiParser$while</ID>
     <ID>LoopWithTooManyJumpStatements:SshKeyProvisioner.kt$SshKeyProvisioner$while</ID>
     <ID>LoopWithTooManyJumpStatements:TerminalView.kt$TerminalView$for</ID>
     <ID>MaxLineLength:MainActivity.kt$MainActivity$binding.btnArrowDown.setOnClickListener { flashButton(binding.btnArrowDown); sendKey(currentFragment()?.cursorKeyBytes('B') ?: byteArrayOf()) }</ID>
@@ -75,7 +73,6 @@
     <ID>MaxLineLength:MainActivity.kt$MainActivity$fnbarHintAnimRight = ObjectAnimator.ofFloat(hr, "translationX", 0f, -8f).apply { duration = 900; repeatMode = ValueAnimator.REVERSE; repeatCount = ValueAnimator.INFINITE; interpolator = interp }</ID>
     <ID>MaxLineLength:MainActivity.kt$MainActivity$keybarHintAnimLeft = ObjectAnimator.ofFloat(hl, "translationX", 0f, 8f).apply { duration = 900; repeatMode = ValueAnimator.REVERSE; repeatCount = ValueAnimator.INFINITE; interpolator = interp }</ID>
     <ID>MaxLineLength:MainActivity.kt$MainActivity$keybarHintAnimRight = ObjectAnimator.ofFloat(hr, "translationX", 0f, -8f).apply { duration = 900; repeatMode = ValueAnimator.REVERSE; repeatCount = ValueAnimator.INFINITE; interpolator = interp }</ID>
-    <ID>MultiLineIfElse:AnsiParser.kt$AnsiParser$null</ID>
     <ID>MultiLineIfElse:MainActivity.kt$MainActivity$androidx.core.os.LocaleListCompat.forLanguageTags(tags[which])</ID>
     <ID>MultiLineIfElse:MainActivity.kt$MainActivity$androidx.core.os.LocaleListCompat.getEmptyLocaleList()</ID>
     <ID>MultiLineIfElse:NewConnectionDialog.kt$NewConnectionDialog$ConnectionConfig.AuthType.PASSWORD</ID>
@@ -92,8 +89,6 @@
     <ID>NestedBlockDepth:TerminalView.kt$TerminalView$private fun drawCells(canvas: Canvas)</ID>
     <ID>NestedBlockDepth:TerminalView.kt$TerminalView$override fun onTouchEvent(ev: MotionEvent): Boolean</ID>
     <ID>NoBlankLineBeforeRbrace:SshSession.kt$SshSession$ </ID>
-    <ID>NoMultipleSpaces:AnsiParser.kt$AnsiParser$ </ID>
-    <ID>NoMultipleSpaces:AnsiParserTest.kt$AnsiParserTest$ </ID>
     <ID>NoMultipleSpaces:ConnectionConfig.kt$ConnectionConfig$ </ID>
     <ID>NoMultipleSpaces:MainActivity.kt$MainActivity$ </ID>
     <ID>NoMultipleSpaces:NewConnectionDialog.kt$NewConnectionDialog$ </ID>
@@ -117,7 +112,6 @@
     <ID>NoMultipleSpaces:TerminalPagerAdapter.kt$TerminalPagerAdapter.Companion$ </ID>
     <ID>NoTrailingSpaces:NewConnectionDialog.kt$NewConnectionDialog$ </ID>
     <ID>NoUnusedImports:SshKeyGeneratorTest.kt$hu.billman.konsolessh.ssh.SshKeyGeneratorTest.kt</ID>
-    <ID>NoWildcardImports:AnsiParserTest.kt$import org.junit.Assert.*</ID>
     <ID>NoWildcardImports:ConnectionConfigTest.kt$import org.junit.Assert.*</ID>
     <ID>NoWildcardImports:SavedConnectionsInstrumentedTest.kt$import org.junit.Assert.*</ID>
     <ID>NoWildcardImports:SavedConnectionsTest.kt$import org.junit.Assert.*</ID>
@@ -136,23 +130,18 @@
     <ID>ReturnCount:TerminalView.kt$TerminalView.&lt;no name provided&gt;$override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean</ID>
     <ID>SpacingAroundDoubleColon:MainActivity.kt$MainActivity$::</ID>
     <ID>SpacingAroundKeyword:MainActivity.kt$MainActivity$else</ID>
-    <ID>SpacingBetweenDeclarationsWithComments:AnsiParser.kt$AnsiParser$/** Regex matching other ESC sequences (ESC followed by non-[ char or ESC alone) */</ID>
     <ID>SpacingBetweenDeclarationsWithComments:CryptoBoxConnectionRepository.kt$CryptoBoxConnectionRepository.Companion$/** Plain-fallback prefix; akkor kerül a payload elé, ha az encrypt csődöt mondana. */</ID>
     <ID>SpacingBetweenDeclarationsWithComments:TerminalFragment.kt$TabStatusListener$/** Called when the initial SSH connect fails. UI should show a toast and * auto-close the failed tab after a short delay. */</ID>
-    <ID>StringTemplate:AnsiParserTest.kt$AnsiParserTest$${ESC}</ID>
     <ID>TooGenericExceptionThrown:CryptoBoxConnectionRepositoryTest.kt$CryptoBoxConnectionRepositoryTest.&lt;no name provided&gt;$throw RuntimeException("keystore broke")</ID>
     <ID>TooGenericExceptionThrown:SshKeyProvisioner.kt$SshKeyProvisioner$throw RuntimeException( if (stderr.isNotBlank()) "exit=$exit: $stderr" else "exit=$exit" )</ID>
     <ID>UnusedParameter:SshForegroundService.kt$SshForegroundService.Companion$context: Context</ID>
     <ID>UseCheckOrError:SshSession.kt$SshSession$throw IllegalStateException("SSH session is not connected")</ID>
-    <ID>VariableNaming:AnsiParserTest.kt$AnsiParserTest$private val ESC = "\u001B"</ID>
     <ID>VariableNaming:TerminalBufferTest.kt$TerminalBufferTest$private val ESC = "\u001B"</ID>
     <ID>VariableNaming:TerminalView.kt$TerminalView.TerminalInputConnection$private val SENTINEL = " "</ID>
-    <ID>WildcardImport:AnsiParserTest.kt$import org.junit.Assert.*</ID>
     <ID>WildcardImport:ConnectionConfigTest.kt$import org.junit.Assert.*</ID>
     <ID>WildcardImport:SavedConnectionsInstrumentedTest.kt$import org.junit.Assert.*</ID>
     <ID>WildcardImport:SavedConnectionsTest.kt$import org.junit.Assert.*</ID>
     <ID>WildcardImport:SshSessionTest.kt$import org.junit.Assert.*</ID>
-    <ID>Wrapping:AnsiParser.kt$AnsiParser$;</ID>
     <ID>Wrapping:ConnectionEditActivity.kt$ConnectionEditActivity$;</ID>
     <ID>Wrapping:MainActivity.kt$MainActivity$(</ID>
     <ID>Wrapping:MainActivity.kt$MainActivity$;</ID>

@@ -198,7 +198,7 @@ class SessionManagerTest {
         assertEquals("srv", prompt.prompt.host)
         assertEquals(ConnectionStatus.CONNECTING, tab(id)?.status)
 
-        manager.answerPrompt(id, prompt.id, true)
+        manager.answerPrompt(id, prompt.id, PromptAnswer.HostKey(true))
         await("connected") { tab(id)?.status == ConnectionStatus.CONNECTED }
         assertNull(tab(id)?.prompt)
     }
@@ -209,7 +209,7 @@ class SessionManagerTest {
         val id = manager.openTab(direct)
         manager.connect(id, 80, 24)
         await("prompt") { tab(id)?.prompt != null }
-        manager.answerPrompt(id, tab(id)!!.prompt!!.id, false)
+        manager.answerPrompt(id, tab(id)!!.prompt!!.id, PromptAnswer.HostKey(false))
         await("rejected") { tab(id)?.error != null }
         assertEquals(SshError.HostKeyRejected, tab(id)?.error)
     }

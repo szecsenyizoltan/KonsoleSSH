@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Csak a hibajelentés könyvtára osztható meg; a kapcsolatok tára nem. -->
+<paths>
+    <files-path name="diagnostics" path="diagnostics/" />
+</paths>

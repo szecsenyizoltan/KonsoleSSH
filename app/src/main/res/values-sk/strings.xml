@@ -162,4 +162,13 @@
     <string name="welcome_line_8">interné siete.</string>
     <string name="welcome_line_9">Nové pripojenie: tlačidlo \'+\'</string>
     <string name="welcome_swipe_hint">Potiahni doprava pre pomoc.</string>
+
+    <!-- Hibajelentés -->
+    <string name="menu_problem_report">Odoslať hlásenie o chybe</string>
+    <string name="report_title">KonsoleSSH prestal reagovať alebo spadol</string>
+    <string name="report_message">Naposledy aplikácia zamrzla alebo sa neočakávane zavrela. V zariadení sa uložilo hlásenie: verzia aplikácie a Androidu, model zariadenia a technická stopa. Neobsahuje heslá ani kľúče. Zdieľať ho s vývojárom?</string>
+    <string name="report_share">Zdieľať hlásenie</string>
+    <string name="report_dismiss">Teraz nie</string>
+    <string name="report_subject">Hlásenie o chybe KonsoleSSH</string>
+    <string name="report_none">Nie je zaznamenané žiadne hlásenie o chybe.</string>
 </resources>

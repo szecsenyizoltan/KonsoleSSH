@@ -24,9 +24,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 
 /**
- * Életben tartja a folyamatot, amíg az SSH-munkamenetek futnak, és az aktív
- * kapcsolatok számát mutatja az értesítésben. A munkameneteket nem ő
- * birtokolja: azok a [hu.billman.konsolessh.session.SessionManager]-ben élnek.
+ * Életben tartja a folyamatot, amíg van kapcsolódó vagy kapcsolódott fül, és az
+ * aktív kapcsolatok számát mutatja az értesítésben. Ha egy sem maradt, leáll
+ * magától; a felület indítja újra, amikor ismét kapcsolódik valami. A
+ * munkameneteket nem ő birtokolja: azok a
+ * [hu.billman.konsolessh.session.SessionManager]-ben élnek.
  */
 class SshForegroundService : Service() {
 
@@ -48,9 +50,15 @@ class SshForegroundService : Service() {
             },
         )
         AppContainer.from(this).sessionManager.state
-            .map { it.connectedCount }
+            .map { it.activeCount to it.connectedCount }
             .distinctUntilChanged()
-            .onEach { count -> notificationManager()?.notify(NOTIF_ID, buildNotification(count)) }
+            .onEach { (active, connected) ->
+                if (active == 0) {
+                    stopSelf()
+                } else {
+                    notificationManager()?.notify(NOTIF_ID, buildNotification(connected))
+                }
+            }
             .launchIn(scope)
     }
 

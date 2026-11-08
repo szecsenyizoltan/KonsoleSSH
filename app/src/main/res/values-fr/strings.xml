@@ -162,4 +162,13 @@
     <string name="welcome_line_8">aussi accessibles.</string>
     <string name="welcome_line_9">Nouvelle connexion : bouton \'+\'</string>
     <string name="welcome_swipe_hint">Balaie à droite pour l\'aide.</string>
+
+    <!-- Hibajelentés -->
+    <string name="menu_problem_report">Envoyer un rapport d’erreur</string>
+    <string name="report_title">KonsoleSSH ne répondait plus ou a planté</string>
+    <string name="report_message">La dernière fois, l’application s’est figée ou s’est fermée de façon inattendue. Un rapport a été enregistré sur cet appareil : versions de l’application et d’Android, modèle de l’appareil et trace technique. Il ne contient ni mot de passe ni clé. Le partager avec le développeur ?</string>
+    <string name="report_share">Partager le rapport</string>
+    <string name="report_dismiss">Pas maintenant</string>
+    <string name="report_subject">Rapport d’erreur KonsoleSSH</string>
+    <string name="report_none">Aucun rapport d’erreur n’a été enregistré.</string>
 </resources>

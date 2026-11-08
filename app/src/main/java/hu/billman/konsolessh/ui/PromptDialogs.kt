@@ -8,6 +8,7 @@ import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import hu.billman.konsolessh.R
 import hu.billman.konsolessh.session.PendingPrompt
+import hu.billman.konsolessh.session.PromptAnswer
 
 /**
  * A munkamenet kérdései. Csak a gombok válaszolnak: ha a dialógust a rendszer
@@ -16,9 +17,9 @@ import hu.billman.konsolessh.session.PendingPrompt
  */
 object PromptDialogs {
 
-    fun show(context: Context, prompt: PendingPrompt, onAnswer: (Any?) -> Unit): Dialog = when (prompt) {
-        is PendingPrompt.Password -> password(context, prompt.displayHost, onAnswer)
-        is PendingPrompt.HostKey -> hostKey(context, prompt, onAnswer)
+    fun show(context: Context, prompt: PendingPrompt, onAnswer: (PromptAnswer) -> Unit): Dialog = when (prompt) {
+        is PendingPrompt.Password -> password(context, prompt.displayHost) { onAnswer(PromptAnswer.Password(it)) }
+        is PendingPrompt.HostKey -> hostKey(context, prompt) { onAnswer(PromptAnswer.HostKey(it)) }
     }
 
     private fun password(context: Context, displayHost: String, onAnswer: (String?) -> Unit): Dialog {

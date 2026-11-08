@@ -5,8 +5,10 @@ import androidx.lifecycle.viewModelScope
 import hu.billman.konsolessh.data.ConnectionRepository
 import hu.billman.konsolessh.data.ConnectionStoreException
 import hu.billman.konsolessh.data.SettingsRepository
+import hu.billman.konsolessh.diagnostics.ProblemReports
 import hu.billman.konsolessh.session.ConnectionStatus
 import hu.billman.konsolessh.session.OutputChunk
+import hu.billman.konsolessh.session.PromptAnswer
 import hu.billman.konsolessh.session.SessionManager
 import hu.billman.konsolessh.session.SessionsState
 import hu.billman.konsolessh.ssh.SshError
@@ -16,6 +18,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.io.File
 import java.io.InputStream
 
 /**
@@ -27,6 +30,7 @@ class MainViewModel(
     private val sessions: SessionManager,
     private val repository: ConnectionRepository,
     private val settings: SettingsRepository,
+    private val problemReports: ProblemReports,
 ) : ViewModel() {
 
     val sessionsState: StateFlow<SessionsState> = sessions.state
@@ -40,6 +44,22 @@ class MainViewModel(
 
     private val _storeError = MutableStateFlow<SshError?>(null)
     val storeError: StateFlow<SshError?> = _storeError.asStateFlow()
+
+    private val _problemReport = MutableStateFlow<File?>(null)
+
+    /** Az előző futás ANR- vagy összeomlás-jelentése, amíg a felhasználó nem döntött róla. */
+    val problemReport: StateFlow<File?> = _problemReport.asStateFlow()
+
+    init {
+        viewModelScope.launch { _problemReport.value = problemReports.collectNew() }
+    }
+
+    fun onProblemReportHandled() {
+        _problemReport.value = null
+        viewModelScope.launch { problemReports.markSeen() }
+    }
+
+    suspend fun latestProblemReport(): File? = problemReports.latest()
 
     var fontSizeSp: Float
         get() = settings.fontSizeSp
@@ -86,7 +106,8 @@ class MainViewModel(
 
     fun onErrorShown(tabId: String) = sessions.clearError(tabId)
 
-    fun answerPrompt(tabId: String, promptId: Long, value: Any?) = sessions.answerPrompt(tabId, promptId, value)
+    fun answerPrompt(tabId: String, promptId: Long, answer: PromptAnswer) =
+        sessions.answerPrompt(tabId, promptId, answer)
 
     /** Felhasználói bevitel: a ragadós módosítók itt érvényesülnek, majd visszaállnak. */
     fun send(tabId: String, bytes: ByteArray) {

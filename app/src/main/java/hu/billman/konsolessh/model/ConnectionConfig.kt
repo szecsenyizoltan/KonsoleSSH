@@ -26,4 +26,10 @@ data class ConnectionConfig(
     fun displayName(): String = if (name.isNotBlank()) name else "$username@$host"
 
     fun hasJump(): Boolean = jumpConnectionId.isNotBlank() || jumpHost.isNotBlank()
+
+    // Secrets must not reach logs or problem reports through string templates.
+    override fun toString(): String =
+        "ConnectionConfig(id=$id, name=$name, host=$host, port=$port, username=$username, " +
+            "authType=$authType, jumpConnectionId=$jumpConnectionId, jumpHost=$jumpHost, " +
+            "jumpPort=$jumpPort, jumpUsername=$jumpUsername, secrets=<hidden>)"
 }

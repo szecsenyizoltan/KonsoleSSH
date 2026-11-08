@@ -34,4 +34,27 @@ class OutputBufferTest {
         assertEquals(0, snap.bytes.size)
         assertEquals(0L, snap.start)
     }
+
+    @Test
+    fun `ring buffer wraps around in many small writes`() {
+        val buffer = OutputBuffer(maxBytes = 7)
+        val all = StringBuilder()
+        repeat(50) { i ->
+            val piece = "x$i,"
+            all.append(piece)
+            buffer.append(piece.toByteArray())
+            val snap = buffer.snapshot()
+            assertEquals(all.takeLast(7).toString(), String(snap.bytes))
+            assertEquals(all.length.toLong(), snap.end)
+        }
+    }
+
+    @Test
+    fun `chunk larger than the buffer keeps only its tail`() {
+        val buffer = OutputBuffer(maxBytes = 3)
+        buffer.append("ab".toByteArray())
+        buffer.append("cdefg".toByteArray())
+        assertEquals("efg", String(buffer.snapshot().bytes))
+        assertEquals(4L, buffer.snapshot().start)
+    }
 }

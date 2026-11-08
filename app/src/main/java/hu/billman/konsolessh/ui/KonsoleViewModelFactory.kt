@@ -16,7 +16,12 @@ class KonsoleViewModelFactory(
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T = when {
         modelClass.isAssignableFrom(MainViewModel::class.java) ->
-            MainViewModel(container.sessionManager, container.connectionRepository, container.settingsRepository)
+            MainViewModel(
+                container.sessionManager,
+                container.connectionRepository,
+                container.settingsRepository,
+                container.problemReports,
+            )
         modelClass.isAssignableFrom(ConnectionsViewModel::class.java) ->
             ConnectionsViewModel(container.connectionRepository)
         modelClass.isAssignableFrom(NewConnectionViewModel::class.java) ->

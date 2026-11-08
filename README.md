@@ -306,8 +306,9 @@ ssh/SshError.kt                        — typed SSH errors and their classifier
 session/SessionManager.kt              — single source of truth: tabs, status, output, prompts
 session/PromptBroker.kt                — password / host key questions as state
 service/SshForegroundService.kt        — keeps the process alive, notification
+diagnostics/AndroidProblemReports.kt   — problem reports after an ANR or crash (shared only on request)
 terminal/TerminalView.kt               — Canvas-based terminal emulator (VT100/xterm-256color)
-terminal/AnsiParser.kt                 — ANSI/VT state machine
+terminal/TerminalBuffer.kt             — terminal model: VT/xterm parser, cell grid, wide characters, scrollback
 terminal/KeyModifiers.kt               — sticky Ctrl/Shift/Alt/AltGr logic
 ui/MainActivity.kt                     — main screen: tab strip, pages, prompts, errors
 ui/MainViewModel.kt                    — main screen state and commands
@@ -391,6 +392,15 @@ This application is released under the **GPL-3.0-or-later** license — full tex
 
 ## Release history
 
+- **1.1.29** — terminal emulation: wide characters (CJK, emoji) take two cells
+  as on the server, combining marks join the previous cell, DEC line drawing
+  (`ESC ( 0`) for ncurses/dialog/mc frames, cursor position and device queries
+  (`CSI 6n`, DA) are answered — but not again when output is replayed after
+  rotation; text is drawn in runs instead of cell by cell. Problem reports: after
+  an ANR or crash the app offers to share a report (version, device, trace — no
+  secrets); nothing is sent automatically. The foreground service runs only while
+  a session is active. Key files are read off the main thread. Fixed: cheat sheets
+  showed twice after a resize
 - **1.1.28** — terminal output is parsed on a background thread in slices, so
   large output (`cat` of a big log, `find /`) no longer stalls the UI; multibyte
   UTF-8 characters split across network reads are no longer garbled

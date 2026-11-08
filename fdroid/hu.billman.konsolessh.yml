@@ -65,9 +65,9 @@ RepoType: git
 Repo: https://github.com/szecsenyizoltan/KonsoleSSH
 
 Builds:
-  - versionName: 1.1.29
-    versionCode: 40
-    commit: v1.1.29
+  - versionName: 1.1.30
+    versionCode: 41
+    commit: v1.1.30
     subdir: app
     gradle:
       - yes
@@ -75,5 +75,5 @@ Builds:
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
 UpdateCheckData: 'app/build.gradle.kts|versionCode\s*=\s*(\d+)|.|versionName\s*=\s*"([^"]+)"'
-CurrentVersion: 1.1.29
-CurrentVersionCode: 40
+CurrentVersion: 1.1.30
+CurrentVersionCode: 41

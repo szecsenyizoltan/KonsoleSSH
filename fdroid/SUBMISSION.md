@@ -30,7 +30,7 @@ Key points for IzzyOnDroid inclusion:
 - No Google Play Services, no proprietary dependencies.
 - compileSdk 37, targetSdk 37, minSdk 26.
 
-Latest release: v1.1.29 — https://github.com/szecsenyizoltan/KonsoleSSH/releases/tag/v1.1.29
+Latest release: v1.1.30 — https://github.com/szecsenyizoltan/KonsoleSSH/releases/tag/v1.1.30
 ```
 
 5. **Submit issue.**
@@ -96,7 +96,7 @@ Utána a maintainer (Izzy) felveszi a repójába, és az alkalmazás néhány na
      
      - Source: https://github.com/szecsenyizoltan/KonsoleSSH
      - License: GPL-3.0-or-later
-     - Latest tag: v1.1.29 (versionCode 40)
+     - Latest tag: v1.1.30 (versionCode 41)
      - No proprietary dependencies, no Google Play Services.
      - compileSdk 37, targetSdk 37, minSdk 26.
      

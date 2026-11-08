@@ -822,4 +822,53 @@ class TerminalBufferTest {
         assertEquals(3, buf.cursorRow)
         assertEquals(5, buf.cursorCol)
     }
+
+    // ── Fuzz: tetszőleges bemenet sem törheti el a puffert ──────────────────
+
+    @Test
+    fun `random escape-heavy input keeps every invariant`() {
+        val random = java.util.Random(FUZZ_SEED)
+        val pieces = listOf(
+            ESC + "[", ESC + "[?", ESC + "]0;", ESC + "(0", ESC + "(B", ESC + "P", "\u0007", ESC + "\\",
+            ";", "0", "1", "9", "99", "999", "H", "J", "K", "m", "r", "A", "B", "C", "D", "L", "M", "P", "@",
+            "X", "S", "T", "d", "b", "h", "l", "n", "c", " q", "\r", "\n", "\b", "\t", "x", "中", "🔥",
+            "e\u0301", "\u000E", "\u000F", "1049", "47", "1048", "\u009B",
+        )
+        val buf = TerminalBuffer(initialCols = 40, initialRows = 12, maxScrollback = 50)
+        repeat(FUZZ_ROUNDS) { round ->
+            val chunk = buildString { repeat(FUZZ_CHUNK) { append(pieces[random.nextInt(pieces.size)]) } }
+            val bytes = chunk.toByteArray(Charsets.UTF_8)
+            // Arbitrary split points, including inside UTF-8 sequences.
+            val cut = random.nextInt(bytes.size + 1)
+            buf.write(bytes.copyOfRange(0, cut))
+            buf.write(bytes.copyOfRange(cut, bytes.size))
+            if (round % FUZZ_RESIZE_EVERY == 0) buf.resize(10 + random.nextInt(70), 2 + random.nextInt(30))
+
+            assertTrue(buf.cursorRow in 0 until buf.rows)
+            assertTrue(buf.cursorCol in 0..buf.cols)
+            assertTrue(buf.scrollbackSize <= buf.maxScrollback)
+            // Scrollback lines keep the width they had; the live screen matches the size.
+            for (r in 0 until buf.rows) {
+                val line = buf.lineAt(buf.scrollbackSize + r)!!
+                assertEquals(buf.cols, line.size)
+                // A wide character's tail never stands alone at the start of a line.
+                assertFalse(line[0].ch == TerminalBuffer.WIDE_TAIL)
+            }
+        }
+    }
+
+    @Test(timeout = 2_000)
+    fun `huge repeat counts are bounded by the screen`() {
+        val buf = TerminalBuffer(initialCols = 80, initialRows = 24)
+        buf.writeString("x" + ESC + "[999999999b" + ESC + "[999999S" + ESC + "[999999T" + ESC + "[999999L")
+        buf.writeString(ESC + "[999999M" + ESC + "[999999@" + ESC + "[999999P" + ESC + "[999999I" + ESC + "[999999Z")
+        assertTrue(buf.cursorRow in 0 until buf.rows)
+    }
+
+    private companion object {
+        const val FUZZ_SEED = 20261108L
+        const val FUZZ_ROUNDS = 3000
+        const val FUZZ_CHUNK = 60
+        const val FUZZ_RESIZE_EVERY = 97
+    }
 }

@@ -405,9 +405,9 @@ class TerminalBuffer(
             'a' -> _cursorCol = (_cursorCol + n1).coerceAtMost(_cols - 1)
             'd' -> _cursorRow = (n1 - 1).coerceIn(0, _rows - 1)
             'e' -> _cursorRow = (_cursorRow + n1).coerceAtMost(_rows - 1)
-            'I' -> repeat(n1) { _cursorCol = minOf(_cols - 1, (_cursorCol / TAB_WIDTH + 1) * TAB_WIDTH) }
-            'Z' -> repeat(n1) { _cursorCol = maxOf(0, (_cursorCol - 1) / TAB_WIDTH * TAB_WIDTH) }
-            'b' -> lastGraphic?.let { ch -> repeat(n1) { printText(ch, lastGraphicWidth) } }
+            'I' -> repeat(minOf(n1, _cols)) { _cursorCol = minOf(_cols - 1, (_cursorCol / TAB_WIDTH + 1) * TAB_WIDTH) }
+            'Z' -> repeat(minOf(n1, _cols)) { _cursorCol = maxOf(0, (_cursorCol - 1) / TAB_WIDTH * TAB_WIDTH) }
+            'b' -> lastGraphic?.let { ch -> repeat(minOf(n1, _rows * _cols)) { printText(ch, lastGraphicWidth) } }
             'H', 'f' -> {
                 _cursorRow = ((parts.getOrNull(0)?.toIntOrNull() ?: 1) - 1).coerceIn(0, _rows - 1)
                 _cursorCol = ((parts.getOrNull(1)?.toIntOrNull() ?: 1) - 1).coerceIn(0, _cols - 1)
@@ -428,12 +428,14 @@ class TerminalBuffer(
                 1 -> eraseLineStart()
                 2 -> screen[_cursorRow] = blankLine()
             }
-            'L' -> insertLinesAtCursor(n1)
-            'M' -> deleteLinesAtCursor(n1)
+            'L' -> insertLinesAtCursor(minOf(n1, _rows))
+            'M' -> deleteLinesAtCursor(minOf(n1, _rows))
             'P' -> deleteChars(n1)
             '@' -> insertBlanks(n1)
-            'S' -> repeat(n1) { scrollRegionUp() }
-            'T' -> repeat(n1) { scrollRegionDown() }
+            // Counts beyond the screen change nothing more; a hostile or broken
+            // CSI 999999 S must not keep the parser busy for minutes.
+            'S' -> repeat(minOf(n1, _rows)) { scrollRegionUp() }
+            'T' -> repeat(minOf(n1, _rows)) { scrollRegionDown() }
             'X' -> {
                 val end = minOf(_cursorCol + n1, _cols)
                 for (c in _cursorCol until end) screen[_cursorRow][c] = blankCell()

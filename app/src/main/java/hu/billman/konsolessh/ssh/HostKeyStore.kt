@@ -43,9 +43,16 @@ class HostKeyStore(private val file: File) {
         return file.readLines()
             .mapNotNull { line ->
                 val parts = line.trim().split(' ')
-                if (parts.size == 3) Entry(parts[0], parts[1], parts[2]) else null
+                // A damaged line must not turn into a bogus trusted key.
+                val valid = parts.size == 3 && KEY_TYPE.matches(parts[1]) && BASE64.matches(parts[2])
+                if (valid) Entry(parts[0], parts[1], parts[2]) else null
             }
             .toMutableList()
+    }
+
+    private companion object {
+        val KEY_TYPE = Regex("(ssh|ecdsa-sha2|sk|rsa-sha2)-[A-Za-z0-9@.-]+")
+        val BASE64 = Regex("[A-Za-z0-9+/]+={0,2}")
     }
 
     // Átnevezéssel írunk, hogy egy félbeszakadt írás ne hagyjon csonka fájlt.

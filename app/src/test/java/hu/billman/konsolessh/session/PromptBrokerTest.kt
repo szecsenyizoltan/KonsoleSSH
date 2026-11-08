@@ -4,6 +4,7 @@ import hu.billman.konsolessh.ssh.HostKeyPrompt
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
@@ -67,5 +68,16 @@ class PromptBrokerTest {
     private companion object {
         const val TIMEOUT_MS = 5_000L
         const val POLL_MS = 5L
+    }
+
+    @Test
+    fun `a question asked after cancel is rejected at once`() {
+        val broker = PromptBroker()
+        broker.cancel()
+        val started = System.nanoTime()
+        assertFalse(broker.confirmHostKey(hostKey))
+        assertNull(broker.password("u@srv"))
+        assertNull(broker.pending.value)
+        assertTrue(System.nanoTime() - started < TimeUnit.SECONDS.toNanos(1))
     }
 }

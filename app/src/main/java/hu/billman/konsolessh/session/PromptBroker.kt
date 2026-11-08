@@ -25,6 +25,9 @@ class PromptBroker(private val timeoutMs: Long = DEFAULT_TIMEOUT_MS) : SessionPr
 
     @Volatile private var waiting: Waiting? = null
 
+    /** A [cancel] után nincs, aki válaszoljon: minden további kérdés azonnal elutasítva. */
+    @Volatile private var cancelled = false
+
     override fun password(displayHost: String): String? =
         (ask { id -> PendingPrompt.Password(id, displayHost) } as? PromptAnswer.Password)?.password
 
@@ -41,13 +44,19 @@ class PromptBroker(private val timeoutMs: Long = DEFAULT_TIMEOUT_MS) : SessionPr
         if (current.prompt.id == promptId && matches) current.deferred.complete(answer)
     }
 
-    /** Lezárja a függő kérdést (pl. a fül bezárásakor). */
+    /**
+     * Lezárja a függő kérdést, és minden későbbit is elutasít (pl. a fül
+     * bezárásakor). Enélkül egy kapcsolódás közben bezárt fül későbbi kérdése
+     * az időkorlátig tartaná nyitva a félkész kapcsolatot.
+     */
     fun cancel() {
+        cancelled = true
         waiting?.deferred?.complete(null)
     }
 
     // Called on the JSch IO thread, which must block until the user answers.
     private fun ask(build: (Long) -> PendingPrompt): PromptAnswer? {
+        if (cancelled) return null
         val prompt = build(NEXT_ID.incrementAndGet())
         val deferred = CompletableDeferred<PromptAnswer?>()
         waiting = Waiting(prompt, deferred)

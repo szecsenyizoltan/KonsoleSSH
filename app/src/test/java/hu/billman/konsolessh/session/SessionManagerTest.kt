@@ -200,7 +200,8 @@ class SessionManagerTest {
 
         manager.answerPrompt(id, prompt.id, PromptAnswer.HostKey(true))
         await("connected") { tab(id)?.status == ConnectionStatus.CONNECTED }
-        assertNull(tab(id)?.prompt)
+        // The prompt state is cleared asynchronously and may trail the status.
+        await("prompt cleared") { tab(id)?.prompt == null }
     }
 
     @Test

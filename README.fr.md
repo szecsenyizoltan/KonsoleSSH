@@ -222,7 +222,7 @@ Les exceptions JSch brutes sont converties en texte lisible (localisé) :
 
 - **AES-256-GCM via Android Keystore** — les profils de connexion sont chiffrés avec une clé Keystore non exportable (IV aléatoire, tag de 128 bits) ; les anciennes données EncryptedSharedPreferences sont migrées automatiquement
 - **Migration legacy** au premier lancement — les anciens profils en texte clair sont déplacés vers le stockage chiffré, puis l'ancien stockage est vidé
-- **Repli prefs en clair** — si l'initialisation du keystore échoue (avertissement journalisé), les profils ne sont pas perdus
+- **Ni texte en clair, ni écrasement silencieux** — si le chiffrement échoue, rien n'est écrit ; un stockage illisible est signalé et jamais écrasé
 - **Vérification de la clé d'hôte (TOFU)** — l'empreinte SHA256 de la clé du serveur est confirmée à la première connexion, puis vérifiée à chaque connexion ; une clé modifiée n'est acceptée qu'après remplacement explicite
 - Les identifiants ne quittent jamais l'appareil
 
@@ -294,10 +294,28 @@ Les sessions appartiennent à `SshForegroundService`, pas aux fragments :
 
 ```
 app/src/main/java/hu/billman/konsolessh/
-├── model/           ConnectionConfig, SavedConnections (prefs chiffrées)
-├── ssh/             SshSession, SshForegroundService
-├── terminal/        TerminalView, AnsiParser, TerminalClipboard
-└── ui/              MainActivity, TerminalFragment, dialogues, sheets
+model/ConnectionConfig.kt              — données de connexion SSH (hôte, port, utilisateur, auth, jump)
+data/ConnectionRepository.kt           — connexions enregistrées ; suspend, main-safe ; stockage illisible → exception
+data/CryptoBoxConnectionRepository.kt  — stockage AES-256-GCM (Android Keystore), migration des anciennes données
+data/SettingsRepository.kt             — petits réglages (taille de police)
+ssh/SshSession.kt                      — session JSch : chaîne de jump, shell, envoi/suppression SFTP
+ssh/JumpChain.kt                       — résolution et tunnels des jump hosts à plusieurs sauts
+ssh/TofuHostKeyRepository.kt           — vérification de la clé d'hôte (confiance au premier usage)
+ssh/SshKeyProvisioner.kt               — test de connexion et envoi de la clé publique
+ssh/SshError.kt                        — erreurs SSH typées et leur classificateur
+session/SessionManager.kt              — source unique de vérité : onglets, état, sortie, questions
+session/PromptBroker.kt                — questions de mot de passe et de clé d'hôte sous forme d'état
+service/SshForegroundService.kt        — garde le processus actif, notification
+terminal/TerminalView.kt               — émulateur de terminal sur Canvas (VT100/xterm-256color)
+terminal/AnsiParser.kt                 — automate ANSI/VT
+terminal/KeyModifiers.kt               — logique des Ctrl/Maj/Alt/AltGr verrouillables
+ui/MainActivity.kt                     — écran principal : onglets, pages, questions, erreurs
+ui/MainViewModel.kt                    — état et commandes de l'écran principal
+ui/SshTerminalFragment.kt              — un onglet SSH (ne reçoit que l'id de l'onglet)
+ui/StaticTerminalFragment.kt           — page d'accueil, aide-mémoire Linux et tmux
+ui/NewConnectionDialog.kt              — créer / modifier / tester une connexion
+ui/keybar/KeybarController.kt          — barre de touches à l'écran
+AppContainer.kt                        — injection de dépendances manuelle (composition root)
 ```
 
 ## Construction
@@ -349,6 +367,12 @@ L'application est publiée sous licence **GPL-3.0-or-later** — le texte comple
 
 ## Historique des versions
 
+- **1.1.27** — architecture en couches après un audit du code : un gestionnaire de
+  sessions unique comme source de vérité, les questions arrivent sous forme d'état
+  et survivent à la rotation, erreurs typées avec un seul traducteur de messages ;
+  un stockage de connexions illisible n'est plus écrasé et rien n'est jamais
+  enregistré en clair ; plus de secrets dans les arguments des fragments ; la phrase
+  de passe de la clé est conservée à l'édition ; commande d'envoi de clé plus sûre
 - **1.1.26** — vérification de la clé d'hôte du serveur (confiance au premier usage,
   empreinte SHA256, alerte en cas de changement) ; jump hosts à plusieurs sauts (un
   jump host peut avoir son propre jump host, jusqu'à 5 sauts), utilisés aussi par le

@@ -1,367 +1,327 @@
 package hu.billman.konsolessh.ui
 
 import android.app.Dialog
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.Toast
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.EditText
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.getSystemService
+import androidx.core.os.bundleOf
 import androidx.fragment.app.DialogFragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.setFragmentResult
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import com.google.gson.Gson
-import hu.billman.konsolessh.AppContainer
+import androidx.lifecycle.repeatOnLifecycle
 import hu.billman.konsolessh.R
+import hu.billman.konsolessh.data.ConnectionStoreException
 import hu.billman.konsolessh.databinding.DialogNewConnectionBinding
 import hu.billman.konsolessh.model.ConnectionConfig
-import hu.billman.konsolessh.model.SavedConnections
-import hu.billman.konsolessh.ssh.HostKeyPrompterFn
-import hu.billman.konsolessh.ssh.JumpChain
-import hu.billman.konsolessh.ssh.JumpChainException
-import hu.billman.konsolessh.ssh.LocalNetworkAccess
+import hu.billman.konsolessh.session.PendingPrompt
+import hu.billman.konsolessh.ssh.SshError
 import hu.billman.konsolessh.ssh.SshKeyProvisioner
 import kotlinx.coroutines.launch
+import java.io.IOException
+import java.util.UUID
 
+/**
+ * Új kapcsolat létrehozása vagy egy mentett szerkesztése. Csak megjelenít és
+ * a [NewConnectionViewModel]-nek ad parancsot; a mentés eredménye a Fragment
+ * Result API-n megy vissza ([RESULT_KEY]), így forgatás után is megérkezik.
+ * Szerkesztéskor csak az azonosítót kapja, a titkokat a repository-ból tölti.
+ */
 class NewConnectionDialog : DialogFragment() {
 
-    interface Listener {
-        fun onConnectionSelected(config: ConnectionConfig)
-    }
-
     companion object {
-        private const val ARG_EDIT_JSON = "edit_json"
+        const val RESULT_KEY = "new_connection_result"
+        const val KEY_CONNECTION_ID = "connection_id"
+        const val KEY_OPEN_TAB = "open_tab"
+        private const val ARG_EDIT_ID = "edit_id"
+        private const val ARG_OPEN_TAB = "open_tab"
+        private const val MAX_PORT = 65535
+        private const val DEFAULT_PORT = 22
+        private const val PUBLIC_KEY_TEXT_SP = 12f
 
-        /** Open dialog pre-filled for editing an existing connection. */
-        fun newForEdit(config: ConnectionConfig): NewConnectionDialog =
-            NewConnectionDialog().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_EDIT_JSON, Gson().toJson(config))
-                }
-            }
+        /** Új kapcsolat; [openTab] esetén mentés után fület is nyit. */
+        fun newForCreate(openTab: Boolean) = NewConnectionDialog().apply {
+            arguments = bundleOf(ARG_OPEN_TAB to openTab)
+        }
+
+        fun newForEdit(connectionId: String) = NewConnectionDialog().apply {
+            arguments = bundleOf(ARG_EDIT_ID to connectionId)
+        }
     }
 
-    var listener: Listener? = null
     private var _binding: DialogNewConnectionBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: NewConnectionViewModel by lazy {
-        ViewModelProvider(
-            this,
-            KonsoleViewModelFactory(AppContainer.from(requireContext())),
-        )[NewConnectionViewModel::class.java]
-    }
+    private val viewModel: NewConnectionViewModel by viewModels { KonsoleViewModelFactory.from(requireContext()) }
 
-    /** Non-null when editing an existing connection. */
-    private var editConfig: ConnectionConfig? = null
+    private val editId: String? get() = arguments?.getString(ARG_EDIT_ID)
 
-    /** The saved connection chosen as jump host (null = manual entry). */
-    private var selectedJumpConfig: ConnectionConfig? = null
+    private var jumpOptions: List<ConnectionConfig> = emptyList()
 
-    /** Snapshot of (host, port, username, password) at the time of the last successful test. */
+    /** Snapshot of (host, port, username, password) at the last successful test. */
     private var testedCredSnapshot: String? = null
 
-    /** Server type detected during the last successful test — informs upload strategy. */
+    /** Server type detected during the last successful test — informs the upload strategy. */
     private var testedServerType: SshKeyProvisioner.ServerType = SshKeyProvisioner.ServerType.UNKNOWN
+
+    private var promptDialog: Dialog? = null
+    private var shownPromptId: Long? = null
 
     private val pickKeyFile = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri ?: return@registerForActivityResult
         try {
-            val fileName = uri.path?.substringAfterLast('/') ?: ""
-            if (fileName.lowercase().endsWith(".pub")) {
+            if (uri.path.orEmpty().lowercase().endsWith(".pub")) {
                 KonsoleToast.show(binding.root, getString(R.string.warning_public_key))
             }
-
             requireContext().contentResolver.openInputStream(uri)?.use { stream ->
                 val content = stream.bufferedReader().readText()
                 binding.editPrivateKey.setText(content)
                 updateKeyStatus(content)
             }
-        } catch (e: Exception) {
-            Toast.makeText(context, getString(R.string.error_read_file, e.message ?: ""), Toast.LENGTH_SHORT).show()
+        } catch (e: IOException) {
+            KonsoleToast.show(binding.root, getString(R.string.error_read_file, e.message.orEmpty()))
+        } catch (e: SecurityException) {
+            KonsoleToast.show(binding.root, getString(R.string.error_read_file, e.message.orEmpty()))
         }
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         _binding = DialogNewConnectionBinding.inflate(LayoutInflater.from(requireContext()))
-
-        // Resolve edit mode
-        editConfig = arguments?.getString(ARG_EDIT_JSON)
-            ?.let { Gson().fromJson(it, ConnectionConfig::class.java) }
-
-        // Always hide the saved-connections spinner — in edit mode we pre-fill
-        // the fields directly; in new-connection mode it's just confusing.
+        // The saved-connections spinner is not used: edit mode fills the fields directly.
         binding.savedConnectionsSection.visibility = View.GONE
 
-        val cfg = editConfig
-        if (cfg != null) {
-            populateFromConfig(cfg)
-        } else {
-            val mostUsed = SavedConnections.load(requireContext())
-                .groupBy { it.username }
-                .maxByOrNull { it.value.size }
-                ?.key
-            if (!mostUsed.isNullOrBlank()) binding.editUsername.setText(mostUsed)
-        }
-
         setupAuthTypeToggle()
-        setupKeyFilePicker()
-        setupJumpSpinner()
-        
+        binding.btnPickKeyFile.setOnClickListener { pickKeyFile.launch(arrayOf("*/*")) }
+        binding.btnGenerateKey.setOnClickListener { onGenerateKeyClicked() }
+        binding.btnTestConnection.setOnClickListener { onTestClicked() }
         binding.btnToggleJump.setOnClickListener {
             binding.jumpSection.visibility = View.VISIBLE
             binding.btnToggleJump.visibility = View.GONE
         }
+        invalidateTestOnCredChange()
 
-        val title = if (editConfig != null)
-            getString(R.string.dialog_edit_connection_title)
-        else
-            getString(R.string.dialog_new_connection_title)
         val dialog = AlertDialog.Builder(requireContext(), R.style.KonsoleDialog)
-            .setTitle(title)
+            .setTitle(
+                if (editId != null) R.string.dialog_edit_connection_title else R.string.dialog_new_connection_title,
+            )
             .setView(binding.root)
             .setPositiveButton(R.string.action_save, null)
             .setNegativeButton(R.string.action_cancel, null)
             .create()
-
         dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                if (validateAndConnect()) dialog.dismiss()
-            }
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener { onSaveClicked() }
         }
 
+        // After rotation the views restore the user's edits; only fill them once.
+        loadInitialData(fillFields = savedInstanceState == null)
+        observeViewModel()
         return dialog
+    }
+
+    private fun loadInitialData(fillFields: Boolean) {
+        lifecycleScope.launch {
+            try {
+                val id = editId
+                if (id != null) {
+                    val config = viewModel.loadForEdit(id)
+                    if (config != null && fillFields) populateFromConfig(config)
+                } else if (fillFields) {
+                    viewModel.mostUsedUsername()?.takeIf { it.isNotBlank() }?.let { binding.editUsername.setText(it) }
+                }
+                setupJumpSpinner(viewModel.jumpOptions())
+            } catch (e: ConnectionStoreException) {
+                setTestStatus(SshErrorMessages.text(requireContext(), SshError.StoreUnreadable), successful = false)
+            }
+        }
+    }
+
+    // Test / key upload results and their host key questions arrive as state,
+    // so they survive the dialog being recreated.
+    private fun observeViewModel() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch { viewModel.prompt.collect(::renderPrompt) }
+                launch {
+                    viewModel.busy.collect { busy ->
+                        binding.btnTestConnection.isEnabled = !busy
+                        if (busy) binding.btnGenerateKey.isEnabled = false
+                    }
+                }
+                launch {
+                    viewModel.testResult.collect { result ->
+                        result ?: return@collect
+                        renderTestResult(result)
+                        viewModel.onTestResultShown()
+                    }
+                }
+                launch {
+                    viewModel.uploadResult.collect { result ->
+                        result ?: return@collect
+                        renderUploadResult(result)
+                        viewModel.onUploadResultShown()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun renderPrompt(prompt: PendingPrompt?) {
+        if (prompt?.id == shownPromptId) return
+        promptDialog?.dismiss()
+        shownPromptId = prompt?.id
+        promptDialog = prompt?.let {
+            PromptDialogs.show(requireContext(), it) { answer -> viewModel.answerPrompt(it.id, answer) }
+        }
     }
 
     private fun updateKeyStatus(content: String) {
         binding.textKeyStatus.visibility = if (content.isNotBlank()) View.VISIBLE else View.GONE
     }
 
-    private fun setupJumpSpinner() {
-        val options = SavedConnections.load(requireContext()).filter { it.id != editConfig?.id }
+    private fun setupJumpSpinner(options: List<ConnectionConfig>) {
+        jumpOptions = options
         if (options.isEmpty()) {
             binding.spinnerJumpConnection.visibility = View.GONE
             return
         }
-        val labels = mutableListOf(getString(R.string.jump_host_none)) + options.map { it.displayName() }
-        val adapter = android.widget.ArrayAdapter(
-            requireContext(), android.R.layout.simple_spinner_item, labels
+        val labels = listOf(getString(R.string.jump_host_none)) + options.map { it.displayName() }
+        binding.spinnerJumpConnection.adapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_spinner_item,
+            labels,
         ).also { it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
-        binding.spinnerJumpConnection.adapter = adapter
 
-        // Pre-select if editing a connection that references a saved jump
-        val preselect = editConfig?.jumpConnectionId?.let { jid -> options.indexOfFirst { it.id == jid } } ?: -1
+        val preselect = options.indexOfFirst { it.id == viewModel.selectedJumpId }
         if (preselect >= 0) {
             binding.spinnerJumpConnection.setSelection(preselect + 1)
-            selectedJumpConfig = options[preselect]
+            binding.jumpSection.visibility = View.VISIBLE
+            binding.btnToggleJump.visibility = View.GONE
         }
-
-        binding.spinnerJumpConnection.onItemSelectedListener =
-            object : android.widget.AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(
-                    parent: android.widget.AdapterView<*>?, view: android.view.View?,
-                    position: Int, id: Long
-                ) {
-                    selectedJumpConfig = if (position == 0) null else options[position - 1]
-                }
-                override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+        binding.spinnerJumpConnection.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                viewModel.selectedJumpId = if (position == 0) null else options[position - 1].id
             }
-    }
-
-    private fun setupKeyFilePicker() {
-        binding.btnPickKeyFile.setOnClickListener {
-            pickKeyFile.launch(arrayOf("*/*"))
+            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
         }
-        binding.btnGenerateKey.setOnClickListener { onGenerateKeyClicked() }
-        binding.btnTestConnection.setOnClickListener { onTestClicked() }
-        invalidateTestOnCredChange()
     }
 
     /** Any change in host/port/user/password invalidates the prior test. */
     private fun invalidateTestOnCredChange() {
-        val watcher = object : android.text.TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: android.text.Editable?) {
-                if (testedCredSnapshot != null && testedCredSnapshot != currentCredSnapshot()) {
-                    setTestStatus(null, successful = false)
-                }
+        val watcher = afterTextChanged {
+            if (testedCredSnapshot != null && testedCredSnapshot != currentCredSnapshot()) {
+                setTestStatus(null, successful = false)
             }
         }
-        binding.editHost.addTextChangedListener(watcher)
-        binding.editPort.addTextChangedListener(watcher)
-        binding.editUsername.addTextChangedListener(watcher)
-        binding.editPassword.addTextChangedListener(watcher)
+        listOf(binding.editHost, binding.editPort, binding.editUsername, binding.editPassword)
+            .forEach { it.addTextChangedListener(watcher) }
     }
 
-    private fun currentCredSnapshot(): String =
-        listOf(
-            binding.editHost.text.toString().trim(),
-            binding.editPort.text.toString().trim(),
-            binding.editUsername.text.toString().trim(),
-            binding.editPassword.text.toString()
-        ).joinToString(" ")
+    private fun currentCredSnapshot(): String = listOf(
+        binding.editHost.text.toString().trim(),
+        binding.editPort.text.toString().trim(),
+        binding.editUsername.text.toString().trim(),
+        binding.editPassword.text.toString(),
+    ).joinToString("\u0000")
 
     private fun setTestStatus(message: String?, successful: Boolean) {
-        binding.textTestStatus.text = message ?: ""
-        if (!successful) {
-            testedCredSnapshot = null
-            binding.btnGenerateKey.isEnabled = false
-        } else {
-            testedCredSnapshot = currentCredSnapshot()
-            binding.btnGenerateKey.isEnabled = true
-        }
+        binding.textTestStatus.text = message.orEmpty()
+        testedCredSnapshot = if (successful) currentCredSnapshot() else null
+        binding.btnGenerateKey.isEnabled = successful
     }
+
+    private fun port(): Int = binding.editPort.text.toString().toIntOrNull()?.coerceIn(1, MAX_PORT) ?: DEFAULT_PORT
+
+    /** A dialógus mezőiből összeállított konfig (azonosító: szerkesztéskor a meglévő). */
+    private fun formConfig(useKey: Boolean = binding.radioPrivateKey.isChecked) = ConnectionConfig(
+        id = editId ?: viewModel.editConfig?.id ?: UUID.randomUUID().toString(),
+        name = binding.editName.text.toString().trim(),
+        host = binding.editHost.text.toString().trim(),
+        port = port(),
+        username = binding.editUsername.text.toString().trim(),
+        authType = if (useKey) ConnectionConfig.AuthType.PRIVATE_KEY else ConnectionConfig.AuthType.PASSWORD,
+        password = binding.editPassword.text.toString(),
+        privateKey = binding.editPrivateKey.text.toString().trim(),
+        jumpConnectionId = viewModel.selectedJumpId.orEmpty(),
+    )
 
     private fun onTestClicked() {
-        val host       = binding.editHost.text.toString().trim()
-        val username   = binding.editUsername.text.toString().trim()
-        val password   = binding.editPassword.text.toString()
-        val privateKey = binding.editPrivateKey.text.toString().trim()
-        val useKey     = binding.radioPrivateKey.isChecked
-
-        val validationErrorRes: Int? = when {
-            host.isEmpty() || username.isEmpty() -> R.string.test_needs_host_user
-            useKey  && privateKey.isEmpty()      -> R.string.test_needs_private_key
-            !useKey && password.isEmpty()        -> R.string.test_needs_password
-            else                                 -> null
+        val form = formConfig()
+        val useKey = binding.radioPrivateKey.isChecked
+        val validationError = when {
+            form.host.isEmpty() || form.username.isEmpty() -> R.string.test_needs_host_user
+            useKey && form.privateKey.isEmpty() -> R.string.test_needs_private_key
+            !useKey && form.password.isEmpty() -> R.string.test_needs_password
+            else -> null
         }
-        if (validationErrorRes != null) {
-            setTestStatus(getString(validationErrorRes), successful = false)
+        if (validationError != null) {
+            setTestStatus(getString(validationError), successful = false)
             return
         }
-        val port = binding.editPort.text.toString().toIntOrNull()?.coerceIn(1, 65535) ?: 22
-
-        val authType = if (useKey) {
-            ConnectionConfig.AuthType.PRIVATE_KEY
-        } else {
-            ConnectionConfig.AuthType.PASSWORD
-        }
-        val probeConfig = ConnectionConfig(
-            id = editConfig?.id ?: java.util.UUID.randomUUID().toString(),
-            host = host,
-            port = port,
-            username = username,
-            authType = authType,
-            password = if (useKey) "" else password,
-            privateKey = if (useKey) privateKey else "",
-            jumpConnectionId = selectedJumpConfig?.id.orEmpty(),
-        )
-        val jumps = resolveJumpsOrReport(probeConfig) ?: return
-        binding.btnTestConnection.isEnabled = false
-        binding.btnGenerateKey.isEnabled = false
+        // Test only the credentials of the selected auth mode.
+        val probe = if (useKey) form.copy(password = "") else form.copy(privateKey = "")
         binding.textTestStatus.text = getString(R.string.test_running)
+        viewModel.startTest(probe)
+    }
 
-        lifecycleScope.launch {
-            when (val result = viewModel.testConnection(probeConfig, jumps, hostKeyPrompter())) {
-                is NewConnectionViewModel.TestResult.Success -> {
-                    testedServerType = result.serverType
-                    // A "Generate & upload" gomb csak jelszavas tesztből oldódik fel —
-                    // a publikus kulcs feltöltéséhez interaktív jelszós auth kell.
-                    setTestStatus(
-                        getString(R.string.test_success, result.serverVersion.ifBlank { "?" }),
-                        successful = !useKey,
-                    )
-                }
-                is NewConnectionViewModel.TestResult.Failure -> {
-                    setTestStatus(
-                        getString(
-                            R.string.test_failure,
-                            explainFailure(result.errorMessage),
-                        ),
-                        successful = false,
-                    )
-                }
+    private fun renderTestResult(result: NewConnectionViewModel.TestResult) {
+        when (result) {
+            is NewConnectionViewModel.TestResult.Success -> {
+                testedServerType = result.serverType
+                // Key generation needs a password-based test: the upload logs in with it.
+                val banner = result.serverVersion.ifBlank { "?" }
+                setTestStatus(getString(R.string.test_success, banner), successful = !binding.radioPrivateKey.isChecked)
             }
-            binding.btnTestConnection.isEnabled = true
+            is NewConnectionViewModel.TestResult.Failure ->
+                setTestStatus(getString(R.string.test_failure, errorText(result.error)), successful = false)
         }
     }
 
-    private fun friendlyShortError(err: Throwable): String =
-        NewConnectionViewModel.friendlyShortError(err)
-
-    // A teszt és a kulcsfeltöltés ugyanazon a jump-láncon megy, mint a terminál.
-    private fun resolveJumpsOrReport(config: ConnectionConfig): List<ConnectionConfig>? = try {
-        JumpChain.resolve(config, SavedConnections.load(requireContext()))
-    } catch (_: JumpChainException) {
-        setTestStatus(getString(R.string.err_jump_chain_invalid), successful = false)
-        null
-    }
-
-    // A JSch host key hibái nyersen angolul jönnének, ezért fordított szöveget kapnak.
-    private fun explainFailure(message: String): String {
-        val lower = message.lowercase()
-        return when {
-            "hostkey has been changed" in lower -> getString(R.string.err_hostkey_changed)
-            "reject hostkey" in lower -> getString(R.string.err_hostkey_rejected)
-            else -> LocalNetworkAccess.explain(requireContext(), message)
-        }
-    }
-
-    // Ha a dialógus közben bezárult, az ismeretlen kulcs elutasítva.
-    private fun hostKeyPrompter(): HostKeyPrompterFn = { prompt, callback ->
-        val ctx = if (isAdded) context else null
-        if (ctx == null) callback(false) else HostKeyDialog.show(ctx, prompt, callback)
-    }
+    private fun errorText(error: SshError): String = SshErrorMessages.text(requireContext(), error)
 
     private fun onGenerateKeyClicked() {
         if (testedCredSnapshot == null || testedCredSnapshot != currentCredSnapshot()) {
             KonsoleToast.show(binding.root, getString(R.string.generate_needs_test))
             return
         }
-
-        val host     = binding.editHost.text.toString().trim()
-        val username = binding.editUsername.text.toString().trim()
-        val password = binding.editPassword.text.toString()
-        val port     = binding.editPort.text.toString().toIntOrNull()?.coerceIn(1, 65535) ?: 22
-
-        val uploadConfig = ConnectionConfig(
-            id = editConfig?.id ?: java.util.UUID.randomUUID().toString(),
-            host = host,
-            port = port,
-            username = username,
-            password = password,
-            jumpConnectionId = selectedJumpConfig?.id.orEmpty(),
-        )
-        val jumps = resolveJumpsOrReport(uploadConfig) ?: return
-
-        binding.btnGenerateKey.isEnabled = false
+        val uploadConfig = formConfig(useKey = false).copy(privateKey = "")
         binding.textTestStatus.text = getString(R.string.upload_running)
+        viewModel.startKeyUpload(uploadConfig)
+    }
 
-        lifecycleScope.launch {
-            when (val result = viewModel.generateAndUploadKey(uploadConfig, jumps, hostKeyPrompter())) {
-                is NewConnectionViewModel.UploadResult.KeyGenerationFailure -> {
-                    binding.btnGenerateKey.isEnabled = true
-                    KonsoleToast.show(
-                        binding.root,
-                        getString(R.string.error_generic, result.errorMessage),
-                    )
-                }
-                is NewConnectionViewModel.UploadResult.Success -> {
-                    binding.radioPrivateKey.isChecked = true
-                    updateAuthTypeVisibility()
-                    binding.editPrivateKey.setText(result.privatePem)
-                    binding.editPassword.setText("")
-                    updateKeyStatus(result.privatePem)
-                    setTestStatus(
-                        getString(R.string.upload_success, result.serverType.name.lowercase()),
-                        // not re-usable, creds are no longer valid after password clear
-                        successful = false,
-                    )
-                    showUploadSuccessDialog(result.publicLine)
-                }
-                is NewConnectionViewModel.UploadResult.UploadFailure -> {
-                    binding.btnGenerateKey.isEnabled = true
-                    setTestStatus(
-                        getString(
-                            R.string.upload_failure,
-                            explainFailure(result.errorMessage),
-                        ),
-                        // keep the green test state so user can retry
-                        successful = true,
-                    )
-                    showManualFallbackDialog(result.publicLine)
-                }
+    private fun renderUploadResult(result: NewConnectionViewModel.UploadResult) {
+        when (result) {
+            is NewConnectionViewModel.UploadResult.KeyGenerationFailure -> {
+                binding.btnGenerateKey.isEnabled = true
+                KonsoleToast.show(binding.root, getString(R.string.error_generic, errorText(result.error)))
+            }
+            is NewConnectionViewModel.UploadResult.Success -> {
+                binding.radioPrivateKey.isChecked = true
+                updateAuthTypeVisibility()
+                binding.editPrivateKey.setText(result.privatePem)
+                binding.editPassword.setText("")
+                updateKeyStatus(result.privatePem)
+                // The password was cleared, so the earlier test no longer applies.
+                val serverType = result.serverType.name.lowercase()
+                setTestStatus(getString(R.string.upload_success, serverType), successful = false)
+                showUploadSuccessDialog(result.publicLine)
+            }
+            is NewConnectionViewModel.UploadResult.UploadFailure -> {
+                // Keep the green test state so the user can retry.
+                setTestStatus(getString(R.string.upload_failure, errorText(result.error)), successful = true)
+                showManualFallbackDialog(result.publicLine)
             }
         }
     }
@@ -377,27 +337,26 @@ class NewConnectionDialog : DialogFragment() {
 
     private fun showManualFallbackDialog(publicKeyLine: String) {
         val padding = resources.getDimensionPixelSize(R.dimen.dialog_padding)
-        val keyView = android.widget.EditText(requireContext()).apply {
+        val keyView = EditText(requireContext()).apply {
             setText(publicKeyLine)
             isFocusable = false
             isCursorVisible = false
             setTextIsSelectable(true)
             setHorizontallyScrolling(true)
             setSingleLine(false)
-            setTextColor(android.graphics.Color.WHITE)
-            setBackgroundColor(android.graphics.Color.TRANSPARENT)
+            setTextColor(Color.WHITE)
+            setBackgroundColor(Color.TRANSPARENT)
             setPadding(padding, padding / 2, padding, padding / 2)
-            textSize = 12f
-            typeface = android.graphics.Typeface.MONOSPACE
+            textSize = PUBLIC_KEY_TEXT_SP
+            typeface = Typeface.MONOSPACE
         }
         AlertDialog.Builder(requireContext(), R.style.KonsoleDialog)
             .setTitle(R.string.upload_manual_title)
             .setMessage(R.string.upload_manual_message)
             .setView(keyView)
             .setPositiveButton(R.string.action_copy_public_key) { _, _ ->
-                val cm = requireContext().getSystemService(android.content.Context.CLIPBOARD_SERVICE)
-                        as android.content.ClipboardManager
-                cm.setPrimaryClip(android.content.ClipData.newPlainText("ssh-public-key", publicKeyLine))
+                requireContext().getSystemService<ClipboardManager>()
+                    ?.setPrimaryClip(ClipData.newPlainText("ssh-public-key", publicKeyLine))
                 KonsoleToast.show(binding.root, getString(R.string.key_copied))
             }
             .setNegativeButton(R.string.action_close, null)
@@ -422,90 +381,71 @@ class NewConnectionDialog : DialogFragment() {
         updateKeyStatus(config.privateKey)
         updateAuthTypeVisibility()
         updateJumpVisibility(isInternal, config.hasJump())
-        // Spinner preselection is handled in setupJumpSpinner()
     }
 
     private fun setupAuthTypeToggle() {
         binding.radioGroupAuth.setOnCheckedChangeListener { _, _ -> updateAuthTypeVisibility() }
-        binding.editHost.addTextChangedListener(object : android.text.TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: android.text.Editable?) {
-                val host = s?.toString()?.trim() ?: ""
-                val internal = isPrivatePrefix(host)
+        binding.editHost.addTextChangedListener(
+            afterTextChanged { text ->
+                val internal = isPrivatePrefix(text.trim())
                 updateHostLabels(internal)
-                updateJumpVisibility(internal, selectedJumpConfig != null)
-            }
-        })
+                updateJumpVisibility(internal, viewModel.selectedJumpId != null)
+            },
+        )
     }
 
     private fun updateJumpVisibility(isInternal: Boolean, hasJump: Boolean) {
-        if (isInternal) {
-            binding.jumpSection.visibility = View.VISIBLE
-            binding.btnToggleJump.visibility = View.GONE
-        } else {
-            if (hasJump) {
-                binding.jumpSection.visibility = View.VISIBLE
-                binding.btnToggleJump.visibility = View.GONE
-            } else {
-                binding.jumpSection.visibility = View.GONE
-                binding.btnToggleJump.visibility = View.VISIBLE
-            }
-        }
+        val show = isInternal || hasJump
+        binding.jumpSection.visibility = if (show) View.VISIBLE else View.GONE
+        binding.btnToggleJump.visibility = if (show) View.GONE else View.VISIBLE
     }
 
     private fun updateHostLabels(isInternal: Boolean) {
-        binding.layoutHost.hint = getString(
-            if (isInternal) R.string.host_internal_hint else R.string.host_hint
-        )
-        binding.layoutPort.hint = getString(
-            if (isInternal) R.string.port_internal_hint else R.string.port_hint
-        )
+        binding.layoutHost.hint = getString(if (isInternal) R.string.host_internal_hint else R.string.host_hint)
+        binding.layoutPort.hint = getString(if (isInternal) R.string.port_internal_hint else R.string.port_hint)
     }
 
     /** True as soon as the first octet reveals a private range (10/172/192). */
     private fun isPrivatePrefix(host: String): Boolean {
         if (!host.contains('.')) return false
-        return when (host.substringBefore('.').toIntOrNull()) {
-            10, 172, 192 -> true
-            else -> false
-        }
+        return host.substringBefore('.').toIntOrNull() in PRIVATE_FIRST_OCTETS
     }
 
     private fun updateAuthTypeVisibility() {
         val useKey = binding.radioPrivateKey.isChecked
-        binding.layoutPassword.visibility   = if (useKey) View.GONE else View.VISIBLE
+        binding.layoutPassword.visibility = if (useKey) View.GONE else View.VISIBLE
         binding.layoutPrivateKey.visibility = if (useKey) View.VISIBLE else View.GONE
     }
 
-    private fun validateAndConnect(): Boolean {
-        val host     = binding.editHost.text.toString().trim()
-        val username = binding.editUsername.text.toString().trim()
-        if (host.isEmpty())     { KonsoleToast.show(binding.root, getString(R.string.error_host_required)); return false }
-        if (username.isEmpty()) { KonsoleToast.show(binding.root, getString(R.string.error_username_required)); return false }
-
-        val port     = binding.editPort.text.toString().toIntOrNull()?.coerceIn(1, 65535) ?: 22
-        val authType = if (binding.radioPrivateKey.isChecked)
-            ConnectionConfig.AuthType.PRIVATE_KEY else ConnectionConfig.AuthType.PASSWORD
-
-        val config = ConnectionConfig(
-            id       = editConfig?.id ?: java.util.UUID.randomUUID().toString(),
-            name     = binding.editName.text.toString().trim(),
-            host     = host, port = port, username = username,
-            authType = authType,
-            password = binding.editPassword.text.toString(),
-            privateKey       = binding.editPrivateKey.text.toString().trim(),
-            jumpConnectionId = selectedJumpConfig?.id ?: ""
-        )
-
-        SavedConnections.saveOne(requireContext(), config)
-
-        listener?.onConnectionSelected(config)
-        return true
+    private fun onSaveClicked() {
+        val form = formConfig()
+        when {
+            form.host.isEmpty() -> KonsoleToast.show(binding.root, getString(R.string.error_host_required))
+            form.username.isEmpty() -> KonsoleToast.show(binding.root, getString(R.string.error_username_required))
+            else -> lifecycleScope.launch {
+                if (viewModel.save(form)) {
+                    val openTab = arguments?.getBoolean(ARG_OPEN_TAB) ?: false
+                    setFragmentResult(RESULT_KEY, bundleOf(KEY_CONNECTION_ID to form.id, KEY_OPEN_TAB to openTab))
+                    dismiss()
+                } else {
+                    KonsoleToast.show(binding.root, getString(R.string.err_store_write))
+                }
+            }
+        }
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
+    override fun onDestroy() {
+        promptDialog?.dismiss()
+        promptDialog = null
         _binding = null
+        super.onDestroy()
+    }
+
+    private fun afterTextChanged(action: (String) -> Unit) = object : TextWatcher {
+        override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+        override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
+        override fun afterTextChanged(s: Editable?) = action(s?.toString().orEmpty())
     }
 }
+
+private val PRIVATE_FIRST_OCTETS = setOf(10, 172, 192)

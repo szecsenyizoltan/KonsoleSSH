@@ -10,123 +10,128 @@ import androidx.security.crypto.MasterKey
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import hu.billman.konsolessh.model.ConnectionConfig
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 
 /**
  * CryptoBox-alapú ConnectionRepository: AES-256-GCM (Android Keystore), saját
- * perzisztenciaformátum, `androidx.security:security-crypto` alpha dep-től
- * független *napi* működés.
+ * perzisztenciaformátum.
  *
- * A régi [EncryptedPrefsConnectionRepository] (security-crypto alpha) és még
- * régebbi plain-prefs adatok automatikusan átmigrálódnak az első [load]-kor:
- *   1. Új prefs-fájlban ([PREFS_NAME]) tároljuk a titkosított JSON-t.
- *   2. Első olvasáskor, ha ez üres és a migráció még nem futott,
- *      megpróbáljuk olvasni a régi `konsole_connections_enc` fájlt
- *      az EncryptedSharedPreferences API-jával, és átmásoljuk az új
- *      formátumba. Siker esetén törlődik a régi fájl.
- *   3. A migráció idempotens: egy flag (`_migrated_from_legacy_v1`)
- *      megakadályozza az ismételt lefutást.
+ * Régebbi tárak (security-crypto EncryptedSharedPreferences, plain-prefs) az
+ * első [load]-kor egyszer átmigrálódnak; a régi fájl csak akkor törlődik, ha
+ * az új formátum ténylegesen visszaolvasható. A security-crypto függőség
+ * ezért még bent van, de csak a migráció használja.
  *
- * A security-crypto dep ezért még bent marad a projektben — csak a migrációs
- * kód hívja, a napi CRUD már a [cryptoBox] impl-en megy. Egy későbbi release
- * a migrációs ágat is kiveheti (akkor a régi felhasználók adatai elveszhetnek,
- * ezért ezt csak több hónapos beágyazódás után).
+ * Hibakezelés: olvashatatlan tárnál [ConnectionStoreException], írás nélkül;
+ * sikertelen titkosításnál sincs titkosítatlan mentés.
  */
 class CryptoBoxConnectionRepository(
     context: Context,
     private val cryptoBox: CryptoBox,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    /** Csak tesztekhez cserélendő, hogy ne a valódi tárat írják. */
+    private val prefsName: String = PREFS_NAME,
 ) : ConnectionRepository {
 
     private val appContext: Context = context.applicationContext
     private val gson = Gson()
 
+    // Read-modify-write (saveOne, delete) must not interleave.
+    private val mutex = Mutex()
+
     private fun prefs(): SharedPreferences =
-        appContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        appContext.getSharedPreferences(prefsName, Context.MODE_PRIVATE)
 
-    override fun load(): MutableList<ConnectionConfig> {
+    override suspend fun load(): List<ConnectionConfig> = io { loadLocked() }
+
+    override suspend fun get(id: String): ConnectionConfig? = io { loadLocked().find { it.id == id } }
+
+    override suspend fun saveOne(config: ConnectionConfig) = io {
+        val list = loadLocked().toMutableList()
+        val idx = list.indexOfFirst { it.id == config.id }
+        if (idx >= 0) list[idx] = config else list.add(config)
+        write(list)
+    }
+
+    override suspend fun delete(id: String) = io {
+        write(loadLocked().filterNot { it.id == id })
+    }
+
+    private suspend fun <T> io(block: () -> T): T =
+        withContext(ioDispatcher) { mutex.withLock { block() } }
+
+    private fun loadLocked(): List<ConnectionConfig> {
         val p = prefs()
-        p.getString(KEY_PAYLOAD, null)?.let { return decryptAndParse(it) }
+        val stored = p.getString(KEY_PAYLOAD, null)
+        return when {
+            stored != null -> decryptAndParse(stored)
+            p.getBoolean(KEY_MIGRATED_FLAG, false) -> emptyList()
+            else -> migrateFromLegacy(p)
+        }
+    }
 
-        // Új formátumban nincs adat. Egyszer próbáljuk a régi forrásokat.
-        if (!p.getBoolean(KEY_MIGRATED_FLAG, false)) {
-            val migrated = readFromLegacyWithoutDeleting()
-            if (migrated.isNotEmpty()) {
-                save(migrated)
-                // Csak akkor töröljük a legacy fájlokat és rakjuk le a flaget,
-                // ha az új formátumban a save ténylegesen megjelent. Ha a save
-                // bármilyen okból nem sikerült, a legacy forrás érintetlen
-                // marad és a következő induláskor újra próbálhatjuk.
-                if (p.getString(KEY_PAYLOAD, null) != null) {
-                    deleteLegacyPrefs()
-                    p.edit { putBoolean(KEY_MIGRATED_FLAG, true) }
-                }
-                return migrated.toMutableList()
-            }
-            // Nincs migrálható adat: takarítsuk el a (valószínűleg üres vagy
-            // hozzáférhetetlen) legacy fájlokat, és jelöljük a migrációt
-            // lefutottnak, hogy ne próbáljuk minden induláskor újra.
+    // Nothing in the new format yet: try the old stores once. The legacy files
+    // are deleted only once the new payload is really there; otherwise the next
+    // start retries from the untouched old store.
+    private fun migrateFromLegacy(p: SharedPreferences): List<ConnectionConfig> {
+        val migrated = readFromLegacyWithoutDeleting()
+        val written = migrated.isEmpty() || try {
+            write(migrated)
+            p.getString(KEY_PAYLOAD, null) != null
+        } catch (e: ConnectionStoreException) {
+            Log.w(TAG, "migration write failed, legacy store kept", e)
+            false
+        }
+        if (written) {
             deleteLegacyPrefs()
             p.edit { putBoolean(KEY_MIGRATED_FLAG, true) }
         }
-        return mutableListOf()
+        return migrated.sortedByName()
     }
 
-    override fun save(connections: List<ConnectionConfig>) {
+    private fun write(connections: List<ConnectionConfig>) {
         val json = gson.toJson(connections).toByteArray(Charsets.UTF_8)
-        val payload = try {
-            Base64.encodeToString(cryptoBox.encrypt(json), Base64.NO_WRAP)
+        // Keystore failures surface as several unrelated types (ProviderException,
+        // KeyStoreException, IllegalStateException); none may lead to plaintext.
+        val encrypted = try {
+            cryptoBox.encrypt(json)
         } catch (e: Exception) {
-            // Plaintext-fallback csak adatveszteség megelőzésére — a user
-            // jelszavai/kulcsai ezzel rendszerszintű titkosítás NÉLKÜL
-            // tárolódnak. Log.wtf-ként (CryptoFailureSink-en át) jelezzük,
-            // hogy a Keystore-integráció meghibásodott; Crashlytics / bug-
-            // report / override-olt handler mind látja a riadót.
-            CryptoFailureSink.report(
-                TAG,
-                "AES-GCM encrypt failed — saving connection list in plaintext fallback",
-                e,
-            )
-            Base64.encodeToString(PLAIN_MARKER + json, Base64.NO_WRAP)
+            throw ConnectionStoreException("encryption failed, nothing was written", e)
         }
-        prefs().edit { putString(KEY_PAYLOAD, payload) }
+        prefs().edit { putString(KEY_PAYLOAD, Base64.encodeToString(encrypted, Base64.NO_WRAP)) }
     }
 
-    override fun saveOne(config: ConnectionConfig) {
-        val list = load()
-        val idx = list.indexOfFirst { it.id == config.id }
-        if (idx >= 0) list[idx] = config else list.add(config)
-        save(list)
-    }
-
-    override fun delete(id: String) {
-        val list = load()
-        list.removeAll { it.id == id }
-        save(list)
-    }
-
-    private fun decryptAndParse(base64: String): MutableList<ConnectionConfig> = try {
-        val raw = Base64.decode(base64, Base64.NO_WRAP)
-        val json = if (raw.size >= PLAIN_MARKER.size &&
-            raw.copyOfRange(0, PLAIN_MARKER.size).contentEquals(PLAIN_MARKER)
-        ) {
-            raw.copyOfRange(PLAIN_MARKER.size, raw.size)
-        } else {
-            cryptoBox.decrypt(raw)
+    private fun decryptAndParse(base64: String): List<ConnectionConfig> {
+        val list: List<ConnectionConfig>? = try {
+            val raw = Base64.decode(base64, Base64.NO_WRAP)
+            // Versions before 1.1.27 could store a plaintext fallback; it stays
+            // readable and is encrypted on the next write.
+            val json = if (raw.startsWith(PLAIN_MARKER)) {
+                raw.copyOfRange(PLAIN_MARKER.size, raw.size)
+            } else {
+                cryptoBox.decrypt(raw)
+            }
+            gson.fromJson(String(json, Charsets.UTF_8), LIST_TYPE)
+        } catch (e: Exception) {
+            Log.e(TAG, "stored connections are unreadable", e)
+            throw ConnectionStoreException("stored connections are unreadable", e)
         }
-        val text = String(json, Charsets.UTF_8)
-        val type = object : TypeToken<MutableList<ConnectionConfig>>() {}.type
-        val list: MutableList<ConnectionConfig> = gson.fromJson(text, type)
-        list.sortedBy { it.displayName().lowercase() }.toMutableList()
-    } catch (e: Exception) {
-        Log.e(TAG, "decrypt/parse failed — returning empty list", e)
-        mutableListOf()
+        return list.orEmpty().sortedByName()
     }
+
+    private fun List<ConnectionConfig>.sortedByName() = sortedBy { it.displayName().lowercase() }
+
+    private fun ByteArray.startsWith(prefix: ByteArray): Boolean =
+        size >= prefix.size && copyOfRange(0, prefix.size).contentEquals(prefix)
 
     /**
      * Megpróbálja olvasni a régi tárakat (security-crypto EncryptedSharedPreferences,
      * majd ha üres, a még korábbi plain-prefs). **Nem töröl semmit** — a legacy
-     * fájlok eltávolítása a hívó feladata, az új formátumú save sikeres
-     * verifikálása után. Minden kivételt elnyel; ha a régi tár nem olvasható
-     * (pl. Keystore-inkompatibilitás), üres listát ad vissza, de nem crash-el.
+     * fájlok eltávolítása a hívó feladata, az új formátum visszaolvasása után.
+     * Olvashatatlan régi tárnál üres listát ad.
      */
     private fun readFromLegacyWithoutDeleting(): List<ConnectionConfig> {
         return try {
@@ -140,8 +145,7 @@ class CryptoBoxConnectionRepository(
             )
             val json = legacyPrefs.getString(LEGACY_KEY_CONNECTIONS, null)
             if (!json.isNullOrEmpty()) {
-                val type = object : TypeToken<MutableList<ConnectionConfig>>() {}.type
-                val list: MutableList<ConnectionConfig> = gson.fromJson(json, type)
+                val list: List<ConnectionConfig> = gson.fromJson(json, LIST_TYPE)
                 Log.i(TAG, "Read ${list.size} entries from EncryptedSharedPreferences legacy")
                 return list
             }
@@ -152,16 +156,12 @@ class CryptoBoxConnectionRepository(
         }
     }
 
-    /**
-     * Még a korai, plain-prefs verzió (`konsole_connections`) adatait is
-     * megpróbáljuk olvasni. Nem töröl — a hívó dolga.
-     */
+    /** A korai, plain-prefs verzió (`konsole_connections`) adatai. Nem töröl. */
     private fun readPlainLegacyIfPresent(): List<ConnectionConfig> {
         val plain = appContext.getSharedPreferences(PLAIN_LEGACY_PREFS, Context.MODE_PRIVATE)
         val json = plain.getString(LEGACY_KEY_CONNECTIONS, null) ?: return emptyList()
         return try {
-            val type = object : TypeToken<MutableList<ConnectionConfig>>() {}.type
-            val list: MutableList<ConnectionConfig> = gson.fromJson(json, type)
+            val list: List<ConnectionConfig> = gson.fromJson(json, LIST_TYPE)
             Log.i(TAG, "Read ${list.size} entries from plain-prefs legacy")
             list
         } catch (e: Exception) {
@@ -183,7 +183,9 @@ class CryptoBoxConnectionRepository(
         private const val LEGACY_ENC_PREFS = "konsole_connections_enc"
         private const val PLAIN_LEGACY_PREFS = "konsole_connections"
         private const val LEGACY_KEY_CONNECTIONS = "connections"
-        /** Plain-fallback prefix; akkor kerül a payload elé, ha az encrypt csődöt mondana. */
-        private val PLAIN_MARKER = "PLAIN ".toByteArray(Charsets.UTF_8)
+
+        /** Prefix of the plaintext fallback older versions wrote; read-only now. */
+        private val PLAIN_MARKER = "PLAIN\u0000".toByteArray(Charsets.UTF_8)
+        private val LIST_TYPE = object : TypeToken<List<ConnectionConfig>>() {}.type
     }
 }

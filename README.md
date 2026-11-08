@@ -222,7 +222,7 @@ Raw JSch exceptions are mapped to readable text (localized):
 
 - **AES-256-GCM via Android Keystore** — connection profiles are encrypted with a non-exportable Keystore key (random IV, 128-bit tag); older EncryptedSharedPreferences data is migrated automatically
 - **Legacy migration** on first run — old plain-text profiles moved into the encrypted store, then the legacy store is cleared
-- **Plain-prefs fallback** — if keystore init fails (warning logged), profiles are not lost
+- **No plaintext, no silent overwrite** — if encryption fails nothing is written; an unreadable store is reported and never overwritten
 - **Host key verification (TOFU)** — the SHA256 fingerprint of the server key is confirmed on first connection and checked on every later one; a changed key is only accepted after an explicit replace
 - Credentials never leave the device
 
@@ -294,24 +294,28 @@ Sessions are owned by `SshForegroundService`, not by fragments. This means:
 
 ```
 app/src/main/java/hu/billman/konsolessh/
-├── model/
-│   ├── ConnectionConfig.kt       — SSH connection data (host, port, user, auth, jump)
-│   └── SavedConnections.kt       — profile manager (stored via data/CryptoBoxConnectionRepository)
-├── ssh/
-│   ├── SshSession.kt             — JSch wrapper (connect/read/write/resize/jump, SFTP upload, remote rm)
-│   └── SshForegroundService.kt   — Foreground service; owns sessions, output buffers and upload progress
-├── terminal/
-│   ├── TerminalView.kt           — Canvas-based terminal emulator (VT100/xterm-256color)
-│   ├── AnsiParser.kt             — ANSI/VT state machine
-│   └── TerminalClipboard.kt      — Shared in-app clipboard
-└── ui/
-    ├── MainActivity.kt           — Tab coordination, key bar, upload flow, window insets
-    ├── TerminalFragment.kt       — Terminal / cheat-sheet / welcome
-    ├── TerminalPagerAdapter.kt   — ViewPager2 adapter (fixed pages + SSH tabs)
-    ├── TabPickerSheet.kt         — Tab + saved-connection picker with tree grouping
-    ├── NewConnectionDialog.kt    — Create / edit connection dialog
-    ├── ConnectionEditActivity.kt — Saved connections management
-    └── KonsoleToast.kt           — In-app toast with optional action button
+model/ConnectionConfig.kt              — SSH connection data (host, port, user, auth, jump)
+data/ConnectionRepository.kt           — saved connections; suspend, main-safe; unreadable store → exception
+data/CryptoBoxConnectionRepository.kt  — AES-256-GCM (Android Keystore) store, legacy migration
+data/SettingsRepository.kt             — small settings (font size)
+ssh/SshSession.kt                      — JSch session: jump chain, shell, SFTP upload/delete
+ssh/JumpChain.kt                       — multi-hop jump host resolution and tunnelling
+ssh/TofuHostKeyRepository.kt           — host key verification (trust on first use)
+ssh/SshKeyProvisioner.kt               — connection test and public key upload
+ssh/SshError.kt                        — typed SSH errors and their classifier
+session/SessionManager.kt              — single source of truth: tabs, status, output, prompts
+session/PromptBroker.kt                — password / host key questions as state
+service/SshForegroundService.kt        — keeps the process alive, notification
+terminal/TerminalView.kt               — Canvas-based terminal emulator (VT100/xterm-256color)
+terminal/AnsiParser.kt                 — ANSI/VT state machine
+terminal/KeyModifiers.kt               — sticky Ctrl/Shift/Alt/AltGr logic
+ui/MainActivity.kt                     — main screen: tab strip, pages, prompts, errors
+ui/MainViewModel.kt                    — main screen state and commands
+ui/SshTerminalFragment.kt              — one SSH tab (gets only the tab id)
+ui/StaticTerminalFragment.kt           — welcome page, Linux and tmux cheat sheets
+ui/NewConnectionDialog.kt              — create / edit / test a connection
+ui/keybar/KeybarController.kt          — on-screen key bar
+AppContainer.kt                        — manual dependency injection (composition root)
 ```
 
 ## Build
@@ -387,6 +391,11 @@ This application is released under the **GPL-3.0-or-later** license — full tex
 
 ## Release history
 
+- **1.1.27** — layered architecture after a code audit: a single session manager is
+  the source of truth, prompts arrive as state and survive rotation, typed errors
+  with one message mapper; an unreadable connection store is no longer overwritten
+  and nothing is ever saved unencrypted; secrets are no longer passed in fragment
+  arguments; editing keeps the key passphrase; safer key upload command
 - **1.1.26** — server host key verification (trust on first use, SHA256 fingerprint,
   warning on change); multi-hop jump hosts (a jump host may have its own jump host,
   up to 5 hops), also used by the connection test and key upload; Ed25519 host keys

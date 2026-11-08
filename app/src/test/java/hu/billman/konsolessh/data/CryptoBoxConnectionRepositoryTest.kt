@@ -1,13 +1,17 @@
 package hu.billman.konsolessh.data
 
 import android.content.Context
+import android.util.Base64
 import androidx.test.core.app.ApplicationProvider
 import com.google.gson.Gson
 import hu.billman.konsolessh.model.ConnectionConfig
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -15,7 +19,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * A CryptoBoxConnectionRepository CRUD- és migrációs ellenőrzése.
+ * A CryptoBoxConnectionRepository CRUD-, hiba- és migrációs viselkedése.
  * FakeCryptoBox-szal, hogy a Robolectric ne igényeljen Android Keystore-t.
  */
 @RunWith(RobolectricTestRunner::class)
@@ -36,189 +40,180 @@ class CryptoBoxConnectionRepositoryTest {
     }
 
     private fun clearAllPrefs() {
-        context.deleteSharedPreferences("konsole_connections_box")
+        context.deleteSharedPreferences(BOX)
         context.deleteSharedPreferences("konsole_connections_enc")
-        context.deleteSharedPreferences("konsole_connections")
+        context.deleteSharedPreferences(LEGACY_PLAIN)
     }
 
-    private fun newRepo() = CryptoBoxConnectionRepository(context, FakeCryptoBox())
+    private fun newRepo(box: CryptoBox = FakeCryptoBox()) = CryptoBoxConnectionRepository(context, box)
 
     private fun cfg(id: String, name: String = id) =
         ConnectionConfig(id = id, name = name, host = "10.0.0.1", username = "root")
 
+    private fun payload(): String? =
+        context.getSharedPreferences(BOX, Context.MODE_PRIVATE).getString("payload", null)
+
+    private fun putPayload(value: String) {
+        context.getSharedPreferences(BOX, Context.MODE_PRIVATE).edit().putString("payload", value).commit()
+    }
+
+    private suspend fun assertStoreError(block: suspend () -> Unit) {
+        try {
+            block()
+            fail("expected ConnectionStoreException")
+        } catch (_: ConnectionStoreException) {
+            // expected
+        }
+    }
+
     // ── CRUD ──────────────────────────────────────────────────────────────────
 
     @Test
-    fun `load on clean state returns empty list`() {
-        val repo = newRepo()
-        assertTrue(repo.load().isEmpty())
+    fun `load on clean state returns empty list`() = runBlocking {
+        assertTrue(newRepo().load().isEmpty())
     }
 
     @Test
-    fun `save then load round-trips and sorts by displayName`() {
+    fun `saveOne adds new, updates existing and load sorts by displayName`() = runBlocking {
         val repo = newRepo()
-        repo.save(listOf(cfg("2", "Zeta"), cfg("1", "Alpha")))
-        val list = repo.load()
-        assertEquals(2, list.size)
-        assertEquals("Alpha", list[0].name)
-        assertEquals("Zeta", list[1].name)
+        repo.saveOne(cfg("b", "Beta"))
+        repo.saveOne(cfg("a", "Alpha"))
+        repo.saveOne(cfg("b", "Bravo"))
+        assertEquals(listOf("Alpha", "Bravo"), newRepo().load().map { it.name })
     }
 
     @Test
-    fun `saveOne adds when id new and updates when id exists`() {
+    fun `get returns the matching connection or null`() = runBlocking {
         val repo = newRepo()
         repo.saveOne(cfg("a", "Alpha"))
-        repo.saveOne(cfg("b", "Beta"))
-        repo.saveOne(cfg("a", "Alpha2"))
-        val list = repo.load()
-        assertEquals(2, list.size)
-        assertEquals("Alpha2", list.first { it.id == "a" }.name)
+        assertEquals("Alpha", repo.get("a")?.name)
+        assertNull(repo.get("missing"))
     }
 
     @Test
-    fun `delete removes matching id only`() {
+    fun `delete removes matching id only`() = runBlocking {
         val repo = newRepo()
-        repo.save(listOf(cfg("a"), cfg("b"), cfg("c")))
-        repo.delete("b")
-        val ids = repo.load().map { it.id }.toSet()
-        assertEquals(setOf("a", "c"), ids)
+        repo.saveOne(cfg("a"))
+        repo.saveOne(cfg("b"))
+        repo.delete("a")
+        assertEquals(listOf("b"), repo.load().map { it.id })
     }
 
     @Test
-    fun `load returns empty when encrypted payload is corrupted`() {
+    fun `every field survives a round trip, passphrase and jump included`() = runBlocking {
+        val full = ConnectionConfig(
+            id = "full",
+            name = "Full",
+            host = "192.168.122.10",
+            port = 2222,
+            username = "admin",
+            authType = ConnectionConfig.AuthType.PRIVATE_KEY,
+            password = "pw",
+            privateKey = "-----BEGIN KEY-----",
+            privateKeyPassphrase = "secret",
+            jumpConnectionId = "gw",
+            jumpHost = "legacy.example.com",
+            jumpPort = 2200,
+            jumpUsername = "j",
+            jumpPassword = "jp",
+        )
+        newRepo().saveOne(full)
+        assertEquals(full, newRepo().get("full"))
+    }
+
+    // ── Hibák: olvashatatlan tárra nem írunk ──────────────────────────────────
+
+    @Test
+    fun `corrupted payload throws instead of looking empty`() = runBlocking {
+        putPayload("!!!not-valid-base64-garbage")
+        assertStoreError { newRepo().load() }
+    }
+
+    @Test
+    fun `saveOne and delete do not overwrite an unreadable store`() = runBlocking {
         val repo = newRepo()
-        context.getSharedPreferences("konsole_connections_box", Context.MODE_PRIVATE)
-            .edit()
-            .putString("payload", "!!!not-valid-base64-garbage")
-            .apply()
-        assertTrue(repo.load().isEmpty())
-    }
+        repo.saveOne(cfg("a", "Alpha"))
+        val original = payload()
+        // Same data, but the key "changed": decrypt fails like a Keystore failure would.
+        val otherKey = newRepo(FakeCryptoBox(maskKey = 0x11))
 
-    // ── Migráció a legacy EncryptedSharedPreferences-ből ──────────────────────
+        assertStoreError { otherKey.saveOne(cfg("b")) }
+        assertStoreError { otherKey.delete("a") }
 
-    @Test
-    fun `load migrates from legacy plain-prefs when present`() {
-        // Régi plain-prefs formátumot szimulálunk (security-crypto alpha egyik
-        // fallback-ága is ezt használta): a "konsole_connections" nevű SP-ban
-        // egy "connections" kulcsnál JSON-formátumban a lista.
-        val legacyJson = Gson().toJson(
-            listOf(cfg("legacy1", "Legacy Alpha"), cfg("legacy2", "Legacy Beta")),
-        )
-        context.getSharedPreferences("konsole_connections", Context.MODE_PRIVATE)
-            .edit()
-            .putString("connections", legacyJson)
-            .apply()
-
-        val repo = newRepo()
-        val list = repo.load()
-        assertEquals(2, list.size)
-        val ids = list.map { it.id }.toSet()
-        assertTrue(ids.contains("legacy1"))
-        assertTrue(ids.contains("legacy2"))
+        assertEquals(original, payload())
+        assertEquals(listOf("a"), repo.load().map { it.id })
     }
 
     @Test
-    fun `legacy plain-prefs is deleted after successful migration`() {
-        val legacyJson = Gson().toJson(listOf(cfg("x", "Y")))
-        val legacyPrefs = context.getSharedPreferences("konsole_connections", Context.MODE_PRIVATE)
-        legacyPrefs.edit().putString("connections", legacyJson).apply()
-
-        newRepo().load()
-
-        val refreshed = context.getSharedPreferences("konsole_connections", Context.MODE_PRIVATE)
-        assertFalse(
-            "legacy plain prefs should no longer contain the connections key",
-            refreshed.contains("connections"),
-        )
-    }
-
-    @Test
-    fun `migration is idempotent — runs once`() {
-        val legacyJson = Gson().toJson(listOf(cfg("x", "Y")))
-        context.getSharedPreferences("konsole_connections", Context.MODE_PRIVATE)
-            .edit()
-            .putString("connections", legacyJson)
-            .apply()
-
-        val repo1 = newRepo()
-        val firstLoad = repo1.load()
-        assertEquals(1, firstLoad.size)
-
-        // Egy új repo példánnyal a második load már csak az új formátumból
-        // olvas — a legacy lekérdezés nem fut újra, és nincs duplikáció.
-        val repo2 = newRepo()
-        val secondLoad = repo2.load()
-        assertEquals(1, secondLoad.size)
-        assertEquals("Y", secondLoad[0].name)
-    }
-
-    @Test
-    fun `no legacy data → empty load sets migration flag to prevent retry`() {
-        val repo = newRepo()
-        assertTrue(repo.load().isEmpty())
-        // Flag lerakva → egy új sor írás után is megmaradunk az új prefs-ben
-        repo.saveOne(cfg("new", "NewOne"))
-        val reloaded = newRepo().load()
-        assertEquals(1, reloaded.size)
-        assertEquals("NewOne", reloaded[0].name)
-    }
-
-    @Test
-    fun `legacy files deleted only after the new payload is verifiable`() {
-        // Előfeltétel: legacy plain-prefs fájl létezik egy bejegyzéssel.
-        val legacyJson = Gson().toJson(listOf(cfg("x", "Y")))
-        context.getSharedPreferences("konsole_connections", Context.MODE_PRIVATE)
-            .edit()
-            .putString("connections", legacyJson)
-            .apply()
-
-        val list = newRepo().load()
-        assertEquals(1, list.size)
-
-        // Új formátumban meg kell lennie a payload-nak…
-        val newPrefs = context.getSharedPreferences("konsole_connections_box", Context.MODE_PRIVATE)
-        assertTrue(
-            "new payload should exist after successful migration",
-            newPrefs.contains("payload"),
-        )
-        // …és csak ezután a migrációs flag…
-        assertTrue(
-            "migration flag should be set after a verifiable save",
-            newPrefs.getBoolean("_migrated_from_legacy_v1", false),
-        )
-        // …majd a legacy fájl eltávolítható.
-        val legacy = context.getSharedPreferences("konsole_connections", Context.MODE_PRIVATE)
-        assertFalse(
-            "legacy plain prefs entry should be gone after migration",
-            legacy.contains("connections"),
-        )
-    }
-
-    @Test
-    fun `encrypt failure routes through CryptoFailureSink and falls back to plaintext`() {
-        // Telepítünk egy CryptoBox-ot, ami mindig dobja az encrypt-nél:
+    fun `encrypt failure throws and writes nothing, never plaintext`() = runBlocking {
         val failingBox = object : CryptoBox {
-            override fun encrypt(plaintext: ByteArray): ByteArray =
-                throw RuntimeException("keystore broke")
-            override fun decrypt(payload: ByteArray): ByteArray = plaintext(payload)
-            private fun plaintext(payload: ByteArray): ByteArray = payload
+            override fun encrypt(plaintext: ByteArray): ByteArray = error("keystore broke")
+            override fun decrypt(payload: ByteArray): ByteArray = payload
         }
-        val repo = CryptoBoxConnectionRepository(context, failingBox)
+        assertStoreError { newRepo(failingBox).saveOne(cfg("a", "Alpha")) }
+        assertNull(payload())
+    }
 
-        var sinkCalls = 0
-        val originalHandler = CryptoFailureSink.handler
-        CryptoFailureSink.handler = { _, _, _ -> sinkCalls++ }
-        try {
-            repo.saveOne(cfg("a", "Alpha"))
-        } finally {
-            CryptoFailureSink.handler = originalHandler
+    @Test
+    fun `plaintext fallback written by older versions stays readable and gets encrypted on next write`() =
+        runBlocking {
+            val json = Gson().toJson(listOf(cfg("old", "Old")))
+            putPayload(Base64.encodeToString("PLAIN\u0000".toByteArray() + json.toByteArray(), Base64.NO_WRAP))
+
+            val repo = newRepo()
+            assertEquals(listOf("old"), repo.load().map { it.id })
+
+            repo.saveOne(cfg("new", "New"))
+            val raw = Base64.decode(payload(), Base64.NO_WRAP)
+            assertFalse(String(raw, Charsets.ISO_8859_1).startsWith("PLAIN"))
+            assertEquals(listOf("new", "old"), newRepo().load().map { it.id })
         }
 
-        // A sink meghívódott, a user látja a figyelmeztetést
-        assertEquals(1, sinkCalls)
-        // Plusz: az adat megmenekült (plain fallback-ben) — read-back:
-        val reloaded = repo.load()
-        assertEquals(1, reloaded.size)
-        assertEquals("Alpha", reloaded[0].name)
+    // ── Migráció a régi tárakból ──────────────────────────────────────────────
+
+    private fun putLegacy(vararg configs: ConnectionConfig) {
+        context.getSharedPreferences(LEGACY_PLAIN, Context.MODE_PRIVATE)
+            .edit().putString("connections", Gson().toJson(configs.toList())).commit()
+    }
+
+    @Test
+    fun `legacy plain-prefs are migrated, then deleted once the new payload exists`() = runBlocking {
+        putLegacy(cfg("legacy1", "Legacy Alpha"), cfg("legacy2", "Legacy Beta"))
+
+        assertEquals(setOf("legacy1", "legacy2"), newRepo().load().map { it.id }.toSet())
+
+        val box = context.getSharedPreferences(BOX, Context.MODE_PRIVATE)
+        assertTrue(box.contains("payload"))
+        assertTrue(box.getBoolean("_migrated_from_legacy_v1", false))
+        val legacy = context.getSharedPreferences(LEGACY_PLAIN, Context.MODE_PRIVATE)
+        assertFalse(legacy.contains("connections"))
+    }
+
+    @Test
+    fun `migration runs once`() = runBlocking {
+        putLegacy(cfg("x", "Y"))
+        assertEquals(1, newRepo().load().size)
+        assertEquals(listOf("Y"), newRepo().load().map { it.name })
+    }
+
+    @Test
+    fun `failed migration write keeps the legacy store for a retry`() = runBlocking {
+        putLegacy(cfg("x", "Y"))
+        val failingBox = object : CryptoBox {
+            override fun encrypt(plaintext: ByteArray): ByteArray = error("keystore broke")
+            override fun decrypt(payload: ByteArray): ByteArray = payload
+        }
+
+        assertEquals(listOf("x"), newRepo(failingBox).load().map { it.id })
+
+        val legacy = context.getSharedPreferences(LEGACY_PLAIN, Context.MODE_PRIVATE)
+        assertTrue(legacy.contains("connections"))
+        val box = context.getSharedPreferences(BOX, Context.MODE_PRIVATE)
+        assertFalse(box.getBoolean("_migrated_from_legacy_v1", false))
+    }
+
+    private companion object {
+        const val BOX = "konsole_connections_box"
+        const val LEGACY_PLAIN = "konsole_connections"
     }
 }

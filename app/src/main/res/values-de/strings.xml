@@ -68,6 +68,7 @@
     <string name="pasted">Eingefügt</string>
     <string name="upload_done">Hochgeladen nach %1$s: %2$s</string>
     <string name="upload_failed">Upload fehlgeschlagen: %1$s</string>
+    <string name="upload_not_connected">nicht verbunden</string>
     <string name="upload_title">Lade hoch: %1$s</string>
     <string name="upload_progress_kb">%1$d / %2$d KB</string>
     <string name="upload_progress_mb">%1$.1f / %2$.1f MB</string>
@@ -102,11 +103,8 @@
     <string name="status_connected_suffix">%1$s ● Verbunden</string>
     <string name="status_disconnected_suffix">%1$s ○ Getrennt</string>
     <string name="terminal_connecting_host">Verbinde: %1$s:%2$d…\u000D\n</string>
-    <string name="terminal_reconnecting">\u000D\n[Verbinde erneut…]\u000D\n</string>
-    <string name="terminal_connection_closed">\u000D\n[Verbindung geschlossen]\u000D\n</string>
     <string name="terminal_jump_progress">Jump: %1$s:%2$d…\u000D\n</string>
     <string name="terminal_jump_ok">Jump OK → Verbinde: %1$s:%2$d…\u000D\n</string>
-    <string name="error_jump_not_found">Fehler: Die Jump-Verbindung wurde nicht in den gespeicherten Verbindungen gefunden.\u000D\n</string>
     <string name="error_generic">Fehler: %1$s\u000D\n</string>
 
     <!-- Password prompt -->
@@ -122,8 +120,6 @@
     <string name="channel_active_desc">Hält aktive SSH-Verbindungen am Leben</string>
 
     <!-- Default titles -->
-    <string name="default_tab_title">Terminal</string>
-    <string name="default_tab_word">Tab</string>
 
     <!-- Friendly errors -->
     <string name="err_connection_refused">Verbindung abgelehnt — der Server akzeptiert auf diesem Port keine Verbindungen.</string>
@@ -138,6 +134,10 @@
     <string name="err_hostkey_rejected">Verbindung abgebrochen: Der Serverschlüssel wurde nicht akzeptiert.</string>
     <string name="err_hostkey_changed">Verbindung abgelehnt: Der Serverschlüssel hat sich geändert und wurde nicht akzeptiert.</string>
     <string name="err_jump_chain_invalid">Die Jump-Host-Kette ist ungültig: Eine Jump-Verbindung fehlt, verweist auf sich selbst zurück oder die Kette ist länger als 5 Sprünge.</string>
+    <string name="err_jump_not_found">Die Jump-Host-Verbindung wurde unter den gespeicherten Verbindungen nicht gefunden.</string>
+    <string name="err_connection_missing">Diese gespeicherte Verbindung existiert nicht mehr.</string>
+    <string name="err_store_unreadable">Die gespeicherten Verbindungen konnten nicht gelesen werden. Nichts wurde überschrieben; starte die App neu.</string>
+    <string name="err_store_write">Speichern fehlgeschlagen: Die Verbindungsliste konnte nicht verschlüsselt werden. Es wurde nichts geschrieben.</string>
     <string name="err_no_route">Server nicht erreichbar — prüfe Netzwerk und IP-Adresse.</string>
     <string name="err_network_unreachable">Das Netzwerk ist nicht erreichbar.</string>
     <string name="err_unknown_host">Unbekannter Hostname — DNS-Fehler oder Tippfehler.</string>

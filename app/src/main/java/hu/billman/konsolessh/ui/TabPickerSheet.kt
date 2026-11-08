@@ -6,33 +6,40 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.TextView
+import androidx.core.os.bundleOf
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.setFragmentResult
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import hu.billman.konsolessh.R
 import hu.billman.konsolessh.databinding.DialogTabPickerBinding
 import hu.billman.konsolessh.model.ConnectionConfig
-import hu.billman.konsolessh.model.SavedConnections
+import hu.billman.konsolessh.session.ConnectionStatus
+import kotlinx.coroutines.launch
 
 class TabPickerSheet : BottomSheetDialogFragment() {
 
-    data class TabEntry(
-        val title: String,
-        val isActive: Boolean,
-        val host: String?,          // null for welcome/local tabs
-        val status: ConnectionStatus = ConnectionStatus.NONE
-    )
+    /**
+     * A választás a Fragment Result API-n megy vissza ([RESULT_KEY]), így
+     * forgatás után is eljut az Activityhez; listener-referencia nincs.
+     */
+    enum class Action { SELECT_TAB, OPEN_CONNECTION, NEW_CONNECTION, EDIT_CONNECTION, CLOSE_APP }
 
-    interface Listener {
-        fun onTabSelected(position: Int)
-        fun onSavedConnectionSelected(config: ConnectionConfig)
-        fun onNewConnectionRequested()
-        fun onEditConnectionRequested(config: ConnectionConfig)
-        fun onDeleteConnectionRequested(config: ConnectionConfig)
-        fun onCloseAppRequested()
-    }
-
-    /** Persist expanded groups across reopens of the sheet. */
     companion object {
+        const val RESULT_KEY = "tab_picker_result"
+        const val KEY_ACTION = "action"
+        const val KEY_POSITION = "position"
+        const val KEY_CONNECTION_ID = "connection_id"
+        private const val ARG_CURRENT_POSITION = "current_position"
+
+        /** Expanded groups survive reopening the sheet (process lifetime only). */
         private val expandedPaths: MutableSet<String> = mutableSetOf()
+
+        fun newInstance(currentPosition: Int) =
+            TabPickerSheet().apply { arguments = bundleOf(ARG_CURRENT_POSITION to currentPosition) }
     }
 
     private sealed class TreeNode {
@@ -47,8 +54,12 @@ class TabPickerSheet : BottomSheetDialogFragment() {
         ) : TreeNode()
     }
 
-    var listener: Listener? = null
-    var openTabs: List<TabEntry> = emptyList()
+    private val mainViewModel: MainViewModel by activityViewModels { KonsoleViewModelFactory.from(requireContext()) }
+    private val connectionsViewModel: ConnectionsViewModel by viewModels {
+        KonsoleViewModelFactory.from(requireContext())
+    }
+
+    private var saved: List<ConnectionConfig> = emptyList()
 
     private var _binding: DialogTabPickerBinding? = null
     private val binding get() = _binding!!
@@ -72,26 +83,37 @@ class TabPickerSheet : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         buildOpenTabs()
-        buildSavedConnections()
-        binding.btnNewConnection.setOnClickListener {
-            dismiss()
-            listener?.onNewConnectionRequested()
-        }
-        binding.btnCloseApp.setOnClickListener {
-            dismiss()
-            listener?.onCloseAppRequested()
+        binding.btnNewConnection.setOnClickListener { finish(Action.NEW_CONNECTION) }
+        binding.btnCloseApp.setOnClickListener { finish(Action.CLOSE_APP) }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                connectionsViewModel.state.collect { state ->
+                    saved = state.connections
+                    buildSavedConnections()
+                    if (state.storeError) KonsoleToast.show(binding.root, getString(R.string.err_store_unreadable))
+                }
+            }
         }
     }
 
+    private fun finish(action: Action, extras: Bundle = Bundle()) {
+        extras.putString(KEY_ACTION, action.name)
+        setFragmentResult(RESULT_KEY, extras)
+        dismiss()
+    }
+
     private fun buildOpenTabs() {
+        val current = requireArguments().getInt(ARG_CURRENT_POSITION)
+        val openTabs = mainViewModel.sessionsState.value.tabs
         if (openTabs.isEmpty()) {
             binding.labelOpenTabs.visibility = View.GONE
             return
         }
         openTabs.forEachIndexed { index, entry ->
+            val isActive = index + 1 == current
             val row = inflateRow()
             val icon = row.findViewById<TextView>(R.id.itemIcon)
-            icon.text = if (entry.isActive) "▶" else "●"
+            icon.text = if (isActive) "▶" else "●"
             icon.setTextColor(when (entry.status) {
                 ConnectionStatus.CONNECTED    -> android.graphics.Color.rgb(63, 185, 80)
                 ConnectionStatus.CONNECTING   -> android.graphics.Color.rgb(240, 180, 0)
@@ -101,14 +123,14 @@ class TabPickerSheet : BottomSheetDialogFragment() {
             row.findViewById<TextView>(R.id.itemTitle).text = entry.title
 
             // Show hostname below title if available
-            if (!entry.host.isNullOrBlank()) {
+            if (entry.host.isNotBlank()) {
                 row.findViewById<TextView>(R.id.itemSubtitle).apply {
                     text = entry.host
                     visibility = View.VISIBLE
                 }
             }
 
-            if (entry.isActive) {
+            if (isActive) {
                 row.findViewById<TextView>(R.id.itemBadge).apply {
                     text = getString(R.string.tab_active)
                     setTextColor(android.graphics.Color.WHITE)
@@ -116,17 +138,13 @@ class TabPickerSheet : BottomSheetDialogFragment() {
                 }
             }
 
-            row.setOnClickListener {
-                dismiss()
-                listener?.onTabSelected(index)
-            }
+            row.setOnClickListener { finish(Action.SELECT_TAB, bundleOf(KEY_POSITION to index)) }
             binding.containerTabs.addView(row)
         }
     }
 
     private fun buildSavedConnections() {
         binding.containerSaved.removeAllViews()
-        val saved = SavedConnections.load(requireContext())
         if (saved.isEmpty()) {
             binding.labelSaved.visibility = View.GONE
             return
@@ -224,31 +242,22 @@ class TabPickerSheet : BottomSheetDialogFragment() {
         }
         row.findViewById<ImageButton>(R.id.btnEditRow).apply {
             visibility = View.VISIBLE
-            setOnClickListener {
-                dismiss()
-                listener?.onEditConnectionRequested(config)
-            }
+            setOnClickListener { finish(Action.EDIT_CONNECTION, bundleOf(KEY_CONNECTION_ID to config.id)) }
         }
         row.findViewById<ImageButton>(R.id.btnDeleteRow).apply {
             visibility = View.VISIBLE
             setOnClickListener {
                 androidx.appcompat.app.AlertDialog.Builder(
-                    requireContext(), hu.billman.konsolessh.R.style.KonsoleDialog
+                    requireContext(),
+                    R.style.KonsoleDialog,
                 )
                     .setMessage(getString(R.string.delete_connection_confirm, config.displayName()))
-                    .setPositiveButton(R.string.action_delete) { _, _ ->
-                        SavedConnections.delete(requireContext(), config.id)
-                        listener?.onDeleteConnectionRequested(config)
-                        buildSavedConnections()
-                    }
+                    .setPositiveButton(R.string.action_delete) { _, _ -> connectionsViewModel.delete(config.id) }
                     .setNegativeButton(R.string.action_cancel, null)
                     .show()
             }
         }
-        row.setOnClickListener {
-            dismiss()
-            listener?.onSavedConnectionSelected(config)
-        }
+        row.setOnClickListener { finish(Action.OPEN_CONNECTION, bundleOf(KEY_CONNECTION_ID to config.id)) }
         binding.containerSaved.addView(row)
     }
 

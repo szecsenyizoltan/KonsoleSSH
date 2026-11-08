@@ -222,7 +222,7 @@ Rohe JSch-Exceptions werden in lesbaren, lokalisierten Text übersetzt:
 
 - **AES-256-GCM über Android Keystore** — Verbindungsprofile werden mit einem nicht exportierbaren Keystore-Schlüssel verschlüsselt (zufälliger IV, 128-Bit-Tag); ältere EncryptedSharedPreferences-Daten werden automatisch migriert
 - **Legacy-Migration** beim ersten Start — alte Klartext-Profile werden in den verschlüsselten Speicher überführt, anschließend wird der Legacy-Speicher geleert
-- **Plain-Prefs-Fallback** — falls die Keystore-Initialisierung scheitert (Warnung im Log), gehen Profile nicht verloren
+- **Kein Klartext, kein stilles Überschreiben** — schlägt die Verschlüsselung fehl, wird nichts geschrieben; ein unlesbarer Speicher wird gemeldet und nie überschrieben
 - **Host-Key-Prüfung (TOFU)** — beim ersten Verbinden wird der SHA256-Fingerabdruck des Serverschlüssels bestätigt und danach bei jeder Verbindung geprüft; ein geänderter Schlüssel wird nur nach ausdrücklichem Ersetzen akzeptiert
 - Zugangsdaten verlassen das Gerät nie
 
@@ -294,10 +294,28 @@ Sitzungen gehören `SshForegroundService`, nicht den Fragments:
 
 ```
 app/src/main/java/hu/billman/konsolessh/
-├── model/           ConnectionConfig, SavedConnections (verschlüsselte Prefs)
-├── ssh/             SshSession, SshForegroundService
-├── terminal/        TerminalView, AnsiParser, TerminalClipboard
-└── ui/              MainActivity, TerminalFragment, Dialoge, Sheets
+model/ConnectionConfig.kt              — SSH-Verbindungsdaten (Host, Port, Benutzer, Auth, Jump)
+data/ConnectionRepository.kt           — gespeicherte Verbindungen; suspend, main-safe; unlesbarer Speicher → Ausnahme
+data/CryptoBoxConnectionRepository.kt  — AES-256-GCM-Speicher (Android Keystore), Migration alter Daten
+data/SettingsRepository.kt             — kleine Einstellungen (Schriftgröße)
+ssh/SshSession.kt                      — JSch-Sitzung: Jump-Kette, Shell, SFTP-Upload/-Löschen
+ssh/JumpChain.kt                       — mehrstufige Jump-Hosts: Auflösung und Tunnel
+ssh/TofuHostKeyRepository.kt           — Host-Key-Prüfung (Trust on First Use)
+ssh/SshKeyProvisioner.kt               — Verbindungstest und Upload des öffentlichen Schlüssels
+ssh/SshError.kt                        — typisierte SSH-Fehler und ihr Klassifizierer
+session/SessionManager.kt              — einzige Quelle der Wahrheit: Tabs, Status, Ausgabe, Rückfragen
+session/PromptBroker.kt                — Passwort- und Host-Key-Rückfragen als Zustand
+service/SshForegroundService.kt        — hält den Prozess am Leben, Benachrichtigung
+terminal/TerminalView.kt               — Canvas-basierter Terminal-Emulator (VT100/xterm-256color)
+terminal/AnsiParser.kt                 — ANSI/VT-Zustandsautomat
+terminal/KeyModifiers.kt               — Logik für feststehende Strg/Umschalt/Alt/AltGr
+ui/MainActivity.kt                     — Hauptbildschirm: Tab-Leiste, Seiten, Rückfragen, Fehler
+ui/MainViewModel.kt                    — Zustand und Befehle des Hauptbildschirms
+ui/SshTerminalFragment.kt              — ein SSH-Tab (erhält nur die Tab-ID)
+ui/StaticTerminalFragment.kt           — Willkommensseite, Linux- und tmux-Spickzettel
+ui/NewConnectionDialog.kt              — Verbindung anlegen / bearbeiten / testen
+ui/keybar/KeybarController.kt          — Bildschirm-Tastenleiste
+AppContainer.kt                        — manuelle Dependency Injection (Composition Root)
 ```
 
 ## Build
@@ -349,6 +367,12 @@ Die Anwendung wird unter der **GPL-3.0-or-later**-Lizenz veröffentlicht — der
 
 ## Versionsgeschichte
 
+- **1.1.27** — geschichtete Architektur nach einem Code-Audit: ein Sitzungsmanager
+  als einzige Quelle der Wahrheit, Rückfragen kommen als Zustand und überstehen das
+  Drehen, typisierte Fehler mit einem Text-Mapper; ein unlesbarer
+  Verbindungsspeicher wird nicht mehr überschrieben, und nichts wird unverschlüsselt
+  gespeichert; keine Geheimnisse mehr in Fragment-Argumenten; beim Bearbeiten bleibt
+  die Schlüssel-Passphrase erhalten; sichererer Upload-Befehl für Schlüssel
 - **1.1.26** — Prüfung des Server-Host-Keys (Trust on First Use,
   SHA256-Fingerabdruck, Warnung bei Änderung); mehrstufige Jump-Hosts (ein Jump-Host
   kann selbst einen Jump-Host haben, bis zu 5 Sprünge), auch für Verbindungstest und

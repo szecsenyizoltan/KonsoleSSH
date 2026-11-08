@@ -3,17 +3,19 @@ package hu.billman.konsolessh.data
 import hu.billman.konsolessh.model.ConnectionConfig
 
 /**
- * Perzisztens tároló az elmentett SSH-kapcsolatokhoz.
+ * Perzisztens tároló az elmentett SSH-kapcsolatokhoz. Main-safe: minden
+ * művelet suspend, az impl maga vált háttérszálra.
  *
- * Az interface lehetővé teszi a ViewModel-ek és használati esetek
- * egységtesztelését anélkül, hogy valós (Encrypted)SharedPreferences-re
- * vagy Android-kontextusra lenne szükség (lásd FakeConnectionRepository).
- *
- * A jelenlegi valós implementáció a CryptoBoxConnectionRepository.
+ * Olvashatatlan tárnál (sérült adat, Keystore-hiba) [ConnectionStoreException]
+ * jön, és az írások sem futnak le: egy üresnek látszó lista visszaírása
+ * végleg felülírná a meglévő profilokat.
  */
 interface ConnectionRepository {
-    fun load(): MutableList<ConnectionConfig>
-    fun save(connections: List<ConnectionConfig>)
-    fun saveOne(config: ConnectionConfig)
-    fun delete(id: String)
+    suspend fun load(): List<ConnectionConfig>
+    suspend fun get(id: String): ConnectionConfig?
+    suspend fun saveOne(config: ConnectionConfig)
+    suspend fun delete(id: String)
 }
+
+/** A tár nem olvasható vagy nem írható; a meglévő adat érintetlen maradt. */
+class ConnectionStoreException(message: String, cause: Throwable? = null) : Exception(message, cause)

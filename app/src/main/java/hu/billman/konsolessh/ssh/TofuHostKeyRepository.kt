@@ -1,14 +1,10 @@
 package hu.billman.konsolessh.ssh
 
-import android.os.Handler
-import android.os.Looper
 import com.jcraft.jsch.HostKey
 import com.jcraft.jsch.HostKeyRepository
 import com.jcraft.jsch.UserInfo
 import java.security.MessageDigest
 import java.util.Base64
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
 /** Amit a felhasználónak jóvá kell hagynia: új vagy megváltozott host key. */
 data class HostKeyPrompt(
@@ -18,13 +14,10 @@ data class HostKeyPrompt(
     val changed: Boolean,
 )
 
-/** Főszálon hívódik; a callback true-val fogadja el a kulcsot. */
-typealias HostKeyPrompterFn = (prompt: HostKeyPrompt, callback: (Boolean) -> Unit) -> Unit
-
 /**
  * Kapcsolatonként egy példány: a [check] eredményét megjegyzi, így a
- * StrictHostKeyChecking=ask miatt utána hívott UserInfo.promptYesNo a JSch
- * angol szövegének értelmezése nélkül tudja, mit kell megkérdezni.
+ * StrictHostKeyChecking=ask miatt utána hívott UserInfo.promptYesNo a [pending]
+ * alapján, a JSch angol szövegének értelmezése nélkül tudja, mit kérdezzen.
  */
 class TofuHostKeyRepository(private val store: HostKeyStore) : HostKeyRepository {
 
@@ -71,21 +64,6 @@ class TofuHostKeyRepository(private val store: HostKeyStore) : HostKeyRepository
         )
     }
 
-    /** A függő kérdést a főszálon felteszi; időtúllépés vagy hiányzó UI esetén elutasít. */
-    fun confirmPending(prompter: HostKeyPrompterFn?): Boolean {
-        val prompt = pending ?: return false
-        val latch = CountDownLatch(1)
-        var accepted = false
-        Handler(Looper.getMainLooper()).post {
-            prompter?.invoke(prompt) { answer ->
-                accepted = answer
-                latch.countDown()
-            } ?: latch.countDown()
-        }
-        val answered = latch.await(PROMPT_TIMEOUT_S, TimeUnit.SECONDS)
-        return answered && accepted
-    }
-
     private fun toHostKeys(entries: List<HostKeyStore.Entry>): Array<HostKey> =
         entries.mapNotNull { entry ->
             decode(entry.key)?.let { runCatching { HostKey(entry.host, HostKey.GUESS, it) }.getOrNull() }
@@ -93,7 +71,6 @@ class TofuHostKeyRepository(private val store: HostKeyStore) : HostKeyRepository
 
     companion object {
         private const val REPOSITORY_ID = "konsolessh_known_hosts"
-        private const val PROMPT_TIMEOUT_S = 120L
         private const val LENGTH_PREFIX = 4
 
         /** JSch-kompatibilis host-azonosító: 22-es portnál a puszta host. */
@@ -123,20 +100,4 @@ class TofuHostKeyRepository(private val store: HostKeyStore) : HostKeyRepository
         private fun decode(key: String): ByteArray? =
             runCatching { Base64.getDecoder().decode(key) }.getOrNull()
     }
-}
-
-/**
- * UserInfo a rövid életű próbakapcsolatokhoz: csak a host key kérdést teszi
- * fel, jelszót és passphrase-t nem kér újra.
- */
-class HostKeyOnlyUserInfo(
-    private val repository: TofuHostKeyRepository,
-    private val prompter: HostKeyPrompterFn?,
-) : UserInfo {
-    override fun promptYesNo(message: String): Boolean = repository.confirmPending(prompter)
-    override fun getPassphrase(): String? = null
-    override fun getPassword(): String? = null
-    override fun promptPassword(message: String): Boolean = false
-    override fun promptPassphrase(message: String): Boolean = false
-    override fun showMessage(message: String) = Unit
 }

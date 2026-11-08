@@ -222,7 +222,7 @@ Excepțiile brute JSch sunt mapate la text lizibil (localizat):
 
 - **AES-256-GCM prin Android Keystore** — profilurile de conexiune sunt criptate cu o cheie Keystore neexportabilă (IV aleator, tag de 128 biți); datele mai vechi din EncryptedSharedPreferences sunt migrate automat
 - **Migrare legacy** la prima pornire — profilurile vechi în text clar sunt mutate în stocarea criptată, apoi stocarea legacy este golită
-- **Fallback plain-prefs** — dacă inițializarea keystore-ului eșuează (warning în log), profilurile nu se pierd
+- **Fără text simplu, fără suprascriere tacită** — dacă criptarea eșuează nu se scrie nimic; un depozit ilizibil este semnalat și nu este suprascris niciodată
 - **Verificarea cheii gazdei (TOFU)** — la prima conectare se confirmă amprenta SHA256 a cheii serverului, apoi este verificată la fiecare conectare; o cheie schimbată este acceptată doar după înlocuire explicită
 - Credențialele nu părăsesc niciodată dispozitivul
 
@@ -294,10 +294,28 @@ Sesiunile aparțin lui `SshForegroundService`, nu fragmentelor:
 
 ```
 app/src/main/java/hu/billman/konsolessh/
-├── model/           ConnectionConfig, SavedConnections (prefs criptate)
-├── ssh/             SshSession, SshForegroundService
-├── terminal/        TerminalView, AnsiParser, TerminalClipboard
-└── ui/              MainActivity, TerminalFragment, dialoguri, sheets
+model/ConnectionConfig.kt              — datele conexiunii SSH (gazdă, port, utilizator, autentificare, jump)
+data/ConnectionRepository.kt           — conexiuni salvate; suspend, main-safe; depozit ilizibil → excepție
+data/CryptoBoxConnectionRepository.kt  — depozit AES-256-GCM (Android Keystore), migrarea datelor vechi
+data/SettingsRepository.kt             — setări mici (dimensiunea fontului)
+ssh/SshSession.kt                      — sesiune JSch: lanț de jump, shell, încărcare/ștergere SFTP
+ssh/JumpChain.kt                       — rezolvarea și tunelurile jump host în mai mulți pași
+ssh/TofuHostKeyRepository.kt           — verificarea cheii gazdei (încredere la prima utilizare)
+ssh/SshKeyProvisioner.kt               — test de conexiune și încărcarea cheii publice
+ssh/SshError.kt                        — erori SSH tipizate și clasificatorul lor
+session/SessionManager.kt              — sursă unică de adevăr: file, stare, ieșire, întrebări
+session/PromptBroker.kt                — întrebări de parolă și cheie de gazdă ca stare
+service/SshForegroundService.kt        — menține procesul activ, notificare
+terminal/TerminalView.kt               — emulator de terminal pe Canvas (VT100/xterm-256color)
+terminal/AnsiParser.kt                 — automat de stări ANSI/VT
+terminal/KeyModifiers.kt               — logica tastelor fixe Ctrl/Shift/Alt/AltGr
+ui/MainActivity.kt                     — ecranul principal: file, pagini, întrebări, erori
+ui/MainViewModel.kt                    — starea și comenzile ecranului principal
+ui/SshTerminalFragment.kt              — o filă SSH (primește doar id-ul filei)
+ui/StaticTerminalFragment.kt           — pagina de bun venit, fișe Linux și tmux
+ui/NewConnectionDialog.kt              — creare / editare / testare conexiune
+ui/keybar/KeybarController.kt          — bara de taste de pe ecran
+AppContainer.kt                        — injectare manuală a dependențelor (composition root)
 ```
 
 ## Build
@@ -349,6 +367,12 @@ Aplicația este distribuită sub licența **GPL-3.0-or-later** — textul comple
 
 ## Istoricul versiunilor
 
+- **1.1.27** — arhitectură pe straturi după un audit de cod: un singur manager de
+  sesiuni ca sursă de adevăr, întrebările vin ca stare și supraviețuiesc rotirii,
+  erori tipizate cu un singur traducător de mesaje; un depozit de conexiuni ilizibil
+  nu mai este suprascris și nimic nu se mai salvează necriptat; secretele nu mai
+  sunt transmise în argumentele fragmentelor; la editare se păstrează fraza de acces
+  a cheii; comandă mai sigură de încărcare a cheii
 - **1.1.26** — verificarea cheii de gazdă a serverului (încredere la prima
   utilizare, amprentă SHA256, avertisment la schimbare); jump host în mai mulți pași
   (un jump host poate avea propriul jump host, până la 5 salturi), folosit și de

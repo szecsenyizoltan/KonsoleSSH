@@ -3,94 +3,60 @@ package hu.billman.konsolessh.ui
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import hu.billman.konsolessh.model.ConnectionConfig
-import java.util.UUID
 
-data class TabInfo(
-    val id: String = UUID.randomUUID().toString(),
-    val config: ConnectionConfig?,
-    var title: String
-)
+/**
+ * Oldalak: üdvözlő, az SSH-fülek, Linux-puska, tmux-puska. Csak a fülek
+ * azonosítóit tartja; Fragment-referenciát nem, mert a FragmentStateAdapter
+ * forgatás és folyamathalál után maga állítja vissza a Fragmenteket.
+ */
+class TerminalPagerAdapter(private val activity: FragmentActivity) : FragmentStateAdapter(activity) {
 
-class TerminalPagerAdapter(
-    activity: FragmentActivity
-) : FragmentStateAdapter(activity) {
+    private var tabIds: List<String> = emptyList()
 
-    companion object {
-        const val WELCOME_ID = "welcome"
-        const val CHEAT_ID   = "cheatsheet"
-        const val TMUX_ID    = "tmuxsheet"
+    fun submit(ids: List<String>) {
+        if (ids == tabIds) return
+        tabIds = ids
+        @Suppress("NotifyDataSetChanged") // stable ids: ViewPager2 keeps the surviving pages
+        notifyDataSetChanged()
     }
 
-    private val tabs = mutableListOf<TabInfo>()
-    private val fragments = mutableMapOf<String, TerminalFragment>()
-
-    // welcome + user tabs + cheatsheet + tmuxsheet
-    override fun getItemCount(): Int = tabs.size + 3
+    override fun getItemCount(): Int = tabIds.size + FIXED_PAGES
 
     override fun createFragment(position: Int): Fragment = when {
-        position == 0             -> TerminalFragment.newWelcome(WELCOME_ID).also { fragments[WELCOME_ID] = it }
-        position == tabs.size + 1 -> TerminalFragment.newCheatSheet(CHEAT_ID).also { fragments[CHEAT_ID] = it }
-        position == tabs.size + 2 -> TerminalFragment.newTmuxSheet(TMUX_ID).also { fragments[TMUX_ID] = it }
-        else -> {
-            val tab = tabs[position - 1]
-            TerminalFragment.newInstance(tab.config!!, tab.id).also { fragments[tab.id] = it }
-        }
+        position == 0 -> StaticTerminalFragment.newInstance(StaticTerminalFragment.Mode.WELCOME)
+        position == tabIds.size + 1 -> StaticTerminalFragment.newInstance(StaticTerminalFragment.Mode.LINUX)
+        position == tabIds.size + 2 -> StaticTerminalFragment.newInstance(StaticTerminalFragment.Mode.TMUX)
+        else -> SshTerminalFragment.newInstance(tabIds[position - 1])
     }
 
-    override fun getItemId(position: Int): Long = when {
-        position == 0             -> WELCOME_ID.hashCode().toLong()
-        position == tabs.size + 1 -> CHEAT_ID.hashCode().toLong()
-        position == tabs.size + 2 -> TMUX_ID.hashCode().toLong()
-        else                      -> tabs[position - 1].id.hashCode().toLong()
-    }
+    override fun getItemId(position: Int): Long = keyAt(position).hashCode().toLong()
 
     override fun containsItem(itemId: Long): Boolean =
-        itemId == WELCOME_ID.hashCode().toLong() ||
-        itemId == CHEAT_ID.hashCode().toLong() ||
-        itemId == TMUX_ID.hashCode().toLong() ||
-        tabs.any { it.id.hashCode().toLong() == itemId }
+        (FIXED_KEYS + tabIds).any { it.hashCode().toLong() == itemId }
 
-    fun isFixedPage(viewPos: Int): Boolean = viewPos == 0 || viewPos >= tabs.size + 1
+    fun isFixedPage(position: Int): Boolean = position == 0 || position > tabIds.size
 
-    // ── User tab methods (internal 0-based index) ─────────────────────────────
+    /** Az SSH-fül azonosítója az adott oldalon, rögzített oldalnál null. */
+    fun tabIdAt(position: Int): String? = tabIds.getOrNull(position - 1)
 
-    fun addTab(tabInfo: TabInfo) {
-        tabs.add(tabInfo)
-        notifyDataSetChanged()
+    fun positionOf(tabId: String): Int = tabIds.indexOf(tabId).let { if (it < 0) -1 else it + 1 }
+
+    /** Az oldal Fragmentje; a ViewPager2 "f<itemId>" taggel teszi a FragmentManagerbe. */
+    fun pageAt(position: Int): TerminalPage? =
+        activity.supportFragmentManager.findFragmentByTag("f${getItemId(position)}") as? TerminalPage
+
+    private fun keyAt(position: Int): String = when {
+        position == 0 -> WELCOME_KEY
+        position == tabIds.size + 1 -> LINUX_KEY
+        position == tabIds.size + 2 -> TMUX_KEY
+        else -> tabIds[position - 1]
     }
 
-    fun removeTab(internalIdx: Int) {
-        if (internalIdx < 0 || internalIdx >= tabs.size) return
-        val id = tabs[internalIdx].id
-        fragments.remove(id)
-        tabs.removeAt(internalIdx)
-        notifyDataSetChanged()
-    }
-
-    fun renameTab(internalIdx: Int, newTitle: String) {
-        if (internalIdx < 0 || internalIdx >= tabs.size) return
-        tabs[internalIdx].title = newTitle
-        notifyDataSetChanged()
-    }
-
-    /** User tab by internal index (0-based). */
-    fun getTab(internalIdx: Int): TabInfo? = tabs.getOrNull(internalIdx)
-
-    /** User tab by ViewPager position. */
-    fun getUserTabAtViewPos(viewPos: Int): TabInfo? = tabs.getOrNull(viewPos - 1)
-
-    fun getTabCount(): Int = tabs.size
-
-    fun getAllTabs(): List<TabInfo> = tabs.toList()
-
-    fun getFragment(viewPos: Int): TerminalFragment? {
-        val id = when {
-            viewPos == 0             -> WELCOME_ID
-            viewPos == tabs.size + 1 -> CHEAT_ID
-            viewPos == tabs.size + 2 -> TMUX_ID
-            else                     -> tabs.getOrNull(viewPos - 1)?.id
-        } ?: return null
-        return fragments[id]
+    private companion object {
+        const val FIXED_PAGES = 3
+        const val WELCOME_KEY = "welcome"
+        const val LINUX_KEY = "cheatsheet"
+        const val TMUX_KEY = "tmuxsheet"
+        val FIXED_KEYS = listOf(WELCOME_KEY, LINUX_KEY, TMUX_KEY)
     }
 }

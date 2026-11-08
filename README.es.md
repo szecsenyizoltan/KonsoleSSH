@@ -222,7 +222,7 @@ Las excepciones crudas de JSch se mapean a texto legible (localizado):
 
 - **AES-256-GCM con Android Keystore** — los perfiles de conexión se cifran con una clave no exportable del Keystore (IV aleatorio, etiqueta de 128 bits); los datos antiguos de EncryptedSharedPreferences se migran automáticamente
 - **Migración legacy** en la primera ejecución — los perfiles antiguos en texto plano se trasladan al almacén cifrado, luego el almacén legacy se limpia
-- **Fallback a prefs planas** — si la inicialización del keystore falla (se registra aviso), los perfiles no se pierden
+- **Sin texto plano ni sobrescritura silenciosa** — si el cifrado falla no se escribe nada; un almacén ilegible se notifica y nunca se sobrescribe
 - **Verificación de la clave del host (TOFU)** — en la primera conexión se confirma la huella SHA256 de la clave del servidor y después se comprueba en cada conexión; una clave cambiada solo se acepta si se sustituye expresamente
 - Las credenciales nunca salen del dispositivo
 
@@ -294,10 +294,28 @@ Las sesiones las posee `SshForegroundService`, no los fragments:
 
 ```
 app/src/main/java/hu/billman/konsolessh/
-├── model/           ConnectionConfig, SavedConnections (prefs cifradas)
-├── ssh/             SshSession, SshForegroundService
-├── terminal/        TerminalView, AnsiParser, TerminalClipboard
-└── ui/              MainActivity, TerminalFragment, diálogos, sheets
+model/ConnectionConfig.kt              — datos de la conexión SSH (host, puerto, usuario, autenticación, jump)
+data/ConnectionRepository.kt           — conexiones guardadas; suspend, main-safe; almacén ilegible → excepción
+data/CryptoBoxConnectionRepository.kt  — almacén AES-256-GCM (Android Keystore), migración de datos antiguos
+data/SettingsRepository.kt             — ajustes pequeños (tamaño de fuente)
+ssh/SshSession.kt                      — sesión JSch: cadena de jump, shell, subida/borrado SFTP
+ssh/JumpChain.kt                       — resolución y túneles de jump hosts de varios saltos
+ssh/TofuHostKeyRepository.kt           — verificación de la clave de host (confianza en el primer uso)
+ssh/SshKeyProvisioner.kt               — prueba de conexión y subida de la clave pública
+ssh/SshError.kt                        — errores SSH tipados y su clasificador
+session/SessionManager.kt              — única fuente de verdad: pestañas, estado, salida, preguntas
+session/PromptBroker.kt                — preguntas de contraseña y clave de host como estado
+service/SshForegroundService.kt        — mantiene vivo el proceso, notificación
+terminal/TerminalView.kt               — emulador de terminal sobre Canvas (VT100/xterm-256color)
+terminal/AnsiParser.kt                 — máquina de estados ANSI/VT
+terminal/KeyModifiers.kt               — lógica de Ctrl/Shift/Alt/AltGr fijos
+ui/MainActivity.kt                     — pantalla principal: pestañas, páginas, preguntas, errores
+ui/MainViewModel.kt                    — estado y comandos de la pantalla principal
+ui/SshTerminalFragment.kt              — una pestaña SSH (solo recibe el id de la pestaña)
+ui/StaticTerminalFragment.kt           — página de bienvenida, chuletas de Linux y tmux
+ui/NewConnectionDialog.kt              — crear / editar / probar una conexión
+ui/keybar/KeybarController.kt          — barra de teclas en pantalla
+AppContainer.kt                        — inyección de dependencias manual (composition root)
 ```
 
 ## Construcción
@@ -349,6 +367,12 @@ La aplicación se distribuye bajo la licencia **GPL-3.0-or-later** — el texto 
 
 ## Historial de versiones
 
+- **1.1.27** — arquitectura por capas tras una auditoría de código: un único gestor
+  de sesiones como fuente de verdad, las preguntas llegan como estado y sobreviven
+  al giro, errores tipados con un solo traductor de mensajes; un almacén de
+  conexiones ilegible ya no se sobrescribe y nunca se guarda nada sin cifrar; los
+  secretos ya no van en los argumentos de los fragmentos; al editar se conserva la
+  frase de paso de la clave; comando de subida de clave más seguro
 - **1.1.26** — verificación de la clave de host del servidor (confianza en el primer
   uso, huella SHA256, aviso si cambia); jump hosts de varios saltos (un jump host
   puede tener su propio jump host, hasta 5 saltos), usados también por la prueba de

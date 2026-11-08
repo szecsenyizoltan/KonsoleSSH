@@ -601,9 +601,9 @@ class TerminalView @JvmOverloads constructor(
         // Android KEYCODE_DEL neve félrevezető: ez valójában a Backspace billentyű.
         KeyEvent.KEYCODE_DEL -> byteArrayOf(127)
         // A tényleges "Delete" (forward delete) billentyű: xterm Del-szekvencia.
-        KeyEvent.KEYCODE_FORWARD_DEL -> fnKey("[3~")
-        KeyEvent.KEYCODE_TAB -> byteArrayOf(9)
-        KeyEvent.KEYCODE_ESCAPE -> byteArrayOf(27)
+        KeyEvent.KEYCODE_FORWARD_DEL -> KeySequences.escape("[3~")
+        KeyEvent.KEYCODE_TAB -> byteArrayOf(KeySequences.TAB)
+        KeyEvent.KEYCODE_ESCAPE -> byteArrayOf(KeySequences.ESC)
         KeyEvent.KEYCODE_DPAD_UP -> cursorKeyBytes('A')
         KeyEvent.KEYCODE_DPAD_DOWN -> cursorKeyBytes('B')
         KeyEvent.KEYCODE_DPAD_RIGHT -> cursorKeyBytes('C')
@@ -612,22 +612,10 @@ class TerminalView @JvmOverloads constructor(
         KeyEvent.KEYCODE_MOVE_END -> byteArrayOf(27, '['.code.toByte(), 'F'.code.toByte())
         KeyEvent.KEYCODE_PAGE_UP -> byteArrayOf(27, '['.code.toByte(), '5'.code.toByte(), '~'.code.toByte())
         KeyEvent.KEYCODE_PAGE_DOWN -> byteArrayOf(27, '['.code.toByte(), '6'.code.toByte(), '~'.code.toByte())
-        KeyEvent.KEYCODE_F1 -> fnKey("OP")
-        KeyEvent.KEYCODE_F2 -> fnKey("OQ")
-        KeyEvent.KEYCODE_F3 -> fnKey("OR")
-        KeyEvent.KEYCODE_F4 -> fnKey("OS")
-        KeyEvent.KEYCODE_F5 -> fnKey("[15~")
-        KeyEvent.KEYCODE_F6 -> fnKey("[17~")
-        KeyEvent.KEYCODE_F7 -> fnKey("[18~")
-        KeyEvent.KEYCODE_F8 -> fnKey("[19~")
-        KeyEvent.KEYCODE_F9 -> fnKey("[20~")
-        KeyEvent.KEYCODE_F10 -> fnKey("[21~")
-        KeyEvent.KEYCODE_F11 -> fnKey("[23~")
-        KeyEvent.KEYCODE_F12 -> fnKey("[24~")
+        in KeyEvent.KEYCODE_F1..KeyEvent.KEYCODE_F12 ->
+            KeySequences.escape(KeySequences.FUNCTION_KEYS[keyCode - KeyEvent.KEYCODE_F1])
         else -> event.unicodeChar.takeIf { it > 0 }?.let { byteArrayOf(it.toByte()) }
     }
-
-    private fun fnKey(seq: String) = byteArrayOf(27) + seq.toByteArray(Charsets.US_ASCII)
 
     private inner class TerminalInputConnection : BaseInputConnection(this@TerminalView, true) {
 

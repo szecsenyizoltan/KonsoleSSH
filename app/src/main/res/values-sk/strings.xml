@@ -68,6 +68,7 @@
     <string name="pasted">Vložené</string>
     <string name="upload_done">Nahrané do %1$s: %2$s</string>
     <string name="upload_failed">Nahrávanie zlyhalo: %1$s</string>
+    <string name="upload_not_connected">nepripojené</string>
     <string name="upload_title">Nahrávanie: %1$s</string>
     <string name="upload_progress_kb">%1$d / %2$d KB</string>
     <string name="upload_progress_mb">%1$.1f / %2$.1f MB</string>
@@ -102,11 +103,8 @@
     <string name="status_connected_suffix">%1$s ● Pripojené</string>
     <string name="status_disconnected_suffix">%1$s ○ Odpojené</string>
     <string name="terminal_connecting_host">Pripájanie: %1$s:%2$d…\u000D\n</string>
-    <string name="terminal_reconnecting">\u000D\n[Opätovné pripájanie…]\u000D\n</string>
-    <string name="terminal_connection_closed">\u000D\n[Pripojenie bolo zatvorené]\u000D\n</string>
     <string name="terminal_jump_progress">Jump: %1$s:%2$d…\u000D\n</string>
     <string name="terminal_jump_ok">Jump OK → Pripájanie: %1$s:%2$d…\u000D\n</string>
-    <string name="error_jump_not_found">Chyba: jump pripojenie sa v uložených pripojeniach nenašlo.\u000D\n</string>
     <string name="error_generic">Chyba: %1$s\u000D\n</string>
 
     <!-- Password prompt -->
@@ -122,8 +120,6 @@
     <string name="channel_active_desc">Udržiava aktívne SSH pripojenia pri živote</string>
 
     <!-- Default titles -->
-    <string name="default_tab_title">Terminál</string>
-    <string name="default_tab_word">karta</string>
 
     <!-- Friendly errors -->
     <string name="err_connection_refused">Pripojenie odmietnuté — server na tomto porte nepríma pripojenia.</string>
@@ -138,6 +134,10 @@
     <string name="err_hostkey_rejected">Pripojenie zrušené: kľúč servera nebol prijatý.</string>
     <string name="err_hostkey_changed">Pripojenie odmietnuté: kľúč servera sa zmenil a nebol prijatý.</string>
     <string name="err_jump_chain_invalid">Reťazec jump hostov je neplatný: pripojenie chýba, odkazuje samo na seba alebo je reťazec dlhší ako 5 skokov.</string>
+    <string name="err_jump_not_found">Pripojenie jump hostu sa nenašlo medzi uloženými pripojeniami.</string>
+    <string name="err_connection_missing">Toto uložené pripojenie už neexistuje.</string>
+    <string name="err_store_unreadable">Uložené pripojenia sa nedajú prečítať. Nič sa neprepísalo; reštartuj aplikáciu.</string>
+    <string name="err_store_write">Uloženie zlyhalo: zoznam pripojení sa nepodarilo zašifrovať. Nič sa nezapísalo.</string>
     <string name="err_no_route">Server je nedostupný — skontroluj sieť a IP adresu.</string>
     <string name="err_network_unreachable">Sieť je nedostupná.</string>
     <string name="err_unknown_host">Neznámy názov hostiteľa — chyba DNS alebo preklep.</string>

@@ -3,32 +3,39 @@ package hu.billman.konsolessh.data
 import hu.billman.konsolessh.model.ConnectionConfig
 
 /**
- * Tesztekhez szánt, in-memory ConnectionRepository impl.
- * Nincs Android-függősége, Robolectric-et sem igényel.
- * A sorrendezés (displayName-szerinti) leutánozza a valós impl szemantikáját.
+ * Tesztekhez szánt, in-memory ConnectionRepository impl. A sorrend
+ * (displayName szerint) és a hibaviselkedés a valós impl szemantikáját
+ * követi: [unreadable] esetén minden művelet [ConnectionStoreException]-t dob.
  */
 class FakeConnectionRepository(
     initial: List<ConnectionConfig> = emptyList(),
 ) : ConnectionRepository {
 
-    private val storage: MutableMap<String, ConnectionConfig> =
-        initial.associateBy { it.id }.toMutableMap()
+    private val storage: MutableMap<String, ConnectionConfig> = initial.associateBy { it.id }.toMutableMap()
 
-    override fun load(): MutableList<ConnectionConfig> =
-        storage.values
-            .sortedBy { it.displayName().lowercase() }
-            .toMutableList()
+    var unreadable = false
 
-    override fun save(connections: List<ConnectionConfig>) {
-        storage.clear()
-        connections.forEach { storage[it.id] = it }
+    override suspend fun load(): List<ConnectionConfig> {
+        check()
+        return storage.values.sortedBy { it.displayName().lowercase() }
     }
 
-    override fun saveOne(config: ConnectionConfig) {
+    override suspend fun get(id: String): ConnectionConfig? {
+        check()
+        return storage[id]
+    }
+
+    override suspend fun saveOne(config: ConnectionConfig) {
+        check()
         storage[config.id] = config
     }
 
-    override fun delete(id: String) {
+    override suspend fun delete(id: String) {
+        check()
         storage.remove(id)
+    }
+
+    private fun check() {
+        if (unreadable) throw ConnectionStoreException("unreadable")
     }
 }

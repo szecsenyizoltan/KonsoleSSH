@@ -222,7 +222,7 @@ Surové JSch výnimky sú mapované na čitateľný text (lokalizovaný):
 
 - **AES-256-GCM cez Android Keystore** — profily pripojení sú šifrované neexportovateľným kľúčom z Keystore (náhodný IV, 128-bitový tag); staršie údaje z EncryptedSharedPreferences sa migrujú automaticky
 - **Migrácia zastaraných údajov** pri prvom spustení — staré profily v čistom texte sa presunú do šifrovaného úložiska, potom sa staré úložisko vyčistí
-- **Fallback na obyčajné prefs** — ak inicializácia keystore zlyhá (zalogované varovanie), profily sa nestratia
+- **Žiadny čistý text, žiadne tiché prepísanie** — ak šifrovanie zlyhá, nič sa nezapíše; nečitateľné úložisko sa ohlási a nikdy sa neprepíše
 - **Overenie kľúča hostiteľa (TOFU)** — pri prvom pripojení sa potvrdí odtlačok SHA256 kľúča servera a potom sa overuje pri každom pripojení; zmenený kľúč sa prijme iba po výslovnom nahradení
 - Prihlasovacie údaje nikdy neopustia zariadenie
 
@@ -294,10 +294,28 @@ Relácie vlastní `SshForegroundService`, nie fragmenty:
 
 ```
 app/src/main/java/hu/billman/konsolessh/
-├── model/           ConnectionConfig, SavedConnections (šifrované prefs)
-├── ssh/             SshSession, SshForegroundService
-├── terminal/        TerminalView, AnsiParser, TerminalClipboard
-└── ui/              MainActivity, TerminalFragment, dialógy, sheets
+model/ConnectionConfig.kt              — údaje SSH pripojenia (hostiteľ, port, používateľ, overenie, jump)
+data/ConnectionRepository.kt           — uložené pripojenia; suspend, main-safe; nečitateľné úložisko → výnimka
+data/CryptoBoxConnectionRepository.kt  — úložisko AES-256-GCM (Android Keystore), migrácia starých údajov
+data/SettingsRepository.kt             — malé nastavenia (veľkosť písma)
+ssh/SshSession.kt                      — JSch relácia: reťazec jump, shell, SFTP nahrávanie/mazanie
+ssh/JumpChain.kt                       — viacstupňové jump hosty: rozlíšenie a tunely
+ssh/TofuHostKeyRepository.kt           — overenie kľúča hostiteľa (dôvera pri prvom použití)
+ssh/SshKeyProvisioner.kt               — test pripojenia a nahratie verejného kľúča
+ssh/SshError.kt                        — typované SSH chyby a ich klasifikátor
+session/SessionManager.kt              — jediný zdroj pravdy: karty, stav, výstup, otázky
+session/PromptBroker.kt                — otázky na heslo a kľúč hostiteľa ako stav
+service/SshForegroundService.kt        — udržiava proces nažive, upozornenie
+terminal/TerminalView.kt               — terminálový emulátor na Canvas (VT100/xterm-256color)
+terminal/AnsiParser.kt                 — stavový automat ANSI/VT
+terminal/KeyModifiers.kt               — logika prilepených Ctrl/Shift/Alt/AltGr
+ui/MainActivity.kt                     — hlavná obrazovka: karty, stránky, otázky, chyby
+ui/MainViewModel.kt                    — stav a príkazy hlavnej obrazovky
+ui/SshTerminalFragment.kt              — jedna SSH karta (dostane iba id karty)
+ui/StaticTerminalFragment.kt           — uvítacia stránka, ťaháky pre Linux a tmux
+ui/NewConnectionDialog.kt              — vytvorenie / úprava / test pripojenia
+ui/keybar/KeybarController.kt          — klávesový panel na obrazovke
+AppContainer.kt                        — manuálna injekcia závislostí (composition root)
 ```
 
 ## Build
@@ -349,6 +367,11 @@ Aplikácia je vydaná pod licenciou **GPL-3.0-or-later** — úplný text v súb
 
 ## História verzií
 
+- **1.1.27** — vrstvená architektúra po audite kódu: jediný správca relácií ako
+  zdroj pravdy, otázky prichádzajú ako stav a prežijú otočenie, typované chyby s
+  jedným prekladačom správ; nečitateľné úložisko pripojení sa už neprepíše a nič sa
+  neukladá nešifrovane; tajomstvá sa už neodovzdávajú v argumentoch fragmentov; pri
+  úprave sa zachová heslová fráza kľúča; bezpečnejší príkaz na nahratie kľúča
 - **1.1.26** — overenie kľúča hostiteľa servera (dôvera pri prvom použití, odtlačok
   SHA256, upozornenie pri zmene); viacstupňové jump hosty (jump host môže mať
   vlastný jump host, až 5 skokov), používané aj testom pripojenia a nahrávaním

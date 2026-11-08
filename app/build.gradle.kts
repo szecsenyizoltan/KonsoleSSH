@@ -20,8 +20,8 @@ android {
         applicationId = "hu.billman.konsolessh"
         minSdk = 26
         targetSdk = 37
-        versionCode = 37
-        versionName = "1.1.26"
+        versionCode = 38
+        versionName = "1.1.27"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -96,6 +96,7 @@ dependencies {
     testImplementation(libs.junit4)
     testImplementation(libs.robolectric)
     testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.androidx.test.core)
 
     // Instrumented tests (device/emulator)

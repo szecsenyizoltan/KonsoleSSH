@@ -222,7 +222,7 @@ JSch exception helyett magyar (locale szerint angol) szöveg:
 
 - **AES-256-GCM Android Keystore-ral** — a kapcsolatprofilok nem exportálható Keystore-kulccsal titkosítva (véletlen IV, 128 bites tag); a régebbi EncryptedSharedPreferences-adatok automatikusan átmigrálódnak
 - **Legacy migráció** indításkor — régi plain-text profilok beemelése az encrypted tárba, majd legacy törlés
-- **Plain-prefs fallback** — ha a keystore-inicializáció elromlik (warning log), nem veszti el a profilokat
+- **Nincs titkosítatlan mentés, nincs csendes felülírás** — sikertelen titkosításnál semmi nem íródik ki; olvashatatlan tárat jelez, és sosem írja felül
 - **Host key ellenőrzés (TOFU)** — első kapcsolódáskor a szerverkulcs SHA256-ujjlenyomatát jóvá kell hagyni, utána minden kapcsolódáskor ellenőrzi; megváltozott kulcsot csak kifejezett csere után fogad el
 - A hitelesítő adatok nem hagyják el a készüléket
 
@@ -294,24 +294,28 @@ A sessionöket a `SshForegroundService` kezeli, nem a fragmentek:
 
 ```
 app/src/main/java/hu/billman/konsolessh/
-├── model/
-│   ├── ConnectionConfig.kt       — SSH kapcsolat adatok (host, port, user, auth, jump)
-│   └── SavedConnections.kt       — profil-kezelés (tárolás: data/CryptoBoxConnectionRepository)
-├── ssh/
-│   ├── SshSession.kt             — JSch wrapper (connect/read/write/resize/jump, SFTP upload, remote rm)
-│   └── SshForegroundService.kt   — Foreground service; sessionök, output bufferek, feltöltési progress
-├── terminal/
-│   ├── TerminalView.kt           — Canvas terminál-emulátor (VT100/xterm-256color)
-│   ├── AnsiParser.kt             — ANSI/VT állapot-automata
-│   └── TerminalClipboard.kt      — App-on belüli közös vágólap
-└── ui/
-    ├── MainActivity.kt           — Fül-koordináció, billentyűsor, feltöltés-folyamat, window insets
-    ├── TerminalFragment.kt       — Terminál / cheat sheet / üdvözlő
-    ├── TerminalPagerAdapter.kt   — ViewPager2 adapter (fix lapok + SSH fülek)
-    ├── TabPickerSheet.kt         — Fül- és mentett kapcsolat-választó fa-struktúrás csoportosítással
-    ├── NewConnectionDialog.kt    — Új / szerkesztett kapcsolat dialógus
-    ├── ConnectionEditActivity.kt — Mentett kapcsolatok kezelése
-    └── KonsoleToast.kt           — App-on belüli toast opcionális akciógombbal
+model/ConnectionConfig.kt              — SSH-kapcsolat adatai (host, port, felhasználó, hitelesítés, jump)
+data/ConnectionRepository.kt           — mentett kapcsolatok; suspend, main-safe; olvashatatlan tár → kivétel
+data/CryptoBoxConnectionRepository.kt  — AES-256-GCM (Android Keystore) tár, régi adatok migrációja
+data/SettingsRepository.kt             — kis beállítások (betűméret)
+ssh/SshSession.kt                      — JSch-munkamenet: jump-lánc, shell, SFTP feltöltés/törlés
+ssh/JumpChain.kt                       — többlépcsős jump host feloldása és alagutak
+ssh/TofuHostKeyRepository.kt           — host key ellenőrzés (első használatkori megbízás)
+ssh/SshKeyProvisioner.kt               — kapcsolatteszt és publikus kulcs feltöltése
+ssh/SshError.kt                        — típusos SSH-hibák és osztályozójuk
+session/SessionManager.kt              — egyetlen igazságforrás: fülek, állapot, kimenet, kérdések
+session/PromptBroker.kt                — jelszó- és host key-kérdések állapotként
+service/SshForegroundService.kt        — életben tartja a folyamatot, értesítés
+terminal/TerminalView.kt               — Canvas-alapú terminálemulátor (VT100/xterm-256color)
+terminal/AnsiParser.kt                 — ANSI/VT állapotgép
+terminal/KeyModifiers.kt               — ragadós Ctrl/Shift/Alt/AltGr logika
+ui/MainActivity.kt                     — főképernyő: fülsáv, oldalak, kérdések, hibák
+ui/MainViewModel.kt                    — a főképernyő állapota és parancsai
+ui/SshTerminalFragment.kt              — egy SSH-fül (csak a fül azonosítóját kapja)
+ui/StaticTerminalFragment.kt           — üdvözlő oldal, Linux- és tmux-puska
+ui/NewConnectionDialog.kt              — kapcsolat létrehozása / szerkesztése / tesztelése
+ui/keybar/KeybarController.kt          — képernyő-billentyűsor
+AppContainer.kt                        — manuális dependency injection (composition root)
 ```
 
 ## Build
@@ -388,6 +392,11 @@ Az alkalmazás **GPL-3.0-or-later** licenc alatt érhető el — a teljes szöve
 
 ## Verziótörténet
 
+- **1.1.27** — rétegzett architektúra kódaudit alapján: egyetlen munkamenet-kezelő
+  az igazságforrás, a kérdések állapotként érkeznek és túlélik a forgatást, típusos
+  hibák egyetlen szövegleképezővel; olvashatatlan kapcsolattárat nem ír felül, és
+  semmit nem ment titkosítatlanul; titkok nem kerülnek Fragment-argumentumba;
+  szerkesztéskor megmarad a kulcs passphrase-e; biztonságosabb kulcsfeltöltő parancs
 - **1.1.26** — szerver host key ellenőrzés (első használatkori megbízás,
   SHA256-ujjlenyomat, figyelmeztetés változáskor); többlépcsős jump host (a jump
   hostnak is lehet jump hostja, legfeljebb 5 ugrás), a kapcsolatteszt és a

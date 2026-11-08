@@ -5,6 +5,8 @@ import hu.billman.konsolessh.data.AesGcmKeystoreBox
 import hu.billman.konsolessh.data.ConnectionRepository
 import hu.billman.konsolessh.data.CryptoBox
 import hu.billman.konsolessh.data.CryptoBoxConnectionRepository
+import hu.billman.konsolessh.ssh.HostKeyStore
+import java.io.File
 
 /**
  * Manuális dependency-gráf. Egyetlen példány él az Application onCreate()-je
@@ -25,6 +27,11 @@ class AppContainer(context: Context) {
 
     val connectionRepository: ConnectionRepository by lazy {
         CryptoBoxConnectionRepository(appContext, cryptoBox)
+    }
+
+    // Egyetlen példány: a párhuzamos fülek így nem írják felül egymás bejegyzéseit.
+    val hostKeyStore: HostKeyStore by lazy {
+        HostKeyStore(File(appContext.filesDir, "known_hosts"))
     }
 
     companion object {

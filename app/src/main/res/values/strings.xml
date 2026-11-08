@@ -129,6 +129,14 @@
     <string name="err_connection_refused">Connection refused — the server does not accept connections on this port.</string>
     <string name="err_timeout">Timeout — the server is not responding.</string>
     <string name="err_local_network_blocked">Timeout. If the server is on your local network, allow the Nearby devices permission in the app settings.</string>
+    <string name="hostkey_unknown_title">Unknown server</string>
+    <string name="hostkey_unknown_message">This is the first connection to %1$s.\n\n%2$s key fingerprint:\n%3$s\n\nOnly accept if the fingerprint matches the server\'s. The key will be saved and checked on every later connection.</string>
+    <string name="hostkey_accept">Accept</string>
+    <string name="hostkey_changed_title">WARNING: server key changed!</string>
+    <string name="hostkey_changed_message">The %2$s key of %1$s differs from the saved one.\n\nNew fingerprint:\n%3$s\n\nSomeone may be intercepting the connection (man-in-the-middle attack). Only replace the key if you know why it changed, for example because the server was reinstalled.</string>
+    <string name="hostkey_replace">Replace key</string>
+    <string name="err_hostkey_rejected">Connection cancelled: the server key was not accepted.</string>
+    <string name="err_hostkey_changed">Connection refused: the server key has changed and was not accepted.</string>
     <string name="err_no_route">Server unreachable — check the network and the IP address.</string>
     <string name="err_network_unreachable">The network is unreachable.</string>
     <string name="err_unknown_host">Unknown hostname — DNS error or typo.</string>

@@ -129,6 +129,14 @@
     <string name="err_connection_refused">Connexion refusée — le serveur n\'accepte pas de connexion sur ce port.</string>
     <string name="err_timeout">Délai dépassé — le serveur ne répond pas.</string>
     <string name="err_local_network_blocked">Délai dépassé. Si le serveur est sur votre réseau local, accordez l\'autorisation Appareils à proximité dans les paramètres de l\'application.</string>
+    <string name="hostkey_unknown_title">Serveur inconnu</string>
+    <string name="hostkey_unknown_message">Première connexion à %1$s.\n\nEmpreinte de la clé %2$s :\n%3$s\n\nN\'acceptez que si l\'empreinte correspond à celle du serveur. La clé sera enregistrée et vérifiée à chaque connexion ultérieure.</string>
+    <string name="hostkey_accept">Accepter</string>
+    <string name="hostkey_changed_title">ATTENTION : la clé du serveur a changé !</string>
+    <string name="hostkey_changed_message">La clé %2$s de %1$s diffère de celle enregistrée.\n\nNouvelle empreinte :\n%3$s\n\nQuelqu\'un intercepte peut-être la connexion (attaque de l\'homme du milieu). Ne remplacez la clé que si vous savez pourquoi elle a changé, par exemple après une réinstallation du serveur.</string>
+    <string name="hostkey_replace">Remplacer la clé</string>
+    <string name="err_hostkey_rejected">Connexion annulée : la clé du serveur n\'a pas été acceptée.</string>
+    <string name="err_hostkey_changed">Connexion refusée : la clé du serveur a changé et n\'a pas été acceptée.</string>
     <string name="err_no_route">Serveur inaccessible — vérifie le réseau et l\'adresse IP.</string>
     <string name="err_network_unreachable">Le réseau est inaccessible.</string>
     <string name="err_unknown_host">Hôte inconnu — erreur DNS ou faute de frappe.</string>

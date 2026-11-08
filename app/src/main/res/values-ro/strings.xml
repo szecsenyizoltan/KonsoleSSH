@@ -129,6 +129,14 @@
     <string name="err_connection_refused">Conexiune refuzată — serverul nu acceptă conexiuni pe acest port.</string>
     <string name="err_timeout">Timp expirat — serverul nu răspunde.</string>
     <string name="err_local_network_blocked">Timp expirat. Dacă serverul este în rețeaua locală, acordă permisiunea Dispozitive din apropiere în setările aplicației.</string>
+    <string name="hostkey_unknown_title">Server necunoscut</string>
+    <string name="hostkey_unknown_message">Prima conectare la %1$s.\n\nAmprenta cheii %2$s:\n%3$s\n\nAcceptă doar dacă amprenta coincide cu cea a serverului. Cheia va fi salvată și verificată la fiecare conectare ulterioară.</string>
+    <string name="hostkey_accept">Accept</string>
+    <string name="hostkey_changed_title">ATENȚIE: cheia serverului s-a schimbat!</string>
+    <string name="hostkey_changed_message">Cheia %2$s a %1$s diferă de cea salvată.\n\nAmprentă nouă:\n%3$s\n\nEste posibil ca cineva să intercepteze conexiunea (atac man-in-the-middle). Înlocuiește cheia doar dacă știi de ce s-a schimbat, de exemplu după reinstalarea serverului.</string>
+    <string name="hostkey_replace">Înlocuiește cheia</string>
+    <string name="err_hostkey_rejected">Conexiune anulată: cheia serverului nu a fost acceptată.</string>
+    <string name="err_hostkey_changed">Conexiune refuzată: cheia serverului s-a schimbat și nu a fost acceptată.</string>
     <string name="err_no_route">Server inaccesibil — verifică rețeaua și adresa IP.</string>
     <string name="err_network_unreachable">Rețeaua este inaccesibilă.</string>
     <string name="err_unknown_host">Nume de gazdă necunoscut — eroare DNS sau greșeală de scriere.</string>

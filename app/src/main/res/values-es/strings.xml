@@ -129,6 +129,14 @@
     <string name="err_connection_refused">Conexión rechazada — el servidor no acepta conexiones en este puerto.</string>
     <string name="err_timeout">Tiempo de espera agotado — el servidor no responde.</string>
     <string name="err_local_network_blocked">Tiempo de espera agotado. Si el servidor está en tu red local, concede el permiso Dispositivos cercanos en los ajustes de la aplicación.</string>
+    <string name="hostkey_unknown_title">Servidor desconocido</string>
+    <string name="hostkey_unknown_message">Primera conexión a %1$s.\n\nHuella de la clave %2$s:\n%3$s\n\nAcepta solo si la huella coincide con la del servidor. La clave se guardará y se comprobará en cada conexión posterior.</string>
+    <string name="hostkey_accept">Aceptar</string>
+    <string name="hostkey_changed_title">AVISO: ¡la clave del servidor ha cambiado!</string>
+    <string name="hostkey_changed_message">La clave %2$s de %1$s no coincide con la guardada.\n\nNueva huella:\n%3$s\n\nEs posible que alguien esté interceptando la conexión (ataque de intermediario). Sustituye la clave solo si sabes por qué ha cambiado, por ejemplo si se reinstaló el servidor.</string>
+    <string name="hostkey_replace">Sustituir clave</string>
+    <string name="err_hostkey_rejected">Conexión cancelada: no se aceptó la clave del servidor.</string>
+    <string name="err_hostkey_changed">Conexión rechazada: la clave del servidor ha cambiado y no se aceptó.</string>
     <string name="err_no_route">Servidor inalcanzable — comprueba la red y la dirección IP.</string>
     <string name="err_network_unreachable">La red no está disponible.</string>
     <string name="err_unknown_host">Nombre de host desconocido — error de DNS o escritura.</string>

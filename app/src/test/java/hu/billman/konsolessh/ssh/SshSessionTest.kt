@@ -6,6 +6,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.io.File
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -31,8 +32,11 @@ class SshSessionTest {
             username = username,
             authType = authType,
             password = password
-        )
+        ),
+        hostKeyStore(),
     )
+
+    private fun hostKeyStore() = HostKeyStore(File.createTempFile("known_hosts", null).apply { deleteOnExit() })
 
     // ---- Initial state ----
 
@@ -92,7 +96,7 @@ class SshSessionTest {
             authType = ConnectionConfig.AuthType.PASSWORD,
             password = "hunter2"
         )
-        val s = SshSession(config)
+        val s = SshSession(config, hostKeyStore())
         assertFalse(s.isConnected)
         assertNull(s.inputStream)
     }
@@ -106,7 +110,7 @@ class SshSessionTest {
             authType = ConnectionConfig.AuthType.PRIVATE_KEY,
             privateKey = "-----BEGIN RSA PRIVATE KEY-----\nfake\n-----END RSA PRIVATE KEY-----"
         )
-        val s = SshSession(config)
+        val s = SshSession(config, hostKeyStore())
         assertFalse(s.isConnected)
     }
 

@@ -129,6 +129,14 @@
     <string name="err_connection_refused">Verbindung abgelehnt — der Server akzeptiert auf diesem Port keine Verbindungen.</string>
     <string name="err_timeout">Zeitüberschreitung — der Server antwortet nicht.</string>
     <string name="err_local_network_blocked">Zeitüberschreitung. Wenn sich der Server im lokalen Netzwerk befindet, erlaube die Berechtigung „Geräte in der Nähe“ in den App-Einstellungen.</string>
+    <string name="hostkey_unknown_title">Unbekannter Server</string>
+    <string name="hostkey_unknown_message">Erste Verbindung zu %1$s.\n\nFingerabdruck des %2$s-Schlüssels:\n%3$s\n\nNur akzeptieren, wenn der Fingerabdruck mit dem des Servers übereinstimmt. Der Schlüssel wird gespeichert und bei jeder weiteren Verbindung geprüft.</string>
+    <string name="hostkey_accept">Akzeptieren</string>
+    <string name="hostkey_changed_title">WARNUNG: Serverschlüssel hat sich geändert!</string>
+    <string name="hostkey_changed_message">Der %2$s-Schlüssel von %1$s weicht vom gespeicherten ab.\n\nNeuer Fingerabdruck:\n%3$s\n\nMöglicherweise wird die Verbindung abgehört (Man-in-the-Middle-Angriff). Ersetze den Schlüssel nur, wenn du weißt, warum er sich geändert hat, z. B. nach einer Neuinstallation des Servers.</string>
+    <string name="hostkey_replace">Schlüssel ersetzen</string>
+    <string name="err_hostkey_rejected">Verbindung abgebrochen: Der Serverschlüssel wurde nicht akzeptiert.</string>
+    <string name="err_hostkey_changed">Verbindung abgelehnt: Der Serverschlüssel hat sich geändert und wurde nicht akzeptiert.</string>
     <string name="err_no_route">Server nicht erreichbar — prüfe Netzwerk und IP-Adresse.</string>
     <string name="err_network_unreachable">Das Netzwerk ist nicht erreichbar.</string>
     <string name="err_unknown_host">Unbekannter Hostname — DNS-Fehler oder Tippfehler.</string>

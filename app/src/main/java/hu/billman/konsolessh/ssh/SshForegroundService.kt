@@ -15,6 +15,7 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
+import hu.billman.konsolessh.AppContainer
 import hu.billman.konsolessh.R
 import hu.billman.konsolessh.model.ConnectionConfig
 import hu.billman.konsolessh.ui.ConnectionStatus
@@ -72,6 +73,7 @@ class SshForegroundService : Service() {
         var status: ConnectionStatus = ConnectionStatus.CONNECTING,
         val outputBuffer: OutputBuffer = OutputBuffer(),
         var passwordPrompter: PasswordPrompterFn? = null,
+        var hostKeyPrompter: HostKeyPrompterFn? = null,
     ) {
         /**
          * Session-események Flow-felülete (data / status / connect-error). A
@@ -153,7 +155,9 @@ class SshForegroundService : Service() {
         disconnectSession(tabId)
 
         val session = SshSession(
-            config, jumpConfig,
+            config,
+            AppContainer.from(this).hostKeyStore,
+            jumpConfig,
             SshSession.Messages(
                 jumpProgress = { h, p -> getString(R.string.terminal_jump_progress, h, p) },
                 jumpOk       = { h, p -> getString(R.string.terminal_jump_ok, h, p) }
@@ -164,6 +168,10 @@ class SshForegroundService : Service() {
 
         session.passwordPrompter = { displayHost, callback ->
             state.passwordPrompter?.invoke(displayHost, callback) ?: callback(null)
+        }
+        // Látható UI nélkül (háttérben újracsatlakozás) az ismeretlen kulcs elutasítva.
+        session.hostKeyPrompter = { prompt, callback ->
+            state.hostKeyPrompter?.invoke(prompt, callback) ?: callback(false)
         }
 
         // "Csatlakozás: host:port…" csak az első csatlakozáskor íródik a
@@ -293,6 +301,10 @@ class SshForegroundService : Service() {
         sessions[tabId]?.passwordPrompter = prompter
     }
 
+    fun setHostKeyPrompter(tabId: String, prompter: HostKeyPrompterFn?) {
+        sessions[tabId]?.hostKeyPrompter = prompter
+    }
+
     // ── Private ───────────────────────────────────────────────────────────────
 
     private fun emitData(state: SessionState, bytes: ByteArray) {
@@ -385,6 +397,8 @@ class SshForegroundService : Service() {
         return when {
             LocalNetworkAccess.isDenied(this) &&
                 LocalNetworkAccess.looksBlocked(full) -> getString(R.string.err_local_network_blocked)
+            "hostkey has been changed" in full -> getString(R.string.err_hostkey_changed)
+            "reject hostkey"         in full -> getString(R.string.err_hostkey_rejected)
             "connection refused"     in full -> getString(R.string.err_connection_refused)
             "connection timed out"   in full ||
             "connect timed out"      in full ||

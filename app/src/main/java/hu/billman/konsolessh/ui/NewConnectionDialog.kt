@@ -16,6 +16,7 @@ import hu.billman.konsolessh.R
 import hu.billman.konsolessh.databinding.DialogNewConnectionBinding
 import hu.billman.konsolessh.model.ConnectionConfig
 import hu.billman.konsolessh.model.SavedConnections
+import hu.billman.konsolessh.ssh.HostKeyPrompterFn
 import hu.billman.konsolessh.ssh.LocalNetworkAccess
 import hu.billman.konsolessh.ssh.SshKeyProvisioner
 import kotlinx.coroutines.launch
@@ -247,7 +248,7 @@ class NewConnectionDialog : DialogFragment() {
         binding.textTestStatus.text = getString(R.string.test_running)
 
         lifecycleScope.launch {
-            when (val result = viewModel.testConnection(probeConfig)) {
+            when (val result = viewModel.testConnection(probeConfig, hostKeyPrompter())) {
                 is NewConnectionViewModel.TestResult.Success -> {
                     testedServerType = result.serverType
                     // A "Generate & upload" gomb csak jelszavas tesztből oldódik fel —
@@ -274,6 +275,12 @@ class NewConnectionDialog : DialogFragment() {
     private fun friendlyShortError(err: Throwable): String =
         NewConnectionViewModel.friendlyShortError(err)
 
+    // Ha a dialógus közben bezárult, az ismeretlen kulcs elutasítva.
+    private fun hostKeyPrompter(): HostKeyPrompterFn = { prompt, callback ->
+        val ctx = if (isAdded) context else null
+        if (ctx == null) callback(false) else HostKeyDialog.show(ctx, prompt, callback)
+    }
+
     private fun onGenerateKeyClicked() {
         if (testedCredSnapshot == null || testedCredSnapshot != currentCredSnapshot()) {
             KonsoleToast.show(binding.root, getString(R.string.generate_needs_test))
@@ -293,7 +300,7 @@ class NewConnectionDialog : DialogFragment() {
         binding.textTestStatus.text = getString(R.string.upload_running)
 
         lifecycleScope.launch {
-            when (val result = viewModel.generateAndUploadKey(uploadConfig)) {
+            when (val result = viewModel.generateAndUploadKey(uploadConfig, hostKeyPrompter())) {
                 is NewConnectionViewModel.UploadResult.KeyGenerationFailure -> {
                     binding.btnGenerateKey.isEnabled = true
                     KonsoleToast.show(

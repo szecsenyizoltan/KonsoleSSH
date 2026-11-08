@@ -18,6 +18,7 @@ import hu.billman.konsolessh.R
 import hu.billman.konsolessh.databinding.FragmentTerminalBinding
 import hu.billman.konsolessh.model.ConnectionConfig
 import hu.billman.konsolessh.model.SavedConnections
+import hu.billman.konsolessh.ssh.HostKeyPrompterFn
 import hu.billman.konsolessh.ssh.SessionEvent
 import hu.billman.konsolessh.ssh.SshForegroundService
 import kotlinx.coroutines.Job
@@ -168,6 +169,7 @@ class TerminalFragment : Fragment() {
             // az onStop-pal automatikusan cancel-ezi. Explicit null-osítás
             // a password-prompter-re kell, mert az egy kontraktusos referencia.
             sshService?.setPasswordPrompter(tabId, null)
+            sshService?.setHostKeyPrompter(tabId, null)
             eventsJob?.cancel()
             eventsJob = null
             requireContext().unbindService(serviceConnection)
@@ -204,6 +206,7 @@ class TerminalFragment : Fragment() {
         }
 
         service.setPasswordPrompter(tabId, buildPasswordPrompter())
+        service.setHostKeyPrompter(tabId, buildHostKeyPrompter())
 
         when (service.getStatus(tabId)) {
             ConnectionStatus.NONE -> {
@@ -264,6 +267,10 @@ class TerminalFragment : Fragment() {
         val cols = binding.terminalView.currentCols
         val rows = binding.terminalView.currentRows
         service.connect(tabId, cfg, jumpConfig, cols, rows, isReconnect = isReconnect)
+        // A connect új session-állapotot hoz létre, a korábban beállított
+        // promptereket ezért újra kell regisztrálni, különben elutasítás lenne.
+        service.setPasswordPrompter(tabId, buildPasswordPrompter())
+        service.setHostKeyPrompter(tabId, buildHostKeyPrompter())
         collectSessionEvents(service)
         updateStatusUI(ConnectionStatus.CONNECTING)
         binding.statusBar.text = getString(R.string.status_connecting, cfg.displayName())
@@ -369,6 +376,12 @@ class TerminalFragment : Fragment() {
                 .setCancelable(false)
                 .show()
         }
+    }
+
+    // Detached Fragment esetén az ismeretlen kulcs elutasítva, mint a jelszónál.
+    private fun buildHostKeyPrompter(): HostKeyPrompterFn = { prompt, callback ->
+        val ctx = if (isAdded) context else null
+        if (ctx == null) callback(false) else HostKeyDialog.show(ctx, prompt, callback)
     }
 
     // ── Static content ────────────────────────────────────────────────────────

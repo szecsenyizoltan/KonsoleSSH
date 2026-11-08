@@ -19,7 +19,7 @@ class KonsoleViewModelFactory(
             modelClass.isAssignableFrom(ConnectionsViewModel::class.java) ->
                 ConnectionsViewModel(container.connectionRepository) as T
             modelClass.isAssignableFrom(NewConnectionViewModel::class.java) ->
-                NewConnectionViewModel() as T
+                NewConnectionViewModel(container.hostKeyStore) as T
             else -> error("Unknown ViewModel class: ${modelClass.name}")
         }
     }

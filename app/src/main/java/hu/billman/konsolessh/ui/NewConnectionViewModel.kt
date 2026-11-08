@@ -2,6 +2,8 @@ package hu.billman.konsolessh.ui
 
 import androidx.lifecycle.ViewModel
 import hu.billman.konsolessh.model.ConnectionConfig
+import hu.billman.konsolessh.ssh.HostKeyPrompterFn
+import hu.billman.konsolessh.ssh.HostKeyStore
 import hu.billman.konsolessh.ssh.SshKeyGenerator
 import hu.billman.konsolessh.ssh.SshKeyProvisioner
 
@@ -16,7 +18,7 @@ import hu.billman.konsolessh.ssh.SshKeyProvisioner
  * új példánya csatlakozhat a már eredményhez. Ebben a lépésben még
  * csak a logikát emelem ki; a rotációs-resilience Lépés 5-ben jön.
  */
-class NewConnectionViewModel : ViewModel() {
+class NewConnectionViewModel(private val hostKeyStore: HostKeyStore) : ViewModel() {
 
     sealed class TestResult {
         data class Success(
@@ -46,8 +48,8 @@ class NewConnectionViewModel : ViewModel() {
      * Jelszóval csatlakozás-teszt, szerver-verzió és típus visszajelzéssel.
      * Kivételt nem dob — a hibát [TestResult.Failure] rögzíti.
      */
-    suspend fun testConnection(config: ConnectionConfig): TestResult = try {
-        val outcome = SshKeyProvisioner.testConnection(config)
+    suspend fun testConnection(config: ConnectionConfig, hostKeyPrompter: HostKeyPrompterFn?): TestResult = try {
+        val outcome = SshKeyProvisioner.testConnection(config, hostKeyStore, hostKeyPrompter)
         TestResult.Success(outcome.serverVersion, outcome.serverType)
     } catch (e: Exception) {
         TestResult.Failure(friendlyShortError(e))
@@ -57,14 +59,19 @@ class NewConnectionViewModel : ViewModel() {
      * Helyi RSA-3072 kulcspár generálása + authorized_keys feltöltés a
      * szerverre. Ha a kulcsgenerálás bukik, a feltöltésre nem kerül sor.
      */
-    suspend fun generateAndUploadKey(config: ConnectionConfig): UploadResult {
+    suspend fun generateAndUploadKey(config: ConnectionConfig, hostKeyPrompter: HostKeyPrompterFn?): UploadResult {
         val generated = try {
             SshKeyGenerator.generateRsa3072(comment = "konsolessh:${config.username}@${config.host}")
         } catch (e: Exception) {
             return UploadResult.KeyGenerationFailure(friendlyShortError(e))
         }
         return try {
-            val serverType = SshKeyProvisioner.uploadPublicKey(config, generated.publicLine)
+            val serverType = SshKeyProvisioner.uploadPublicKey(
+                config,
+                generated.publicLine,
+                hostKeyStore,
+                hostKeyPrompter,
+            )
             UploadResult.Success(serverType, generated.privatePem, generated.publicLine)
         } catch (e: Exception) {
             UploadResult.UploadFailure(friendlyShortError(e), generated.publicLine)

@@ -129,6 +129,14 @@
     <string name="err_connection_refused">A kapcsolat elutasítva — a szerver nem fogad kapcsolatot ezen a porton.</string>
     <string name="err_timeout">Időtúllépés — a szerver nem válaszol.</string>
     <string name="err_local_network_blocked">Időtúllépés. Ha a szerver a helyi hálózaton van, engedélyezd a Közeli eszközök engedélyt az alkalmazás beállításaiban.</string>
+    <string name="hostkey_unknown_title">Ismeretlen szerver</string>
+    <string name="hostkey_unknown_message">Első kapcsolódás ehhez: %1$s.\n\n%2$s kulcs ujjlenyomata:\n%3$s\n\nCsak akkor fogadd el, ha egyezik a szerver ujjlenyomatával. A kulcs mentésre kerül, és minden későbbi kapcsolódáskor ellenőrizzük.</string>
+    <string name="hostkey_accept">Elfogadom</string>
+    <string name="hostkey_changed_title">FIGYELEM: megváltozott a szerver kulcsa!</string>
+    <string name="hostkey_changed_message">%1$s %2$s kulcsa eltér a mentettől.\n\nÚj ujjlenyomat:\n%3$s\n\nLehet, hogy valaki lehallgatja a kapcsolatot (közbeékelődéses támadás). Csak akkor cseréld le, ha tudod, miért változott, például újratelepítették a szervert.</string>
+    <string name="hostkey_replace">Kulcs cseréje</string>
+    <string name="err_hostkey_rejected">A kapcsolat megszakítva: a szerver kulcsát nem fogadtad el.</string>
+    <string name="err_hostkey_changed">A kapcsolat elutasítva: a szerver kulcsa megváltozott, és nem lett elfogadva.</string>
     <string name="err_no_route">Nem érhető el a szerver — ellenőrizd a hálózatot és az IP-t.</string>
     <string name="err_network_unreachable">A hálózat nem érhető el.</string>
     <string name="err_unknown_host">Ismeretlen hostnév — DNS hiba vagy elgépelés.</string>

@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit
 
 class SshSession(
     private val config: ConnectionConfig,
+    private val hostKeyStore: HostKeyStore,
     private val jumpConfig: ConnectionConfig? = null,
     private val messages: Messages = Messages.Default
 ) {
@@ -63,6 +64,9 @@ class SshSession(
     // Called on main thread: displayHost is the real server (e.g. "csaba@10.1.1.8"), callback returns entered password or null
     var passwordPrompter: ((displayHost: String, callback: (String?) -> Unit) -> Unit)? = null
 
+    // Called on main thread with an unknown or changed host key; callback true accepts it
+    var hostKeyPrompter: HostKeyPrompterFn? = null
+
     /**
      * True once the server has rejected at least one credential attempt and
      * JSch has called back for a retry. Lets the outer catch block replace
@@ -70,7 +74,10 @@ class SshSession(
      */
     @Volatile private var sawCredentialReject = false
 
-    private inner class JschUserInfo(private val displayHost: String) : UserInfo, UIKeyboardInteractive {
+    private inner class JschUserInfo(
+        private val displayHost: String,
+        private val hostKeys: TofuHostKeyRepository,
+    ) : UserInfo, UIKeyboardInteractive {
         private var pendingPassword: String? = null
 
         private fun askUser(): String? {
@@ -95,7 +102,9 @@ class SshSession(
             return true
         }
         override fun getPassword(): String? = pendingPassword
-        override fun promptYesNo(message: String): Boolean = true
+
+        // JSch only asks yes/no about an unknown or changed host key
+        override fun promptYesNo(message: String): Boolean = hostKeys.confirmPending(hostKeyPrompter)
         override fun getPassphrase(): String? = null
         override fun promptPassphrase(message: String): Boolean = false
         override fun showMessage(message: String) {}
@@ -130,11 +139,12 @@ class SshSession(
         try {
             sawCredentialReject = false
             val props = Properties().apply {
-                set("StrictHostKeyChecking", "no")
+                // Trust on first use: unknown or changed host keys go to the user,
+                // accepted ones are checked on every later connection.
+                set("StrictHostKeyChecking", "ask")
                 // Re-enable legacy ssh-rsa (SHA-1 RSA) as a last-resort host key
                 // algorithm. JSch 0.2.x dropped it by default, but many consumer
-                // routers and embedded SSH servers still only offer it. We trust
-                // whatever is there via StrictHostKeyChecking=no anyway.
+                // routers and embedded SSH servers still only offer it.
                 set(
                     "server_host_key",
                     "ssh-ed25519,ecdsa-sha2-nistp521,ecdsa-sha2-nistp384," +
@@ -145,6 +155,7 @@ class SshSession(
             // ── Jump host (SSH -J) ────────────────────────────────────────────
             if (jumpConfig != null) {
                 val jumpJsch = JSch()
+                val jumpHostKeys = jumpJsch.useTofu()
                 if (jumpConfig.privateKey.isNotBlank()) {
                     val kb = jumpConfig.privateKey.toByteArray()
                     val pp = if (jumpConfig.privateKeyPassphrase.isNotBlank()) jumpConfig.privateKeyPassphrase.toByteArray() else null
@@ -154,7 +165,7 @@ class SshSession(
                 js.setConfig(props)
                 js.setConfig("PreferredAuthentications", buildPreferredAuths(jumpConfig))
                 if (jumpConfig.password.isNotBlank()) js.setPassword(jumpConfig.password)
-                js.userInfo = JschUserInfo("${jumpConfig.username}@${jumpConfig.host}")
+                js.userInfo = JschUserInfo("${jumpConfig.username}@${jumpConfig.host}", jumpHostKeys)
                 withContext(Dispatchers.Main) {
                     onProgress(messages.jumpProgress(jumpConfig.host, jumpConfig.port))
                 }
@@ -168,16 +179,20 @@ class SshSession(
                 }
 
                 val jsch = JSch()
+                val hostKeys = jsch.useTofu()
                 if (config.privateKey.isNotBlank()) {
                     val keyBytes = config.privateKey.toByteArray()
                     val pp = if (config.privateKeyPassphrase.isNotBlank()) config.privateKeyPassphrase.toByteArray() else null
                     jsch.addIdentity("key_${config.id}", keyBytes, null, pp)
                 }
                 val session = jsch.getSession(config.username, "127.0.0.1", localPort)
+                // Without the alias the key would be stored under 127.0.0.1:<random
+                // port> and look like a new host on every connection.
+                session.setHostKeyAlias(TofuHostKeyRepository.alias(config.host, config.port))
                 session.setConfig(props)
                 session.setConfig("PreferredAuthentications", buildPreferredAuths(config))
                 if (config.password.isNotBlank()) session.setPassword(config.password)
-                session.userInfo = JschUserInfo("${config.username}@${config.host}")
+                session.userInfo = JschUserInfo("${config.username}@${config.host}", hostKeys)
                 session.applyKeepAlive()
                 session.connect(CONNECT_TIMEOUT_MS)
                 jschSession = session
@@ -185,6 +200,7 @@ class SshSession(
             } else {
                 // ── Direct connection ─────────────────────────────────────────
                 val jsch = JSch()
+                val hostKeys = jsch.useTofu()
                 if (config.privateKey.isNotBlank()) {
                     val keyBytes = config.privateKey.toByteArray()
                     val pp = if (config.privateKeyPassphrase.isNotBlank()) config.privateKeyPassphrase.toByteArray() else null
@@ -194,7 +210,7 @@ class SshSession(
                 props["PreferredAuthentications"] = buildPreferredAuths(config)
                 session.setConfig(props)
                 if (config.password.isNotBlank()) session.setPassword(config.password)
-                session.userInfo = JschUserInfo("${config.username}@${config.host}")
+                session.userInfo = JschUserInfo("${config.username}@${config.host}", hostKeys)
                 session.applyKeepAlive()
                 session.connect(CONNECT_TIMEOUT_MS)
                 jschSession = session
@@ -310,6 +326,9 @@ class SshSession(
         inputStream = null
         outputStream = null
     }
+
+    private fun JSch.useTofu(): TofuHostKeyRepository =
+        TofuHostKeyRepository(hostKeyStore).also { hostKeyRepository = it }
 
     private fun buildPreferredAuths(cfg: ConnectionConfig): String {
         val hasPassword = cfg.password.isNotBlank()

@@ -3,6 +3,7 @@ package hu.billman.konsolessh.ssh
 import com.jcraft.jsch.ChannelExec
 import com.jcraft.jsch.ChannelSftp
 import com.jcraft.jsch.JSch
+import com.jcraft.jsch.JSchException
 import com.jcraft.jsch.Session
 import hu.billman.konsolessh.model.ConnectionConfig
 import kotlinx.coroutines.Dispatchers
@@ -34,11 +35,15 @@ object SshKeyProvisioner {
      * Honours whichever credentials the config carries: privát kulcs
      * (publickey), jelszó (password,keyboard-interactive), vagy mindkettő.
      */
-    suspend fun testConnection(cfg: ConnectionConfig): TestOutcome =
+    suspend fun testConnection(
+        cfg: ConnectionConfig,
+        hostKeyStore: HostKeyStore,
+        hostKeyPrompter: HostKeyPrompterFn?,
+    ): TestOutcome =
         withContext(Dispatchers.IO) {
-            val session = openSession(cfg, allowKey = true)
+            val session = openSession(cfg, allowKey = true, hostKeyStore, hostKeyPrompter)
             try {
-                session.connect(CONNECT_TIMEOUT_MS)
+                session.connectProbe()
                 val version = session.serverVersion ?: ""
                 TestOutcome(version, detectServerType(version))
             } finally {
@@ -47,11 +52,16 @@ object SshKeyProvisioner {
         }
 
     /** Uploads the public key to the server using the password auth. */
-    suspend fun uploadPublicKey(cfg: ConnectionConfig, publicKey: String): ServerType =
+    suspend fun uploadPublicKey(
+        cfg: ConnectionConfig,
+        publicKey: String,
+        hostKeyStore: HostKeyStore,
+        hostKeyPrompter: HostKeyPrompterFn?,
+    ): ServerType =
         withContext(Dispatchers.IO) {
-            val session = openSession(cfg, allowKey = false)
+            val session = openSession(cfg, allowKey = false, hostKeyStore, hostKeyPrompter)
             try {
-                session.connect(CONNECT_TIMEOUT_MS)
+                session.connectProbe()
                 val version = session.serverVersion ?: ""
                 val type = detectServerType(version)
                 when (type) {
@@ -66,8 +76,15 @@ object SshKeyProvisioner {
 
     // ── Internals ─────────────────────────────────────────────────────────────
 
-    private fun openSession(cfg: ConnectionConfig, allowKey: Boolean): Session {
+    private fun openSession(
+        cfg: ConnectionConfig,
+        allowKey: Boolean,
+        hostKeyStore: HostKeyStore,
+        hostKeyPrompter: HostKeyPrompterFn?,
+    ): Session {
         val jsch = JSch()
+        val hostKeys = TofuHostKeyRepository(hostKeyStore)
+        jsch.hostKeyRepository = hostKeys
         val useKey = allowKey && cfg.privateKey.isNotBlank()
         if (useKey) {
             val keyBytes = cfg.privateKey.toByteArray()
@@ -82,7 +99,7 @@ object SshKeyProvisioner {
         }
         val session = jsch.getSession(cfg.username, cfg.host, cfg.port)
         val props = Properties().apply {
-            set("StrictHostKeyChecking", "no")
+            set("StrictHostKeyChecking", "ask")
             set("PreferredAuthentications", auths)
             // Legacy ssh-rsa (SHA-1 RSA) re-enabled for old routers / embedded
             // SSH servers; see SshSession for the same list.
@@ -94,8 +111,21 @@ object SshKeyProvisioner {
         }
         session.setConfig(props)
         if (hasPassword) session.setPassword(cfg.password)
-        // No UserInfo — we do not want retry loops or interactive prompts here.
+        // Only the host key question is asked — no password retry loops here.
+        session.userInfo = HostKeyOnlyUserInfo(hostKeys, hostKeyPrompter)
         return session
+    }
+
+    // The UserInfo never re-prompts for a password, so JSch's "Auth cancel"
+    // here really means the server rejected the credentials.
+    private fun Session.connectProbe() {
+        try {
+            connect(CONNECT_TIMEOUT_MS)
+        } catch (e: JSchException) {
+            val msg = e.message.orEmpty()
+            if (!msg.startsWith("Auth cancel")) throw e
+            throw JSchException(msg.replaceFirst("Auth cancel", "Auth fail"), e)
+        }
     }
 
     private fun detectServerType(version: String): ServerType = when {

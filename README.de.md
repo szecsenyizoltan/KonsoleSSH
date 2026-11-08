@@ -220,10 +220,10 @@ Rohe JSch-Exceptions werden in lesbaren, lokalisierten Text übersetzt:
 
 ### Sicherheit
 
-- **EncryptedSharedPreferences** — Value-Schema AES256_GCM, Key-Schema AES256_SIV, über Android Keystore gestützter MasterKey
+- **AES-256-GCM über Android Keystore** — Verbindungsprofile werden mit einem nicht exportierbaren Keystore-Schlüssel verschlüsselt (zufälliger IV, 128-Bit-Tag); ältere EncryptedSharedPreferences-Daten werden automatisch migriert
 - **Legacy-Migration** beim ersten Start — alte Klartext-Profile werden in den verschlüsselten Speicher überführt, anschließend wird der Legacy-Speicher geleert
 - **Plain-Prefs-Fallback** — falls die Keystore-Initialisierung scheitert (Warnung im Log), gehen Profile nicht verloren
-- **JSch `StrictHostKeyChecking=no`** — Trust-on-first-use
+- **Host-Key-Prüfung (TOFU)** — beim ersten Verbinden wird der SHA256-Fingerabdruck des Serverschlüssels bestätigt und danach bei jeder Verbindung geprüft; ein geänderter Schlüssel wird nur nach ausdrücklichem Ersetzen akzeptiert
 - Zugangsdaten verlassen das Gerät nie
 
 ### Startseite / Referenzen

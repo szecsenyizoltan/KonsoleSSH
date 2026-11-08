@@ -220,10 +220,10 @@ Surové JSch výnimky sú mapované na čitateľný text (lokalizovaný):
 
 ### Bezpečnosť
 
-- **EncryptedSharedPreferences** — schéma hodnôt AES256_GCM, schéma kľúčov AES256_SIV, MasterKey podopretý Android Keystore
+- **AES-256-GCM cez Android Keystore** — profily pripojení sú šifrované neexportovateľným kľúčom z Keystore (náhodný IV, 128-bitový tag); staršie údaje z EncryptedSharedPreferences sa migrujú automaticky
 - **Migrácia zastaraných údajov** pri prvom spustení — staré profily v čistom texte sa presunú do šifrovaného úložiska, potom sa staré úložisko vyčistí
 - **Fallback na obyčajné prefs** — ak inicializácia keystore zlyhá (zalogované varovanie), profily sa nestratia
-- **JSch `StrictHostKeyChecking=no`** — trust-on-first-use
+- **Overenie kľúča hostiteľa (TOFU)** — pri prvom pripojení sa potvrdí odtlačok SHA256 kľúča servera a potom sa overuje pri každom pripojení; zmenený kľúč sa prijme iba po výslovnom nahradení
 - Prihlasovacie údaje nikdy neopustia zariadenie
 
 ### Úvodná obrazovka / ťaháky

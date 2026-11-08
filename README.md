@@ -220,10 +220,10 @@ Raw JSch exceptions are mapped to readable text (localized):
 
 ### Security
 
-- **EncryptedSharedPreferences** — AES256_GCM value scheme, AES256_SIV key scheme, Android Keystore-backed MasterKey
+- **AES-256-GCM via Android Keystore** — connection profiles are encrypted with a non-exportable Keystore key (random IV, 128-bit tag); older EncryptedSharedPreferences data is migrated automatically
 - **Legacy migration** on first run — old plain-text profiles moved into the encrypted store, then the legacy store is cleared
 - **Plain-prefs fallback** — if keystore init fails (warning logged), profiles are not lost
-- **JSch `StrictHostKeyChecking=no`** — trust-on-first-use
+- **Host key verification (TOFU)** — the SHA256 fingerprint of the server key is confirmed on first connection and checked on every later one; a changed key is only accepted after an explicit replace
 - Credentials never leave the device
 
 ### Welcome / cheat sheets
@@ -296,7 +296,7 @@ Sessions are owned by `SshForegroundService`, not by fragments. This means:
 app/src/main/java/hu/billman/konsolessh/
 ├── model/
 │   ├── ConnectionConfig.kt       — SSH connection data (host, port, user, auth, jump)
-│   └── SavedConnections.kt       — EncryptedSharedPreferences-backed profile manager
+│   └── SavedConnections.kt       — profile manager (stored via data/CryptoBoxConnectionRepository)
 ├── ssh/
 │   ├── SshSession.kt             — JSch wrapper (connect/read/write/resize/jump, SFTP upload, remote rm)
 │   └── SshForegroundService.kt   — Foreground service; owns sessions, output buffers and upload progress
@@ -358,7 +358,7 @@ A `mapping.txt` is produced so the Play Console can deobfuscate stack traces.
 | ViewPager2         | 1.1.0             | Tab navigation                            |
 | Material Design    | 1.12.0            | UI components                             |
 | Gson               | 2.10.1            | Connection profile (de)serialisation      |
-| androidx.security  | 1.1.0-alpha06     | EncryptedSharedPreferences                |
+| androidx.security  | 1.1.0             | Legacy EncryptedSharedPreferences migration only |
 | AndroidX Core      | 1.13+             | ServiceCompat, WindowInsetsCompat         |
 
 ## Permissions

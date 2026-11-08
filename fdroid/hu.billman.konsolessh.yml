@@ -35,8 +35,10 @@ Description: |-
       lock and task removal; per-session output buffer replayed on
       reconnect.
     * Interactive password prompts when no password is saved.
-    * Saved connections stored in EncryptedSharedPreferences
-      (AES256, Android Keystore).
+    * Saved connections encrypted with AES-256-GCM using a
+      non-exportable Android Keystore key.
+    * Server host key verification (trust on first use): the SHA256
+      fingerprint is confirmed once, then checked on every connection.
     * Tree-grouped connection picker based on common underscore
       prefixes.
     * Linux command and tmux cheat sheets (swipe from welcome page),

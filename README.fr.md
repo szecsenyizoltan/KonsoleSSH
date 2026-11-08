@@ -220,10 +220,10 @@ Les exceptions JSch brutes sont converties en texte lisible (localisé) :
 
 ### Sécurité
 
-- **EncryptedSharedPreferences** — schéma de valeur AES256_GCM, schéma de clé AES256_SIV, MasterKey adossé à l'Android Keystore
+- **AES-256-GCM via Android Keystore** — les profils de connexion sont chiffrés avec une clé Keystore non exportable (IV aléatoire, tag de 128 bits) ; les anciennes données EncryptedSharedPreferences sont migrées automatiquement
 - **Migration legacy** au premier lancement — les anciens profils en texte clair sont déplacés vers le stockage chiffré, puis l'ancien stockage est vidé
 - **Repli prefs en clair** — si l'initialisation du keystore échoue (avertissement journalisé), les profils ne sont pas perdus
-- **JSch `StrictHostKeyChecking=no`** — confiance au premier usage
+- **Vérification de la clé d'hôte (TOFU)** — l'empreinte SHA256 de la clé du serveur est confirmée à la première connexion, puis vérifiée à chaque connexion ; une clé modifiée n'est acceptée qu'après remplacement explicite
 - Les identifiants ne quittent jamais l'appareil
 
 ### Accueil / aide-mémoires

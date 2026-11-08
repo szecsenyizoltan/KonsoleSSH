@@ -262,7 +262,7 @@ class NewConnectionDialog : DialogFragment() {
                     setTestStatus(
                         getString(
                             R.string.test_failure,
-                            LocalNetworkAccess.explain(requireContext(), result.errorMessage),
+                            explainFailure(result.errorMessage),
                         ),
                         successful = false,
                     )
@@ -274,6 +274,16 @@ class NewConnectionDialog : DialogFragment() {
 
     private fun friendlyShortError(err: Throwable): String =
         NewConnectionViewModel.friendlyShortError(err)
+
+    // A JSch host key hibái nyersen angolul jönnének, ezért fordított szöveget kapnak.
+    private fun explainFailure(message: String): String {
+        val lower = message.lowercase()
+        return when {
+            "hostkey has been changed" in lower -> getString(R.string.err_hostkey_changed)
+            "reject hostkey" in lower -> getString(R.string.err_hostkey_rejected)
+            else -> LocalNetworkAccess.explain(requireContext(), message)
+        }
+    }
 
     // Ha a dialógus közben bezárult, az ismeretlen kulcs elutasítva.
     private fun hostKeyPrompter(): HostKeyPrompterFn = { prompt, callback ->
@@ -326,7 +336,7 @@ class NewConnectionDialog : DialogFragment() {
                     setTestStatus(
                         getString(
                             R.string.upload_failure,
-                            LocalNetworkAccess.explain(requireContext(), result.errorMessage),
+                            explainFailure(result.errorMessage),
                         ),
                         // keep the green test state so user can retry
                         successful = true,

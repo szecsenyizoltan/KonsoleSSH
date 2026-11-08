@@ -1,6 +1,7 @@
 package hu.billman.konsolessh.terminal
 
 import android.content.ClipData
+import android.content.ClipDescription
 import android.content.ClipboardManager
 import android.content.Context
 import android.graphics.Canvas
@@ -9,8 +10,10 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Typeface
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.PersistableBundle
 import android.text.InputType
 import android.util.AttributeSet
 import android.view.ActionMode
@@ -408,7 +411,16 @@ class TerminalView @JvmOverloads constructor(
         val text = buildSelectedText()
         if (text.isNotEmpty()) {
             val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager ?: return
-            cm.setPrimaryClip(ClipData.newPlainText("terminal", text))
+            val clip = ClipData.newPlainText("terminal", text)
+            // Terminálból gyakran token vagy jelszó kerül a vágólapra: a rendszer
+            // ilyenkor nem mutat előnézetet. API 33 alatt a dokumentált kulcsnév kell.
+            val sensitiveKey = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                ClipDescription.EXTRA_IS_SENSITIVE
+            } else {
+                "android.content.extra.IS_SENSITIVE"
+            }
+            clip.description.extras = PersistableBundle().apply { putBoolean(sensitiveKey, true) }
+            cm.setPrimaryClip(clip)
         }
     }
 

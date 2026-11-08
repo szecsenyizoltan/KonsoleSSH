@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 12+ (API 31+). A kapcsolatprofilok Keystore-kulccsal titkosítottak,
+  a kulcs pedig nem kerül mentésbe, így visszaállítás után használhatatlanok
+  lennének. A régi fájlok között titkosítatlan is van, ezért mind kimarad.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="konsole_connections_box.xml" />
+        <exclude domain="sharedpref" path="konsole_connections_enc.xml" />
+        <exclude domain="sharedpref" path="konsole_connections.xml" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="konsole_connections_box.xml" />
+        <exclude domain="sharedpref" path="konsole_connections_enc.xml" />
+        <exclude domain="sharedpref" path="konsole_connections.xml" />
+    </device-transfer>
+</data-extraction-rules>

@@ -220,10 +220,10 @@ JSch exception helyett magyar (locale szerint angol) szöveg:
 
 ### Biztonság
 
-- **EncryptedSharedPreferences** — AES256_GCM érték-séma, AES256_SIV kulcs-séma, Android Keystore-alapú MasterKey
+- **AES-256-GCM Android Keystore-ral** — a kapcsolatprofilok nem exportálható Keystore-kulccsal titkosítva (véletlen IV, 128 bites tag); a régebbi EncryptedSharedPreferences-adatok automatikusan átmigrálódnak
 - **Legacy migráció** indításkor — régi plain-text profilok beemelése az encrypted tárba, majd legacy törlés
 - **Plain-prefs fallback** — ha a keystore-inicializáció elromlik (warning log), nem veszti el a profilokat
-- **JSch `StrictHostKeyChecking=no`** — trust-on-first-use
+- **Host key ellenőrzés (TOFU)** — első kapcsolódáskor a szerverkulcs SHA256-ujjlenyomatát jóvá kell hagyni, utána minden kapcsolódáskor ellenőrzi; megváltozott kulcsot csak kifejezett csere után fogad el
 - A hitelesítő adatok nem hagyják el a készüléket
 
 ### Welcome / cheat sheet-ek
@@ -296,7 +296,7 @@ A sessionöket a `SshForegroundService` kezeli, nem a fragmentek:
 app/src/main/java/hu/billman/konsolessh/
 ├── model/
 │   ├── ConnectionConfig.kt       — SSH kapcsolat adatok (host, port, user, auth, jump)
-│   └── SavedConnections.kt       — EncryptedSharedPreferences alapú profil-kezelés
+│   └── SavedConnections.kt       — profil-kezelés (tárolás: data/CryptoBoxConnectionRepository)
 ├── ssh/
 │   ├── SshSession.kt             — JSch wrapper (connect/read/write/resize/jump, SFTP upload, remote rm)
 │   └── SshForegroundService.kt   — Foreground service; sessionök, output bufferek, feltöltési progress
@@ -359,7 +359,7 @@ tudja a crash-stack-eket.
 | ViewPager2         | 1.1.0             | Fül-navigáció                               |
 | Material Design    | 1.12.0            | UI komponensek                              |
 | Gson               | 2.10.1            | Kapcsolat-profil (de)szerializáció          |
-| androidx.security  | 1.1.0-alpha06     | EncryptedSharedPreferences                  |
+| androidx.security  | 1.1.0             | Csak a régi EncryptedSharedPreferences-adatok migrációja |
 | AndroidX Core      | 1.13+             | ServiceCompat, WindowInsetsCompat           |
 
 ## Engedélyek

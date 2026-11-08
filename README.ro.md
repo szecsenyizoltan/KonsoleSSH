@@ -220,10 +220,10 @@ Excepțiile brute JSch sunt mapate la text lizibil (localizat):
 
 ### Securitate
 
-- **EncryptedSharedPreferences** — schemă de valori AES256_GCM, schemă de chei AES256_SIV, MasterKey susținută de Android Keystore
+- **AES-256-GCM prin Android Keystore** — profilurile de conexiune sunt criptate cu o cheie Keystore neexportabilă (IV aleator, tag de 128 biți); datele mai vechi din EncryptedSharedPreferences sunt migrate automat
 - **Migrare legacy** la prima pornire — profilurile vechi în text clar sunt mutate în stocarea criptată, apoi stocarea legacy este golită
 - **Fallback plain-prefs** — dacă inițializarea keystore-ului eșuează (warning în log), profilurile nu se pierd
-- **JSch `StrictHostKeyChecking=no`** — trust-on-first-use
+- **Verificarea cheii gazdei (TOFU)** — la prima conectare se confirmă amprenta SHA256 a cheii serverului, apoi este verificată la fiecare conectare; o cheie schimbată este acceptată doar după înlocuire explicită
 - Credențialele nu părăsesc niciodată dispozitivul
 
 ### Bun venit / foi de referință

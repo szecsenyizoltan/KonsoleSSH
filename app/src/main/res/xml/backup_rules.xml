@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 11 és korábbi; ugyanaz a kizárás, mint a data_extraction_rules.xml-ben. -->
+<full-backup-content>
+    <exclude domain="sharedpref" path="konsole_connections_box.xml" />
+    <exclude domain="sharedpref" path="konsole_connections_enc.xml" />
+    <exclude domain="sharedpref" path="konsole_connections.xml" />
+</full-backup-content>

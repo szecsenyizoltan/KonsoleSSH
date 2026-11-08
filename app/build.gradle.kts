@@ -23,7 +23,8 @@ android {
         targetSdk = 37
         versionCode = 41
         versionName = "1.1.30"
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // Starts TestKonsoleApplication, which swaps in network-free sessions.
+        testInstrumentationRunner = "hu.billman.konsolessh.KonsoleTestRunner"
     }
 
     testOptions {
@@ -115,6 +116,7 @@ dependencies {
     // Instrumented tests (device/emulator)
     androidTestImplementation(libs.androidx.test.junit)
     androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.rules)
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.mockk.android)
 }

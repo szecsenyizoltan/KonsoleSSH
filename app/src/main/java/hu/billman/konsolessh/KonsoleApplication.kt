@@ -10,14 +10,17 @@ import hu.billman.konsolessh.diagnostics.CrashRecorder
  * manuális container-pattern — ennyi komplexitású projektnél a hordozott
  * annotation-processing egyáltalán nem indokolt.
  */
-class KonsoleApplication : android.app.Application() {
+open class KonsoleApplication : android.app.Application() {
 
     lateinit var container: AppContainer
         private set
 
     override fun onCreate() {
         super.onCreate()
-        container = AppContainer(this)
+        container = createContainer()
         CrashRecorder.install(container.crashFile)
     }
+
+    /** Az instrumentált tesztek itt cserélnek függőséget (hamis munkamenetek). */
+    protected open fun createContainer(): AppContainer = AppContainer(this)
 }

@@ -26,7 +26,12 @@ import java.io.File
  * konténert csak az Android által példányosított komponensek (Activity,
  * Service, ViewModel-factory) érik el, egy ponton.
  */
-class AppContainer(context: Context) {
+class AppContainer(
+    context: Context,
+    /** Instrumentált tesztekhez: hálózat nélküli munkamenetek. */
+    sessionFactoryOverride: TerminalSessionFactory? = null,
+    problemReportsOverride: ProblemReports? = null,
+) {
 
     private val appContext: Context = context.applicationContext
 
@@ -50,14 +55,14 @@ class AppContainer(context: Context) {
     val keyProvisioner: SshKeyProvisioner by lazy { SshKeyProvisioner(hostKeyStore) }
 
     private val androidProblemReports by lazy { AndroidProblemReports(appContext) }
-    val problemReports: ProblemReports get() = androidProblemReports
+    val problemReports: ProblemReports = problemReportsOverride ?: androidProblemReports
 
     /** Ide írja a nem kezelt kivételt a [hu.billman.konsolessh.diagnostics.CrashRecorder]. */
     val crashFile: File get() = androidProblemReports.crashFile
 
     private val terminalMessages: TerminalMessages by lazy { AndroidTerminalMessages(appContext) }
 
-    private val sessionFactory = TerminalSessionFactory { config, jumps, prompter ->
+    private val sessionFactory = sessionFactoryOverride ?: TerminalSessionFactory { config, jumps, prompter ->
         SshSession(
             config,
             hostKeyStore,

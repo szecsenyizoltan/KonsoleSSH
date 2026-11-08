@@ -328,6 +328,7 @@ Gradle       9.6.0
 Java target  17
 namespace    hu.billman.konsolessh
 minSdk       26   (Android 8.0)
+compileSdk   37
 targetSdk    37   (Android 17)
 ```
 

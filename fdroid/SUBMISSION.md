@@ -28,9 +28,9 @@ Key points for IzzyOnDroid inclusion:
 - SHA-256 signer fingerprint (stable across all releases):
   `5B:1B:21:DA:18:64:2C:4E:50:44:61:FE:31:7F:4F:2C:B7:A5:AB:54:74:2C:E4:41:B2:5D:12:D4:C7:BC:03:4D`
 - No Google Play Services, no proprietary dependencies.
-- targetSdk 37, minSdk 26.
+- compileSdk 37, targetSdk 37, minSdk 26.
 
-Latest release: v1.0.7 — https://github.com/szecsenyizoltan/KonsoleSSH/releases/tag/v1.0.7
+Latest release: v1.1.29 — https://github.com/szecsenyizoltan/KonsoleSSH/releases/tag/v1.1.29
 ```
 
 5. **Submit issue.**
@@ -96,9 +96,9 @@ Utána a maintainer (Izzy) felveszi a repójába, és az alkalmazás néhány na
      
      - Source: https://github.com/szecsenyizoltan/KonsoleSSH
      - License: GPL-3.0-or-later
-     - Latest tag: v1.0.7 (versionCode 8)
+     - Latest tag: v1.1.29 (versionCode 40)
      - No proprietary dependencies, no Google Play Services.
-     - targetSdk 37, minSdk 26.
+     - compileSdk 37, targetSdk 37, minSdk 26.
      
      Closes: #XXXX  (only if you opened an RFP issue first)
      ```

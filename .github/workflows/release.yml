@@ -103,11 +103,11 @@ jobs:
         id: notes
         run: |
           {
-            echo "## Telepítés"
+            echo "## Installation"
             echo ""
-            echo "Töltsd le a \`${{ steps.artifacts.outputs.apk }}\` fájlt és telepítsd (ismeretlen forrás engedélyezése szükséges, ha Play-en kívülről rakod fel)."
+            echo "Download \`${{ steps.artifacts.outputs.apk }}\` and install it (installing from unknown sources must be allowed when you install outside Play)."
             echo ""
-            echo "Az APK ugyanazzal a kulccsal van aláírva, mint a Play Store-os verzió — így a frissítés probléma nélkül felülírja a Play-esét, és fordítva is."
+            echo "The APK is signed with the same key as the Play Store version, so it updates the Play install without problems, and the other way round."
             echo ""
             echo "SHA-256 fingerprint: \`${{ steps.fingerprint.outputs.sha256 }}\`"
           } > release-notes.md

@@ -1,0 +1,194 @@
+$ before vim
+[?1049h[22;0;0t[?1h=[H[2J[?2004h[?2026$p[?2027$p[?2031$p[?2048$p[?u[c[?25h]11;?[?25l[?2031h[>4;2m(B[m[H                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                [H(B[m[38;2;224;226;234m[48;2;20;22;27m001 The quick brown fox jumps over the lazy dog; á[1;51Hrví[1;54Hztűrő tü[1;62Hkörfú[1;67Hró[1;69Hgé[1;71Hp         
+002 The quick brown fox jumps over the lazy dog; á[2;51Hrví[2;54Hztűrő tü[2;62Hkörfú[2;67Hró[2;69Hgé[2;71Hp         
+003 The quick brown fox jumps over the lazy dog; á[3;51Hrví[3;54Hztűrő tü[3;62Hkörfú[3;67Hró[3;69Hgé[3;71Hp         
+004 The quick brown fox jumps over the lazy dog; á[4;51Hrví[4;54Hztűrő tü[4;62Hkörfú[4;67Hró[4;69Hgé[4;71Hp         
+005 The quick brown fox jumps over the lazy dog; á[5;51Hrví[5;54Hztűrő tü[5;62Hkörfú[5;67Hró[5;69Hgé[5;71Hp         
+006 The quick brown fox jumps over the lazy dog; á[6;51Hrví[6;54Hztűrő tü[6;62Hkörfú[6;67Hró[6;69Hgé[6;71Hp         
+007 The quick brown fox jumps over the lazy dog; á[7;51Hrví[7;54Hztűrő tü[7;62Hkörfú[7;67Hró[7;69Hgé[7;71Hp         
+008 The quick brown fox jumps over the lazy dog; á[8;51Hrví[8;54Hztűrő tü[8;62Hkörfú[8;67Hró[8;69Hgé[8;71Hp         
+009 The quick brown fox jumps over the lazy dog; á[9;51Hrví[9;54Hztűrő tü[9;62Hkörfú[9;67Hró[9;69Hgé[9;71Hp         
+010 The quick brown fox jumps over the lazy dog; á[10;51Hrví[10;54Hztűrő tü[10;62Hkörfú[10;67Hró[10;69Hgé[10;71Hp         
+011 The quick brown fox jumps over the lazy dog; á[11;51Hrví[11;54Hztűrő tü[11;62Hkörfú[11;67Hró[11;69Hgé[11;71Hp         
+012 The quick brown fox jumps over the lazy dog; á[12;51Hrví[12;54Hztűrő tü[12;62Hkörfú[12;67Hró[12;69Hgé[12;71Hp         
+013 The quick brown fox jumps over the lazy dog; á[13;51Hrví[13;54Hztűrő tü[13;62Hkörfú[13;67Hró[13;69Hgé[13;71Hp         
+014 The quick brown fox jumps over the lazy dog; á[14;51Hrví[14;54Hztűrő tü[14;62Hkörfú[14;67Hró[14;69Hgé[14;71Hp         
+015 The quick brown fox jumps over the lazy dog; á[15;51Hrví[15;54Hztűrő tü[15;62Hkörfú[15;67Hró[15;69Hgé[15;71Hp         
+016 The quick brown fox jumps over the lazy dog; á[16;51Hrví[16;54Hztűrő tü[16;62Hkörfú[16;67Hró[16;69Hgé[16;71Hp         
+017 The quick brown fox jumps over the lazy dog; á[17;51Hrví[17;54Hztűrő tü[17;62Hkörfú[17;67Hró[17;69Hgé[17;71Hp         
+018 The quick brown fox jumps over the lazy dog; á[18;51Hrví[18;54Hztűrő tü[18;62Hkörfú[18;67Hró[18;69Hgé[18;71Hp         
+019 The quick brown fox jumps over the lazy dog; á[19;51Hrví[19;54Hztűrő tü[19;62Hkörfú[19;67Hró[19;69Hgé[19;71Hp         
+020 The quick brown fox jumps over the lazy dog; á[20;51Hrví[20;54Hztűrő tü[20;62Hkörfú[20;67Hró[20;69Hgé[20;71Hp         
+021 The quick brown fox jumps over the lazy dog; á[21;51Hrví[21;54Hztűrő tü[21;62Hkörfú[21;67Hró[21;69Hgé[21;71Hp         
+022 The quick brown fox jumps over the lazy dog; á[22;51Hrví[22;54Hztűrő tü[22;62Hkörfú[22;67Hró[22;69Hgé[22;71Hp         
+(B[m[38;2;44;46;51m[48;2;196;198;205m~/sample.txt                                                  1,1            Top(B[m[38;2;224;226;234m[48;2;20;22;27m
+                                                                                [2 q[2 q[?1002h[?1006h[H001 The quick brown fox jumps over the lazy dog; á[1;51Hrví[1;54Hztűrő tü[1;62Hkörfú[1;67Hró[1;69Hgé[1;71Hp         
+002 The quick brown fox jumps over the lazy dog; á[2;51Hrví[2;54Hztűrő tü[2;62Hkörfú[2;67Hró[2;69Hgé[2;71Hp         
+003 The quick brown fox jumps over the lazy dog; á[3;51Hrví[3;54Hztűrő tü[3;62Hkörfú[3;67Hró[3;69Hgé[3;71Hp         
+004 The quick brown fox jumps over the lazy dog; á[4;51Hrví[4;54Hztűrő tü[4;62Hkörfú[4;67Hró[4;69Hgé[4;71Hp         
+005 The quick brown fox jumps over the lazy dog; á[5;51Hrví[5;54Hztűrő tü[5;62Hkörfú[5;67Hró[5;69Hgé[5;71Hp         
+006 The quick brown fox jumps over the lazy dog; á[6;51Hrví[6;54Hztűrő tü[6;62Hkörfú[6;67Hró[6;69Hgé[6;71Hp         
+007 The quick brown fox jumps over the lazy dog; á[7;51Hrví[7;54Hztűrő tü[7;62Hkörfú[7;67Hró[7;69Hgé[7;71Hp         
+008 The quick brown fox jumps over the lazy dog; á[8;51Hrví[8;54Hztűrő tü[8;62Hkörfú[8;67Hró[8;69Hgé[8;71Hp         
+009 The quick brown fox jumps over the lazy dog; á[9;51Hrví[9;54Hztűrő tü[9;62Hkörfú[9;67Hró[9;69Hgé[9;71Hp         
+010 The quick brown fox jumps over the lazy dog; á[10;51Hrví[10;54Hztűrő tü[10;62Hkörfú[10;67Hró[10;69Hgé[10;71Hp         
+011 The quick brown fox jumps over the lazy dog; á[11;51Hrví[11;54Hztűrő tü[11;62Hkörfú[11;67Hró[11;69Hgé[11;71Hp         
+012 The quick brown fox jumps over the lazy dog; á[12;51Hrví[12;54Hztűrő tü[12;62Hkörfú[12;67Hró[12;69Hgé[12;71Hp         
+013 The quick brown fox jumps over the lazy dog; á[13;51Hrví[13;54Hztűrő tü[13;62Hkörfú[13;67Hró[13;69Hgé[13;71Hp         
+014 The quick brown fox jumps over the lazy dog; á[14;51Hrví[14;54Hztűrő tü[14;62Hkörfú[14;67Hró[14;69Hgé[14;71Hp         
+015 The quick brown fox jumps over the lazy dog; á[15;51Hrví[15;54Hztűrő tü[15;62Hkörfú[15;67Hró[15;69Hgé[15;71Hp         
+016 The quick brown fox jumps over the lazy dog; á[16;51Hrví[16;54Hztűrő tü[16;62Hkörfú[16;67Hró[16;69Hgé[16;71Hp         
+017 The quick brown fox jumps over the lazy dog; á[17;51Hrví[17;54Hztűrő tü[17;62Hkörfú[17;67Hró[17;69Hgé[17;71Hp         
+018 The quick brown fox jumps over the lazy dog; á[18;51Hrví[18;54Hztűrő tü[18;62Hkörfú[18;67Hró[18;69Hgé[18;71Hp         
+019 The quick brown fox jumps over the lazy dog; á[19;51Hrví[19;54Hztűrő tü[19;62Hkörfú[19;67Hró[19;69Hgé[19;71Hp         
+020 The quick brown fox jumps over the lazy dog; á[20;51Hrví[20;54Hztűrő tü[20;62Hkörfú[20;67Hró[20;69Hgé[20;71Hp         
+021 The quick brown fox jumps over the lazy dog; á[21;51Hrví[21;54Hztűrő tü[21;62Hkörfú[21;67Hró[21;69Hgé[21;71Hp         
+022 The quick brown fox jumps over the lazy dog; á[22;51Hrví[22;54Hztűrő tü[22;62Hkörfú[22;67Hró[22;69Hgé[22;71Hp         
+(B[m[38;2;44;46;51m[48;2;196;198;205m~/sample.txt                                                  1,1            Top(B[m[38;2;224;226;234m[48;2;20;22;27m
+                                                                                [H[?25h[?25l[?1004h[?25h[?25l[23B:set[Cnumber[2 q[?1002l[?1006l[?25h[?25l[24;1H[?25h[?25l[H(B[m[38;2;79;82;88m[48;2;20;22;27m  1 (B[m[38;2;224;226;234m[48;2;20;22;27m001 The quick brown fox jumps over the lazy dog; á[1;55Hrví[1;58Hztűrő tü[1;66Hkörfú[1;71Hró[1;73Hgé[1;75Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m  2 (B[m[38;2;224;226;234m[48;2;20;22;27m002 The quick brown fox jumps over the lazy dog; á[2;55Hrví[2;58Hztűrő tü[2;66Hkörfú[2;71Hró[2;73Hgé[2;75Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m  3 (B[m[38;2;224;226;234m[48;2;20;22;27m003 The quick brown fox jumps over the lazy dog; á[3;55Hrví[3;58Hztűrő tü[3;66Hkörfú[3;71Hró[3;73Hgé[3;75Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m  4 (B[m[38;2;224;226;234m[48;2;20;22;27m004 The quick brown fox jumps over the lazy dog; á[4;55Hrví[4;58Hztűrő tü[4;66Hkörfú[4;71Hró[4;73Hgé[4;75Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m  5 (B[m[38;2;224;226;234m[48;2;20;22;27m005 The quick brown fox jumps over the lazy dog; á[5;55Hrví[5;58Hztűrő tü[5;66Hkörfú[5;71Hró[5;73Hgé[5;75Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m  6 (B[m[38;2;224;226;234m[48;2;20;22;27m006 The quick brown fox jumps over the lazy dog; á[6;55Hrví[6;58Hztűrő tü[6;66Hkörfú[6;71Hró[6;73Hgé[6;75Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m  7 (B[m[38;2;224;226;234m[48;2;20;22;27m007 The quick brown fox jumps over the lazy dog; á[7;55Hrví[7;58Hztűrő tü[7;66Hkörfú[7;71Hró[7;73Hgé[7;75Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m  8 (B[m[38;2;224;226;234m[48;2;20;22;27m008 The quick brown fox jumps over the lazy dog; á[8;55Hrví[8;58Hztűrő tü[8;66Hkörfú[8;71Hró[8;73Hgé[8;75Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m  9 (B[m[38;2;224;226;234m[48;2;20;22;27m009 The quick brown fox jumps over the lazy dog; á[9;55Hrví[9;58Hztűrő tü[9;66Hkörfú[9;71Hró[9;73Hgé[9;75Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m 10 (B[m[38;2;224;226;234m[48;2;20;22;27m010 The quick brown fox jumps over the lazy dog; á[10;55Hrví[10;58Hztűrő tü[10;66Hkörfú[10;71Hró[10;73Hgé[10;75Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m 11 (B[m[38;2;224;226;234m[48;2;20;22;27m011 The quick brown fox jumps over the lazy dog; á[11;55Hrví[11;58Hztűrő tü[11;66Hkörfú[11;71Hró[11;73Hgé[11;75Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m 12 (B[m[38;2;224;226;234m[48;2;20;22;27m012 The quick brown fox jumps over the lazy dog; á[12;55Hrví[12;58Hztűrő tü[12;66Hkörfú[12;71Hró[12;73Hgé[12;75Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m 13 (B[m[38;2;224;226;234m[48;2;20;22;27m013 The quick brown fox jumps over the lazy dog; á[13;55Hrví[13;58Hztűrő tü[13;66Hkörfú[13;71Hró[13;73Hgé[13;75Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m 14 (B[m[38;2;224;226;234m[48;2;20;22;27m014 The quick brown fox jumps over the lazy dog; á[14;55Hrví[14;58Hztűrő tü[14;66Hkörfú[14;71Hró[14;73Hgé[14;75Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m 15 (B[m[38;2;224;226;234m[48;2;20;22;27m015 The quick brown fox jumps over the lazy dog; á[15;55Hrví[15;58Hztűrő tü[15;66Hkörfú[15;71Hró[15;73Hgé[15;75Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m 16 (B[m[38;2;224;226;234m[48;2;20;22;27m016 The quick brown fox jumps over the lazy dog; á[16;55Hrví[16;58Hztűrő tü[16;66Hkörfú[16;71Hró[16;73Hgé[16;75Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m 17 (B[m[38;2;224;226;234m[48;2;20;22;27m017 The quick brown fox jumps over the lazy dog; á[17;55Hrví[17;58Hztűrő tü[17;66Hkörfú[17;71Hró[17;73Hgé[17;75Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m 18 (B[m[38;2;224;226;234m[48;2;20;22;27m018 The quick brown fox jumps over the lazy dog; á[18;55Hrví[18;58Hztűrő tü[18;66Hkörfú[18;71Hró[18;73Hgé[18;75Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m 19 (B[m[38;2;224;226;234m[48;2;20;22;27m019 The quick brown fox jumps over the lazy dog; á[19;55Hrví[19;58Hztűrő tü[19;66Hkörfú[19;71Hró[19;73Hgé[19;75Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m 20 (B[m[38;2;224;226;234m[48;2;20;22;27m020 The quick brown fox jumps over the lazy dog; á[20;55Hrví[20;58Hztűrő tü[20;66Hkörfú[20;71Hró[20;73Hgé[20;75Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m 21 (B[m[38;2;224;226;234m[48;2;20;22;27m021 The quick brown fox jumps over the lazy dog; á[21;55Hrví[21;58Hztűrő tü[21;66Hkörfú[21;71Hró[21;73Hgé[21;75Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m 22 (B[m[38;2;224;226;234m[48;2;20;22;27m022 The quick brown fox jumps over the lazy dog; á[22;55Hrví[22;58Hztűrő tü[22;66Hkörfú[22;71Hró[22;73Hgé[22;75Hp[2 q[?1002h[?1006h[1;5H[?25h[?25l[24;70HG[1;5H[?25h[?25l[24;70H [1;2H(B[m[38;2;79;82;88m[48;2;20;22;27m99 (B[m[38;2;224;226;234m[48;2;20;22;27m099
+(B[m[38;2;79;82;88m[48;2;20;22;27m100 (B[m[38;2;224;226;234m[48;2;20;22;27m100
+(B[m[38;2;79;82;88m[48;2;20;22;27m101 (B[m[38;2;224;226;234m[48;2;20;22;27m101
+(B[m[38;2;79;82;88m[48;2;20;22;27m102 (B[m[38;2;224;226;234m[48;2;20;22;27m102
+(B[m[38;2;79;82;88m[48;2;20;22;27m103 (B[m[38;2;224;226;234m[48;2;20;22;27m103
+(B[m[38;2;79;82;88m[48;2;20;22;27m104 (B[m[38;2;224;226;234m[48;2;20;22;27m104
+(B[m[38;2;79;82;88m[48;2;20;22;27m105 (B[m[38;2;224;226;234m[48;2;20;22;27m105
+(B[m[38;2;79;82;88m[48;2;20;22;27m106 (B[m[38;2;224;226;234m[48;2;20;22;27m106
+(B[m[38;2;79;82;88m[48;2;20;22;27m107 (B[m[38;2;224;226;234m[48;2;20;22;27m107
+(B[m[38;2;79;82;88m[48;2;20;22;27m108 (B[m[38;2;224;226;234m[48;2;20;22;27m108
+(B[m[38;2;79;82;88m[48;2;20;22;27m109 (B[m[38;2;224;226;234m[48;2;20;22;27m109
+(B[m[38;2;79;82;88m[48;2;20;22;27m110 (B[m[38;2;224;226;234m[48;2;20;22;27m110
+(B[m[38;2;79;82;88m[48;2;20;22;27m111 (B[m[38;2;224;226;234m[48;2;20;22;27m111
+(B[m[38;2;79;82;88m[48;2;20;22;27m112 (B[m[38;2;224;226;234m[48;2;20;22;27m112
+(B[m[38;2;79;82;88m[48;2;20;22;27m113 (B[m[38;2;224;226;234m[48;2;20;22;27m113
+(B[m[38;2;79;82;88m[48;2;20;22;27m114 (B[m[38;2;224;226;234m[48;2;20;22;27m114
+(B[m[38;2;79;82;88m[48;2;20;22;27m115 (B[m[38;2;224;226;234m[48;2;20;22;27m115
+(B[m[38;2;79;82;88m[48;2;20;22;27m116 (B[m[38;2;224;226;234m[48;2;20;22;27m116
+(B[m[38;2;79;82;88m[48;2;20;22;27m117 (B[m[38;2;224;226;234m[48;2;20;22;27m117
+(B[m[38;2;79;82;88m[48;2;20;22;27m118 (B[m[38;2;224;226;234m[48;2;20;22;27m118
+(B[m[38;2;79;82;88m[48;2;20;22;27m119 (B[m[38;2;224;226;234m[48;2;20;22;27m119
+(B[m[38;2;79;82;88m[48;2;20;22;27m120 (B[m[38;2;224;226;234m[48;2;20;22;27m120[23;64H(B[m[38;2;44;46;51m[48;2;196;198;205m20,1          Bot[22;5H[?25h[?25l[24;70H(B[m[38;2;224;226;234m[48;2;20;22;27mo[22;5H[?25h[?25l[24;70H [24;1H(B[m[38;2;179;246;192m[48;2;20;22;27m-- INSERT --[1;22r[H(B[m[38;2;224;226;234m[48;2;20;22;27m[M[r[22;1H(B[m[38;2;79;82;88m[48;2;20;22;27m121 (B[m[38;2;224;226;234m[48;2;20;22;27m                                                                            [23;14H(B[m[38;2;44;46;51m[48;2;196;198;205m[+]                                              121[6 q[22;5H[?25h[?25l(B[m[38;2;224;226;234m[48;2;20;22;27madded line with 中文[23;67H(B[m[38;2;44;46;51m[48;2;196;198;205m23-21[22;25H[?25h[?25l(B[m[38;2;224;226;234m[48;2;20;22;27m
+
+            [23;68H(B[m[38;2;44;46;51m[48;2;196;198;205m0-19[2 q[22;23H[?25h[?25l(B[m[38;2;224;226;234m[48;2;20;22;27m[H                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            [H(B[m[38;2;79;82;88m[48;2;20;22;27m114 (B[m[38;2;224;226;234m[48;2;20;22;27m114 The quick brown fox jumps over the lazy dog; á[1;55Hrví[1;58Hztű(B[m[38;2;79;82;88m[48;2;20;22;27m    (B[m[38;2;224;226;234m[48;2;20;22;27mrő tü[2;10Hkörfú[2;15Hró[2;17Hgé[2;19Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m115 (B[m[38;2;224;226;234m[48;2;20;22;27m115 The quick brown fox jumps over the lazy dog; á[3;55Hrví[3;58Hztű(B[m[38;2;79;82;88m[48;2;20;22;27m    (B[m[38;2;224;226;234m[48;2;20;22;27mrő tü[4;10Hkörfú[4;15Hró[4;17Hgé[4;19Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m116 (B[m[38;2;224;226;234m[48;2;20;22;27m116 The quick brown fox jumps over the lazy dog; á[5;55Hrví[5;58Hztű(B[m[38;2;79;82;88m[48;2;20;22;27m    (B[m[38;2;224;226;234m[48;2;20;22;27mrő tü[6;10Hkörfú[6;15Hró[6;17Hgé[6;19Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m117 (B[m[38;2;224;226;234m[48;2;20;22;27m117 The quick brown fox jumps over the lazy dog; á[7;55Hrví[7;58Hztű(B[m[38;2;79;82;88m[48;2;20;22;27m    (B[m[38;2;224;226;234m[48;2;20;22;27mrő tü[8;10Hkörfú[8;15Hró[8;17Hgé[8;19Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m118 (B[m[38;2;224;226;234m[48;2;20;22;27m118 The quick brown fox jumps over the lazy dog; á[9;55Hrví[9;58Hztű(B[m[38;2;79;82;88m[48;2;20;22;27m    (B[m[38;2;224;226;234m[48;2;20;22;27mrő tü[10;10Hkörfú[10;15Hró[10;17Hgé[10;19Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m119 (B[m[38;2;224;226;234m[48;2;20;22;27m119 The quick brown fox jumps over the lazy dog; á[11;55Hrví[11;58Hztű(B[m[38;2;79;82;88m[48;2;20;22;27m    (B[m[38;2;224;226;234m[48;2;20;22;27mrő tü[12;10Hkörfú[12;15Hró[12;17Hgé[12;19Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m120 (B[m[38;2;224;226;234m[48;2;20;22;27m120 The quick brown fox jumps over the lazy dog; á[13;55Hrví[13;58Hztű(B[m[38;2;79;82;88m[48;2;20;22;27m    (B[m[38;2;224;226;234m[48;2;20;22;27mrő tü[14;10Hkörfú[14;15Hró[14;17Hgé[14;19Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m121 (B[m[38;2;224;226;234m[48;2;20;22;27madded line with 中文
+(B[m[38;2;79;82;88m[48;2;20;22;27m~                                                           
+(B[m[38;2;44;46;51m[48;2;196;198;205m~/sample.txt [+]                          121,20-19      Bot(B[m[38;2;224;226;234m[48;2;20;22;27m
+                                                            [15;23H[?25h[?25l[2 q[2 q[?25h[?25l(B[m[38;2;224;226;234m[48;2;20;22;27m[H                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                [7A                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                [H(B[m[38;2;79;82;88m[48;2;20;22;27m112 (B[m[38;2;224;226;234m[48;2;20;22;27m112 The quick brown fox jumps over the lazy dog; á[1;55Hrví[1;58Hztűrő tü[1;66Hkörfú[1;71Hró[1;73Hgé[1;75Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m113 (B[m[38;2;224;226;234m[48;2;20;22;27m113 The quick brown fox jumps over the lazy dog; á[2;55Hrví[2;58Hztűrő tü[2;66Hkörfú[2;71Hró[2;73Hgé[2;75Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m114 (B[m[38;2;224;226;234m[48;2;20;22;27m114 The quick brown fox jumps over the lazy dog; á[3;55Hrví[3;58Hztűrő tü[3;66Hkörfú[3;71Hró[3;73Hgé[3;75Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m115 (B[m[38;2;224;226;234m[48;2;20;22;27m115 The quick brown fox jumps over the lazy dog; á[4;55Hrví[4;58Hztűrő tü[4;66Hkörfú[4;71Hró[4;73Hgé[4;75Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m116 (B[m[38;2;224;226;234m[48;2;20;22;27m116 The quick brown fox jumps over the lazy dog; á[5;55Hrví[5;58Hztűrő tü[5;66Hkörfú[5;71Hró[5;73Hgé[5;75Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m117 (B[m[38;2;224;226;234m[48;2;20;22;27m117 The quick brown fox jumps over the lazy dog; á[6;55Hrví[6;58Hztűrő tü[6;66Hkörfú[6;71Hró[6;73Hgé[6;75Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m118 (B[m[38;2;224;226;234m[48;2;20;22;27m118 The quick brown fox jumps over the lazy dog; á[7;55Hrví[7;58Hztűrő tü[7;66Hkörfú[7;71Hró[7;73Hgé[7;75Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m119 (B[m[38;2;224;226;234m[48;2;20;22;27m119 The quick brown fox jumps over the lazy dog; á[8;55Hrví[8;58Hztűrő tü[8;66Hkörfú[8;71Hró[8;73Hgé[8;75Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m120 (B[m[38;2;224;226;234m[48;2;20;22;27m120 The quick brown fox jumps over the lazy dog; á[9;55Hrví[9;58Hztűrő tü[9;66Hkörfú[9;71Hró[9;73Hgé[9;75Hp
+(B[m[38;2;79;82;88m[48;2;20;22;27m121 (B[m[38;2;224;226;234m[48;2;20;22;27madded line with 中文
+(B[m[38;2;79;82;88m[48;2;20;22;27m~                                                                               
+~                                                                               
+~                                                                               
+~                                                                               
+~                                                                               
+~                                                                               
+~                                                                               
+~                                                                               
+~                                                                               
+~                                                                               
+~                                                                               
+~                                                                               
+(B[m[38;2;44;46;51m[48;2;196;198;205m~/sample.txt [+]                                              121,20-19      Bot(B[m[38;2;224;226;234m[48;2;20;22;27m
+                                                                                [10;23H[?25h[?25l[2 q[2 q[?25h[?25l[14B:q![2 q[?1002l[?1006l[?25h[?25l[24;1H[?25h[?25l[2 q[?1002h[?1006h[?25h[?25l[?2031l[2 q[?1002l[?1006l(B[m[?25h[?1l>[>4;0m[?2004l[?1004l[c[?25h[?25l[?1049l[23;0;0t[?25h

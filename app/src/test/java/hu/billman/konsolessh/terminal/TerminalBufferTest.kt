@@ -769,4 +769,57 @@ class TerminalBufferTest {
         assertFalse(buf.cellAt(0, 1)!!.bold || buf.cellAt(0, 1)!!.dim)
         assertTrue(buf.cellAt(0, 2)!!.underline)
     }
+
+    // ── ECMA-48 CSI, BCE, ncurses-szekvenciák ───────────────────────────────
+
+    @Test
+    fun `sequence with an intermediate byte is consumed, not printed`() {
+        val buf = TerminalBuffer()
+        buf.writeString("a" + ESC + "[2 qb" + ESC + "[?12\$pc")
+        assertEquals("abc", buf.row(0))
+    }
+
+    @Test
+    fun `erase uses the current background`() {
+        val buf = TerminalBuffer(initialCols = 6, initialRows = 2)
+        buf.writeString(ESC + "[44mx" + ESC + "[K")
+        assertEquals(SgrPalette.ansi16(4), buf.cellAt(0, 5)!!.bg)
+        buf.writeString(ESC + "[0m" + ESC + "[2K")
+        assertEquals(TermColor.DEFAULT_BG, buf.cellAt(0, 5)!!.bg)
+    }
+
+    @Test
+    fun `vertical and horizontal absolute positioning`() {
+        val buf = TerminalBuffer()
+        buf.writeString(ESC + "[5d" + ESC + "[10`")
+        assertEquals(4, buf.cursorRow)
+        assertEquals(9, buf.cursorCol)
+        buf.writeString(ESC + "[2e" + ESC + "[3a")
+        assertEquals(6, buf.cursorRow)
+        assertEquals(12, buf.cursorCol)
+    }
+
+    @Test
+    fun `REP repeats the last printed character`() {
+        val buf = TerminalBuffer()
+        buf.writeString("x" + ESC + "[4b|")
+        assertEquals("xxxxx|", buf.row(0))
+    }
+
+    @Test
+    fun `tab forward and back by count`() {
+        val buf = TerminalBuffer()
+        buf.writeString(ESC + "[2I")
+        assertEquals(16, buf.cursorCol)
+        buf.writeString(ESC + "[Z")
+        assertEquals(8, buf.cursorCol)
+    }
+
+    @Test
+    fun `zero count moves by one`() {
+        val buf = TerminalBuffer()
+        buf.writeString(ESC + "[5;5H" + ESC + "[0A" + ESC + "[0C")
+        assertEquals(3, buf.cursorRow)
+        assertEquals(5, buf.cursorCol)
+    }
 }

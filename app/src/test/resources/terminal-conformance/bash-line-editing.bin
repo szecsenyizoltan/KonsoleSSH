@@ -1,0 +1,7 @@
+[?2004h$ echo xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx end[A[C[C[C[C[C[C[C^C
+[?2004l[?2004h[?2004l
+[?2004h$ printf 'one\ntwo\nthree\n'
+[?2004lone
+two
+three
+[?2004h$ 

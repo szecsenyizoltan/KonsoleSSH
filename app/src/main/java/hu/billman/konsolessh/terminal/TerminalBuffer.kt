@@ -98,6 +98,19 @@ class TerminalBuffer(
     private var ansiState: AnsiState = AnsiState.NORMAL
     private val csiParams: StringBuilder = StringBuilder()
 
+    /** Köztes bájtok (pl. a kurzoralak `CSI 2 SP q` szóköze); ilyen szekvenciát nem hajtunk végre. */
+    private val csiIntermediates: StringBuilder = StringBuilder()
+
+    /** Az utoljára kiírt grafikus karakter és szélessége, a REP (`CSI n b`) ismétléshez. */
+    private var lastGraphic: String? = null
+    private var lastGraphicWidth = 1
+
+    private fun startCsi() {
+        ansiState = AnsiState.CSI
+        csiParams.clear()
+        csiIntermediates.clear()
+    }
+
     // ── Karakterkészletek (G0/G1) ────────────────────────────────────────────
 
     /** G0 és G1: true = DEC Special Graphics (vonalrajzolás). */
@@ -201,13 +214,13 @@ class TerminalBuffer(
                     '\n'                  -> lineFeed()
                     '\b'                  -> { if (_cursorCol > 0) _cursorCol-- }
                     '\t'                  -> {
-                        _cursorCol = ((_cursorCol / 8) + 1) * 8
+                        _cursorCol = ((_cursorCol / TAB_WIDTH) + 1) * TAB_WIDTH
                         if (_cursorCol >= _cols) _cursorCol = _cols - 1
                     }
                     '\u0007'              -> { /* BEL */ }
                     '\u000E'              -> shiftedOut = true    // SO: G1
                     '\u000F'              -> shiftedOut = false   // SI: G0
-                    '\u009B'              -> { ansiState = AnsiState.CSI; csiParams.clear() }
+                    '\u009B'              -> startCsi()
                     '\u009D'              -> ansiState = AnsiState.OSC
                     '\u0090'              -> ansiState = AnsiState.DCS
                     in '\u0080'..'\u009F' -> { /* other C1: silently ignore */ }
@@ -216,7 +229,7 @@ class TerminalBuffer(
                 AnsiState.ESCAPE -> {
                     ansiState = AnsiState.NORMAL
                     when (ch) {
-                        '[' -> { ansiState = AnsiState.CSI; csiParams.clear() }
+                        '[' -> startCsi()
                         ']' -> ansiState = AnsiState.OSC
                         'P', 'X', '^', '_' -> ansiState = AnsiState.DCS
                         'M' -> reverseIndex()
@@ -238,14 +251,17 @@ class TerminalBuffer(
                     if (charsetTarget >= 0) decGraphics[charsetTarget] = ch == '0'
                     ansiState = AnsiState.NORMAL
                 }
-                AnsiState.CSI -> {
-                    if (ch.isDigit() || ch == ';' || ch == '?' ||
-                        ch == '>' || ch == '<' || ch == '!' || ch == '=' || ch == '$') {
-                        csiParams.append(ch)
-                    } else {
-                        handleCSI(ch, csiParams.toString())
+                // ECMA-48: parameter bytes 0x30–0x3F, intermediate bytes
+                // 0x20–0x2F, then one final byte 0x40–0x7E.
+                AnsiState.CSI -> when (ch) {
+                    in '0'..'?' -> csiParams.append(ch)
+                    in ' '..'/' -> csiIntermediates.append(ch)
+                    in '@'..'~' -> {
+                        if (csiIntermediates.isEmpty()) handleCSI(ch, csiParams.toString())
                         ansiState = AnsiState.NORMAL
                     }
+                    '\u001B' -> ansiState = AnsiState.ESCAPE
+                    else -> { /* other controls inside a sequence: ignored */ }
                 }
                 AnsiState.OSC, AnsiState.DCS -> {
                     when (ch) {
@@ -281,6 +297,8 @@ class TerminalBuffer(
         putCell(_cursorRow, _cursorCol, ch)
         if (width == 2) putCell(_cursorRow, _cursorCol + 1, WIDE_TAIL)
         _cursorCol += width
+        lastGraphic = ch
+        lastGraphicWidth = width
     }
 
     private fun appendToPreviousCell(mark: String) {
@@ -334,13 +352,19 @@ class TerminalBuffer(
             if (scrollback.size > maxScrollback) scrollback.removeFirst()
         }
         for (r in scrollTop until scrollBot) screen[r] = screen[r + 1]
-        screen[scrollBot] = blankRow(_cols)
+        screen[scrollBot] = blankLine()
     }
 
     private fun scrollRegionDown() {
         for (r in scrollBot downTo scrollTop + 1) screen[r] = screen[r - 1]
-        screen[scrollTop] = blankRow(_cols)
+        screen[scrollTop] = blankLine()
     }
+
+    // Back colour erase (the xterm-256color terminfo has bce): erased and
+    // scrolled-in cells take the current background, nothing else.
+    private fun blankCell() = TermCell(bg = curBg)
+
+    private fun blankLine(): TermLine = Array(_cols) { blankCell() }
 
     private fun reverseIndex() {
         if (_cursorRow > scrollTop) _cursorRow-- else scrollRegionDown()
@@ -349,14 +373,14 @@ class TerminalBuffer(
     private fun insertLinesAtCursor(n: Int) {
         repeat(n) {
             for (r in scrollBot downTo _cursorRow + 1) screen[r] = screen[r - 1]
-            screen[_cursorRow] = blankRow(_cols)
+            screen[_cursorRow] = blankLine()
         }
     }
 
     private fun deleteLinesAtCursor(n: Int) {
         repeat(n) {
             for (r in _cursorRow until scrollBot) screen[r] = screen[r + 1]
-            screen[scrollBot] = blankRow(_cols)
+            screen[scrollBot] = blankLine()
         }
     }
 
@@ -366,7 +390,8 @@ class TerminalBuffer(
         val isPrivate = params.startsWith("?")
         val cleaned = if (isPrivate) params.substring(1) else params
         val parts = cleaned.split(";")
-        val n1 = parts.getOrNull(0)?.toIntOrNull() ?: 1
+        // A zero count means the default of one, as in xterm.
+        val n1 = (parts.getOrNull(0)?.toIntOrNull() ?: 1).coerceAtLeast(1)
         val n0 = parts.getOrNull(0)?.toIntOrNull() ?: 0
 
         when (cmd) {
@@ -376,26 +401,32 @@ class TerminalBuffer(
             'D' -> _cursorCol = (_cursorCol - n1).coerceAtLeast(0)
             'E' -> { _cursorRow = (_cursorRow + n1).coerceAtMost(_rows - 1); _cursorCol = 0 }
             'F' -> { _cursorRow = (_cursorRow - n1).coerceAtLeast(0); _cursorCol = 0 }
-            'G' -> _cursorCol = (n1 - 1).coerceIn(0, _cols - 1)
+            'G', '`' -> _cursorCol = (n1 - 1).coerceIn(0, _cols - 1)
+            'a' -> _cursorCol = (_cursorCol + n1).coerceAtMost(_cols - 1)
+            'd' -> _cursorRow = (n1 - 1).coerceIn(0, _rows - 1)
+            'e' -> _cursorRow = (_cursorRow + n1).coerceAtMost(_rows - 1)
+            'I' -> repeat(n1) { _cursorCol = minOf(_cols - 1, (_cursorCol / TAB_WIDTH + 1) * TAB_WIDTH) }
+            'Z' -> repeat(n1) { _cursorCol = maxOf(0, (_cursorCol - 1) / TAB_WIDTH * TAB_WIDTH) }
+            'b' -> lastGraphic?.let { ch -> repeat(n1) { printText(ch, lastGraphicWidth) } }
             'H', 'f' -> {
                 _cursorRow = ((parts.getOrNull(0)?.toIntOrNull() ?: 1) - 1).coerceIn(0, _rows - 1)
                 _cursorCol = ((parts.getOrNull(1)?.toIntOrNull() ?: 1) - 1).coerceIn(0, _cols - 1)
             }
             'J' -> when (n0) {
-                0 -> { eraseLineEnd(); for (r in _cursorRow + 1 until _rows) screen[r] = blankRow(_cols) }
-                1 -> { for (r in 0 until _cursorRow) screen[r] = blankRow(_cols); eraseLineStart() }
+                0 -> { eraseLineEnd(); for (r in _cursorRow + 1 until _rows) screen[r] = blankLine() }
+                1 -> { for (r in 0 until _cursorRow) screen[r] = blankLine(); eraseLineStart() }
                 2, 3 -> {
                     if (!_altScreenActive) {
                         for (r in 0.._cursorRow) scrollback.addLast(screen[r])
                         while (scrollback.size > maxScrollback) scrollback.removeFirst()
                     }
-                    screen = newScreen(_cols, _rows)
+                    screen = Array(_rows) { blankLine() }
                 }
             }
             'K' -> when (n0) {
                 0 -> eraseLineEnd()
                 1 -> eraseLineStart()
-                2 -> screen[_cursorRow] = blankRow(_cols)
+                2 -> screen[_cursorRow] = blankLine()
             }
             'L' -> insertLinesAtCursor(n1)
             'M' -> deleteLinesAtCursor(n1)
@@ -405,7 +436,7 @@ class TerminalBuffer(
             'T' -> repeat(n1) { scrollRegionDown() }
             'X' -> {
                 val end = minOf(_cursorCol + n1, _cols)
-                for (c in _cursorCol until end) screen[_cursorRow][c] = TermCell.blank()
+                for (c in _cursorCol until end) screen[_cursorRow][c] = blankCell()
             }
             'r' -> {
                 val top = ((parts.getOrNull(0)?.toIntOrNull() ?: 1) - 1).coerceIn(0, _rows - 1)
@@ -470,25 +501,25 @@ class TerminalBuffer(
     }
 
     private fun eraseLineEnd() {
-        for (c in _cursorCol until _cols) screen[_cursorRow][c] = TermCell.blank()
+        for (c in _cursorCol until _cols) screen[_cursorRow][c] = blankCell()
     }
 
     private fun eraseLineStart() {
-        for (c in 0.._cursorCol) screen[_cursorRow][c] = TermCell.blank()
+        for (c in 0.._cursorCol) screen[_cursorRow][c] = blankCell()
     }
 
     private fun deleteChars(n: Int) {
         val row = screen[_cursorRow]
         val shift = minOf(n, _cols - _cursorCol)
         for (c in _cursorCol until _cols - shift) row[c] = row[c + shift].copy()
-        for (c in _cols - shift until _cols) row[c] = TermCell.blank()
+        for (c in _cols - shift until _cols) row[c] = blankCell()
     }
 
     private fun insertBlanks(n: Int) {
         val row = screen[_cursorRow]
         val shift = minOf(n, _cols - _cursorCol)
         for (c in _cols - 1 downTo _cursorCol + shift) row[c] = row[c - shift].copy()
-        for (c in _cursorCol until _cursorCol + shift) row[c] = TermCell.blank()
+        for (c in _cursorCol until _cursorCol + shift) row[c] = blankCell()
     }
 
     // ── SGR ──────────────────────────────────────────────────────────────────
@@ -683,6 +714,8 @@ class TerminalBuffer(
 
         /** DA2: típus 1 (VT220), verzió 0. */
         private const val SECONDARY_DA = "\u001B[>1;0;0c"
+
+        private const val TAB_WIDTH = 8
 
         /** Ennyi bájtot dolgoz fel egy zárfelvétel alatt a [write]. */
         const val WRITE_SLICE = 4096

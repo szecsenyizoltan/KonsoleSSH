@@ -304,7 +304,7 @@ app/src/main/java/hu/billman/konsolessh/
 
 ```
 Kotlin       2.2.10
-AGP          9.5.0
+AGP          9.5.1
 Gradle       9.6.0
 Java target  17
 namespace    hu.billman.konsolessh
@@ -349,6 +349,46 @@ La aplicación se distribuye bajo la licencia **GPL-3.0-or-later** — el texto 
 
 ## Historial de versiones
 
+- **1.1.26** — verificación de la clave de host del servidor (confianza en el primer
+  uso, huella SHA256, aviso si cambia); jump hosts de varios saltos (un jump host
+  puede tener su propio jump host, hasta 5 saltos), usados también por la prueba de
+  conexión y la subida de claves; claves de host Ed25519 e intercambio curve25519
+  mediante Bouncy Castle; perfiles cifrados excluidos de la copia de seguridad;
+  texto copiado del terminal marcado como sensible; los mensajes del terminal ya no
+  muestran una «r» sobrante
+- **1.1.25** — objetivo Android 17 (API 37): permiso de red local, gesto atrás
+  predictivo, AGP 9.5 / Gradle 9.6
+- **1.1.24** — la prueba de conexión funciona con clave privada
+- **1.1.23** — logotipo y título «KonsoleSSH» en la barra de herramientas
+- **1.1.22** — opción Salir al final del menú de tres puntos
+- **1.1.21** — análisis estático (detekt, ktlint) y control de calidad en CI,
+  Dependabot, OSV-Scanner
+- **1.1.20** — limpieza: Node.js 24 en CI, configuración de idiomas
+- **1.1.19** — actualización de dependencias (security-crypto estable)
+- **1.1.18** — CI, eliminación de código muerto, correcciones de ciclo de vida y
+  lint
+- **1.1.17** — keep-alive de SSH; los mensajes del sistema ya no aparecen bajo el
+  prompt
+- **1.1.16** — corrección: cierre inesperado al girar (condición de carrera en el
+  ciclo de vida del Fragment)
+- **1.1.15** — las sesiones y diálogos sobreviven al giro
+- **1.1.14** — capa MVVM (ViewModels)
+- **1.1.13** — tecla Supr (borrado hacia delante) por SSH
+- **1.1.12** — cifrado AES-256-GCM propio (Android Keystore) con migración atómica
+  de perfiles antiguos
+- **1.1.11** — línea de versión en el banner de bienvenida
+- **1.1.10** — flujo de eventos entre el servicio y la interfaz (Kotlin Flow)
+- **1.1.4–1.1.9** — refactorización interna (búfer del terminal, repositorio de
+  conexiones, generador de claves), actualización de dependencias, correcciones de
+  lint
+- **1.1.3** — errores de conexión en un toast; la pestaña se cierra sola tras 5 s
+- **1.1.2** — mensajes distintos para tres tipos de error de conexión
+- **1.1.1** — subida de clave solo tras una prueba correcta; la clave pública se
+  sube con autenticación por contraseña
+- **1.1.0** — generador de claves SSH integrado
+- **1.0.9** — orden de autenticación publickey primero, explicación del error «Auth
+  cancel»
+- **1.0.8** — selector de idioma en el menú de tres puntos
 - **1.0.7** — licencia GPL-3.0 añadida, build compatible con F-Droid (configuración de firma condicional)
 - **1.0.6** — el indicador de estado de reconexión ahora se pone correctamente en verde
   (ya no se queda en amarillo); el icono del teclado abre el IME de forma fiable en

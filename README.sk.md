@@ -304,7 +304,7 @@ app/src/main/java/hu/billman/konsolessh/
 
 ```
 Kotlin       2.2.10
-AGP          9.5.0
+AGP          9.5.1
 Gradle       9.6.0
 Java target  17
 namespace    hu.billman.konsolessh
@@ -349,6 +349,40 @@ Aplikácia je vydaná pod licenciou **GPL-3.0-or-later** — úplný text v súb
 
 ## História verzií
 
+- **1.1.26** — overenie kľúča hostiteľa servera (dôvera pri prvom použití, odtlačok
+  SHA256, upozornenie pri zmene); viacstupňové jump hosty (jump host môže mať
+  vlastný jump host, až 5 skokov), používané aj testom pripojenia a nahrávaním
+  kľúča; kľúče hostiteľa Ed25519 a výmena kľúčov curve25519 cez Bouncy Castle;
+  šifrované profily vylúčené zo zálohy; text skopírovaný z terminálu označený ako
+  citlivý; správy terminálu už neobsahujú nadbytočné „r“
+- **1.1.25** — cieľ Android 17 (API 37): povolenie lokálnej siete, prediktívne gesto
+  späť, AGP 9.5 / Gradle 9.6
+- **1.1.24** — test pripojenia funguje aj so súkromným kľúčom
+- **1.1.23** — logo aplikácie a názov „KonsoleSSH“ v paneli nástrojov
+- **1.1.22** — položka Ukončiť na konci ponuky s tromi bodkami
+- **1.1.21** — statická analýza (detekt, ktlint) a kontrola kvality v CI,
+  Dependabot, OSV-Scanner
+- **1.1.20** — upratovanie: Node.js 24 v CI, konfigurácia jazykov
+- **1.1.19** — aktualizácia závislostí (security-crypto stabilné)
+- **1.1.18** — CI, odstránenie mŕtveho kódu, opravy životného cyklu a lintu
+- **1.1.17** — SSH keep-alive; systémové správy sa už nezobrazujú pod promptom
+- **1.1.16** — oprava: pád pri otočení (súbeh v životnom cykle Fragmentu)
+- **1.1.15** — relácie a dialógy prežijú otočenie
+- **1.1.14** — vrstva MVVM (ViewModely)
+- **1.1.13** — kláves Delete (mazanie dopredu) cez SSH
+- **1.1.12** — vlastné šifrovanie AES-256-GCM (Android Keystore) s atomickou
+  migráciou starších profilov
+- **1.1.11** — riadok s verziou v uvítacom banneri
+- **1.1.10** — tok udalostí medzi službou a rozhraním (Kotlin Flow)
+- **1.1.4–1.1.9** — interný refaktoring (buffer terminálu, repozitár pripojení,
+  generátor kľúčov), aktualizácia závislostí, opravy lintu
+- **1.1.3** — chyby pripojenia v toaste; karta sa po 5 s sama zatvorí
+- **1.1.2** — samostatné správy pre tri druhy chýb pripojenia
+- **1.1.1** — nahrávanie kľúča až po úspešnom teste; verejný kľúč sa nahrá cez
+  prihlásenie heslom
+- **1.1.0** — vstavaný generátor SSH kľúčov
+- **1.0.9** — poradie overovania najprv publickey, vysvetlenie chyby „Auth cancel“
+- **1.0.8** — výber jazyka v ponuke s tromi bodkami
 - **1.0.7** — pridaná GPL-3.0 licencia, build kompatibilný s F-Droid (podmienená signing konfigurácia)
 - **1.0.6** — Indikátor stavu po opätovnom pripojení sa správne mení na zelený
   (už nezostáva žltý); ikona klávesnice spoľahlivo otvára IME na Androide 14+

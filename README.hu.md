@@ -318,7 +318,7 @@ app/src/main/java/hu/billman/konsolessh/
 
 ```
 Kotlin       2.2.10
-AGP          9.5.0
+AGP          9.5.1
 Gradle       9.6.0
 Java target  17
 namespace    hu.billman.konsolessh
@@ -355,6 +355,7 @@ tudja a crash-stack-eket.
 | Library            | Verzió            | Célra                                       |
 | ------------------ | ----------------- | ------------------------------------------- |
 | JSch (mwiede fork) | 0.2.16            | SSH + SFTP                                  |
+| Bouncy Castle      | 1.86              | Ed25519 / curve25519 a JSch-hez             |
 | kotlinx-coroutines | 1.8.1             | Async SSH I/O                               |
 | ViewPager2         | 1.1.0             | Fül-navigáció                               |
 | Material Design    | 1.12.0            | UI komponensek                              |
@@ -387,6 +388,41 @@ Az alkalmazás **GPL-3.0-or-later** licenc alatt érhető el — a teljes szöve
 
 ## Verziótörténet
 
+- **1.1.26** — szerver host key ellenőrzés (első használatkori megbízás,
+  SHA256-ujjlenyomat, figyelmeztetés változáskor); többlépcsős jump host (a jump
+  hostnak is lehet jump hostja, legfeljebb 5 ugrás), a kapcsolatteszt és a
+  kulcsfeltöltés is ezen megy; Ed25519 host key és curve25519 kulcscsere Bouncy
+  Castle-lel; a titkosított profilok kimaradnak a mentésből; a terminálból másolt
+  szöveg érzékenynek jelölve; a terminálüzenetekben nincs többé fölösleges „r”
+- **1.1.25** — Android 17 (API 37) cél: helyi hálózati engedély, prediktív vissza,
+  AGP 9.5 / Gradle 9.6
+- **1.1.24** — a kapcsolatteszt privát kulccsal is működik
+- **1.1.23** — app-logó és „KonsoleSSH” felirat az eszköztáron
+- **1.1.22** — Kilépés menüpont a 3-pont menü végén
+- **1.1.21** — statikus elemzés (detekt, ktlint) és CI minőségkapu, Dependabot,
+  OSV-Scanner
+- **1.1.20** — takarítás: Node.js 24 a CI-ban, nyelvi konfiguráció
+- **1.1.19** — függőségfrissítés (security-crypto stabil)
+- **1.1.18** — CI, holt kód eltávolítása, életciklus- és lint-javítások
+- **1.1.17** — SSH keep-alive; a rendszerüzenetek nem kerülnek a prompt alá
+- **1.1.16** — javítás: összeomlás forgatáskor (Fragment-életciklus versenyhelyzet)
+- **1.1.15** — a munkamenetek és párbeszédablakok túlélik a forgatást
+- **1.1.14** — MVVM-réteg (ViewModel-ek)
+- **1.1.13** — Delete (előre törlés) billentyű SSH-n át
+- **1.1.12** — saját AES-256-GCM titkosítás (Android Keystore), a régi profilok
+  atomikus migrációjával
+- **1.1.11** — verziósor az üdvözlő bannerben
+- **1.1.10** — eseményfolyam a service és a felület között (Kotlin Flow)
+- **1.1.4–1.1.9** — belső refaktorálás (terminálpuffer, kapcsolat-repository,
+  kulcsgenerátor), függőségfrissítés, lint-javítások
+- **1.1.3** — kapcsolódási hiba toastban; a fül 5 mp után magától bezárul
+- **1.1.2** — három különböző kapcsolódási hibára külön üzenet
+- **1.1.1** — kulcsfeltöltés csak sikeres teszt után; a publikus kulcs jelszavas
+  belépéssel kerül fel
+- **1.1.0** — beépített SSH-kulcsgenerátor
+- **1.0.9** — publickey-first hitelesítési sorrend, magyarázat az „Auth cancel”
+  hibára
+- **1.0.8** — nyelvválasztó a 3-pont menüben
 - **1.0.7** — GPL-3.0 licenc hozzáadása, F-Droid-kompatibilis build (feltételes aláírási konfiguráció)
 - **1.0.6** — reconnect után a státusz-indikátor helyesen zöldre vált (nem ragad sárgán);
   billentyűzet-ikon Android 14+ alatt is felhozza az IME-t (deprecated `SHOW_FORCED` helyett

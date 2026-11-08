@@ -318,7 +318,7 @@ app/src/main/java/hu/billman/konsolessh/
 
 ```
 Kotlin       2.2.10
-AGP          9.5.0
+AGP          9.5.1
 Gradle       9.6.0
 Java target  17
 namespace    hu.billman.konsolessh
@@ -354,6 +354,7 @@ A `mapping.txt` is produced so the Play Console can deobfuscate stack traces.
 | Library            | Version           | Purpose                                   |
 | ------------------ | ----------------- | ----------------------------------------- |
 | JSch (mwiede fork) | 0.2.16            | SSH + SFTP                                |
+| Bouncy Castle      | 1.86              | Ed25519 / curve25519 for JSch             |
 | kotlinx-coroutines | 1.8.1             | Async SSH I/O                             |
 | ViewPager2         | 1.1.0             | Tab navigation                            |
 | Material Design    | 1.12.0            | UI components                             |
@@ -386,6 +387,41 @@ This application is released under the **GPL-3.0-or-later** license — full tex
 
 ## Release history
 
+- **1.1.26** — server host key verification (trust on first use, SHA256 fingerprint,
+  warning on change); multi-hop jump hosts (a jump host may have its own jump host,
+  up to 5 hops), also used by the connection test and key upload; Ed25519 host keys
+  and curve25519 key exchange via Bouncy Castle; encrypted profiles excluded from
+  backup; text copied from the terminal marked as sensitive; terminal messages no
+  longer show a stray "r"
+- **1.1.25** — targets Android 17 (API 37): local network permission, predictive
+  back, AGP 9.5 / Gradle 9.6
+- **1.1.24** — connection test works with a private key
+- **1.1.23** — app logo and "KonsoleSSH" title in the toolbar
+- **1.1.22** — Exit item at the end of the overflow menu
+- **1.1.21** — static analysis (detekt, ktlint) and CI quality gate, Dependabot,
+  OSV-Scanner
+- **1.1.20** — cleanup: Node.js 24 in CI, locale configuration
+- **1.1.19** — dependency updates (security-crypto stable)
+- **1.1.18** — CI, dead-code removal, lifecycle and lint fixes
+- **1.1.17** — SSH keep-alive; system messages no longer appear under the prompt
+- **1.1.16** — fix: crash on rotation (Fragment lifecycle race)
+- **1.1.15** — sessions and dialogs survive rotation
+- **1.1.14** — MVVM layer (ViewModels)
+- **1.1.13** — Delete (forward delete) key over SSH
+- **1.1.12** — own AES-256-GCM encryption (Android Keystore) with atomic migration
+  of older profiles
+- **1.1.11** — version line in the welcome banner
+- **1.1.10** — event flow between the service and the UI (Kotlin Flow)
+- **1.1.4–1.1.9** — internal refactoring (terminal buffer, connection repository,
+  key generator), dependency updates, lint fixes
+- **1.1.3** — connection errors shown in a toast; the tab closes automatically after
+  5 s
+- **1.1.2** — separate messages for three kinds of connection failure
+- **1.1.1** — key upload only after a successful test; the public key is uploaded
+  using password authentication
+- **1.1.0** — built-in SSH key generator
+- **1.0.9** — publickey-first authentication order, explanation for "Auth cancel"
+- **1.0.8** — language picker in the overflow menu
 - **1.0.7** — GPL-3.0 license added, F-Droid-compatible build (conditional signing config)
 - **1.0.6** — reconnect status indicator correctly turns green (no longer sticks on yellow);
   keyboard icon reliably opens the IME on Android 14+ (real `WindowInsetsCompat`-based

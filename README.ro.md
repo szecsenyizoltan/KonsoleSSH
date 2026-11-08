@@ -304,7 +304,7 @@ app/src/main/java/hu/billman/konsolessh/
 
 ```
 Kotlin       2.2.10
-AGP          9.5.0
+AGP          9.5.1
 Gradle       9.6.0
 Java target  17
 namespace    hu.billman.konsolessh
@@ -349,6 +349,43 @@ Aplicația este distribuită sub licența **GPL-3.0-or-later** — textul comple
 
 ## Istoricul versiunilor
 
+- **1.1.26** — verificarea cheii de gazdă a serverului (încredere la prima
+  utilizare, amprentă SHA256, avertisment la schimbare); jump host în mai mulți pași
+  (un jump host poate avea propriul jump host, până la 5 salturi), folosit și de
+  testul de conexiune și de încărcarea cheii; chei de gazdă Ed25519 și schimb de
+  chei curve25519 prin Bouncy Castle; profilurile criptate excluse din backup;
+  textul copiat din terminal marcat ca sensibil; mesajele terminalului nu mai
+  afișează un „r” în plus
+- **1.1.25** — țintă Android 17 (API 37): permisiune pentru rețeaua locală, gest
+  înapoi predictiv, AGP 9.5 / Gradle 9.6
+- **1.1.24** — testul de conexiune funcționează și cu cheie privată
+- **1.1.23** — logo-ul aplicației și titlul „KonsoleSSH” în bara de instrumente
+- **1.1.22** — opțiunea Ieșire la finalul meniului cu trei puncte
+- **1.1.21** — analiză statică (detekt, ktlint) și control de calitate în CI,
+  Dependabot, OSV-Scanner
+- **1.1.20** — curățenie: Node.js 24 în CI, configurarea limbilor
+- **1.1.19** — actualizări de dependențe (security-crypto stabil)
+- **1.1.18** — CI, eliminarea codului mort, corecturi de ciclu de viață și lint
+- **1.1.17** — keep-alive SSH; mesajele de sistem nu mai apar sub prompt
+- **1.1.16** — corectură: blocare la rotire (condiție de cursă în ciclul de viață al
+  Fragmentului)
+- **1.1.15** — sesiunile și dialogurile supraviețuiesc rotirii
+- **1.1.14** — strat MVVM (ViewModel-uri)
+- **1.1.13** — tasta Delete (ștergere înainte) prin SSH
+- **1.1.12** — criptare proprie AES-256-GCM (Android Keystore) cu migrare atomică a
+  profilurilor vechi
+- **1.1.11** — linie de versiune în bannerul de bun venit
+- **1.1.10** — flux de evenimente între serviciu și interfață (Kotlin Flow)
+- **1.1.4–1.1.9** — refactorizare internă (buffer terminal, depozit de conexiuni,
+  generator de chei), actualizări de dependențe, corecturi lint
+- **1.1.3** — erorile de conexiune într-un toast; fila se închide singură după 5 s
+- **1.1.2** — mesaje separate pentru trei tipuri de erori de conexiune
+- **1.1.1** — încărcarea cheii doar după un test reușit; cheia publică se încarcă
+  prin autentificare cu parolă
+- **1.1.0** — generator de chei SSH integrat
+- **1.0.9** — ordinea de autentificare publickey întâi, explicație pentru eroarea
+  „Auth cancel”
+- **1.0.8** — selector de limbă în meniul cu trei puncte
 - **1.0.7** — licență GPL-3.0 adăugată, build compatibil F-Droid (configurație de semnare condiționată)
 - **1.0.6** — indicatorul de stare la reconectare devine corect verde (nu mai rămâne blocat
   pe galben); pictograma tastaturii deschide fiabil IME-ul pe Android 14+ (vizibilitate

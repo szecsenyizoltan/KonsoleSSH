@@ -304,7 +304,7 @@ app/src/main/java/hu/billman/konsolessh/
 
 ```
 Kotlin       2.2.10
-AGP          9.5.0
+AGP          9.5.1
 Gradle       9.6.0
 Java target  17
 namespace    hu.billman.konsolessh
@@ -349,6 +349,43 @@ Die Anwendung wird unter der **GPL-3.0-or-later**-Lizenz veröffentlicht — der
 
 ## Versionsgeschichte
 
+- **1.1.26** — Prüfung des Server-Host-Keys (Trust on First Use,
+  SHA256-Fingerabdruck, Warnung bei Änderung); mehrstufige Jump-Hosts (ein Jump-Host
+  kann selbst einen Jump-Host haben, bis zu 5 Sprünge), auch für Verbindungstest und
+  Schlüssel-Upload; Ed25519-Host-Keys und curve25519-Schlüsseltausch über Bouncy
+  Castle; verschlüsselte Profile vom Backup ausgenommen; aus dem Terminal kopierter
+  Text als vertraulich markiert; kein überflüssiges „r“ mehr in Terminalmeldungen
+- **1.1.25** — Ziel Android 17 (API 37): Berechtigung für lokales Netzwerk,
+  vorausschauende Zurück-Geste, AGP 9.5 / Gradle 9.6
+- **1.1.24** — Verbindungstest funktioniert auch mit privatem Schlüssel
+- **1.1.23** — App-Logo und Titel „KonsoleSSH“ in der Toolbar
+- **1.1.22** — Menüpunkt „Beenden“ am Ende des Überlaufmenüs
+- **1.1.21** — statische Analyse (detekt, ktlint) und CI-Qualitätsprüfung,
+  Dependabot, OSV-Scanner
+- **1.1.20** — Aufräumen: Node.js 24 in der CI, Sprachkonfiguration
+- **1.1.19** — Abhängigkeits-Updates (security-crypto stabil)
+- **1.1.18** — CI, Entfernen toten Codes, Lifecycle- und Lint-Korrekturen
+- **1.1.17** — SSH-Keep-alive; Systemmeldungen erscheinen nicht mehr unter dem
+  Prompt
+- **1.1.16** — Fehlerbehebung: Absturz beim Drehen (Race im Fragment-Lifecycle)
+- **1.1.15** — Sitzungen und Dialoge überstehen das Drehen
+- **1.1.14** — MVVM-Schicht (ViewModels)
+- **1.1.13** — Entf-Taste (Vorwärtslöschen) über SSH
+- **1.1.12** — eigene AES-256-GCM-Verschlüsselung (Android Keystore) mit atomarer
+  Migration älterer Profile
+- **1.1.11** — Versionszeile im Willkommensbanner
+- **1.1.10** — Ereignisfluss zwischen Service und Oberfläche (Kotlin Flow)
+- **1.1.4–1.1.9** — internes Refactoring (Terminalpuffer, Verbindungs-Repository,
+  Schlüsselgenerator), Abhängigkeits-Updates, Lint-Korrekturen
+- **1.1.3** — Verbindungsfehler als Toast; der Tab schließt sich nach 5 s
+  automatisch
+- **1.1.2** — eigene Meldungen für drei Arten von Verbindungsfehlern
+- **1.1.1** — Schlüssel-Upload erst nach erfolgreichem Test; der öffentliche
+  Schlüssel wird per Passwort-Anmeldung hochgeladen
+- **1.1.0** — integrierter SSH-Schlüsselgenerator
+- **1.0.9** — Authentifizierungsreihenfolge publickey zuerst, Erklärung für „Auth
+  cancel“
+- **1.0.8** — Sprachauswahl im Überlaufmenü
 - **1.0.7** — GPL-3.0-Lizenz hinzugefügt, F-Droid-kompatibler Build (bedingte Signing-Konfiguration)
 - **1.0.6** — Reconnect-Statusanzeige wird nun korrekt grün (bleibt nicht mehr
   auf Gelb hängen); Tastatur-Symbol öffnet die IME zuverlässig auf Android 14+

@@ -304,7 +304,7 @@ app/src/main/java/hu/billman/konsolessh/
 
 ```
 Kotlin       2.2.10
-AGP          9.5.0
+AGP          9.5.1
 Gradle       9.6.0
 Java target  17
 namespace    hu.billman.konsolessh
@@ -349,6 +349,44 @@ L'application est publiée sous licence **GPL-3.0-or-later** — le texte comple
 
 ## Historique des versions
 
+- **1.1.26** — vérification de la clé d'hôte du serveur (confiance au premier usage,
+  empreinte SHA256, alerte en cas de changement) ; jump hosts à plusieurs sauts (un
+  jump host peut avoir son propre jump host, jusqu'à 5 sauts), utilisés aussi par le
+  test de connexion et l'envoi de clé ; clés d'hôte Ed25519 et échange curve25519
+  via Bouncy Castle ; profils chiffrés exclus de la sauvegarde ; texte copié depuis
+  le terminal marqué comme sensible ; plus de « r » parasite dans les messages du
+  terminal
+- **1.1.25** — cible Android 17 (API 37) : autorisation réseau local, retour
+  prédictif, AGP 9.5 / Gradle 9.6
+- **1.1.24** — le test de connexion fonctionne avec une clé privée
+- **1.1.23** — logo de l'app et titre « KonsoleSSH » dans la barre d'outils
+- **1.1.22** — entrée Quitter à la fin du menu à trois points
+- **1.1.21** — analyse statique (detekt, ktlint) et contrôle qualité en CI,
+  Dependabot, OSV-Scanner
+- **1.1.20** — nettoyage : Node.js 24 en CI, configuration des langues
+- **1.1.19** — mise à jour des dépendances (security-crypto stable)
+- **1.1.18** — CI, suppression de code mort, corrections de cycle de vie et de lint
+- **1.1.17** — keep-alive SSH ; les messages système ne s'affichent plus sous
+  l'invite
+- **1.1.16** — correctif : plantage à la rotation (concurrence dans le cycle de vie
+  du Fragment)
+- **1.1.15** — les sessions et dialogues survivent à la rotation
+- **1.1.14** — couche MVVM (ViewModels)
+- **1.1.13** — touche Suppr (suppression avant) via SSH
+- **1.1.12** — chiffrement AES-256-GCM maison (Android Keystore) avec migration
+  atomique des anciens profils
+- **1.1.11** — ligne de version dans la bannière d'accueil
+- **1.1.10** — flux d'événements entre le service et l'interface (Kotlin Flow)
+- **1.1.4–1.1.9** — refactorisation interne (tampon du terminal, dépôt des
+  connexions, générateur de clés), mise à jour des dépendances, corrections lint
+- **1.1.3** — erreurs de connexion dans un toast ; l'onglet se ferme seul après 5 s
+- **1.1.2** — messages distincts pour trois types d'erreur de connexion
+- **1.1.1** — envoi de clé seulement après un test réussi ; la clé publique est
+  envoyée via authentification par mot de passe
+- **1.1.0** — générateur de clés SSH intégré
+- **1.0.9** — ordre d'authentification publickey en premier, explication de l'erreur
+  « Auth cancel »
+- **1.0.8** — sélecteur de langue dans le menu à trois points
 - **1.0.7** — licence GPL-3.0 ajoutée, build compatible F-Droid (configuration de signature conditionnelle)
 - **1.0.6** — L'indicateur d'état passe correctement au vert après une reconnexion
   (ne reste plus bloqué en jaune) ; l'icône du clavier ouvre correctement l'IME sur

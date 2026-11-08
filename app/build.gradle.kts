@@ -83,6 +83,9 @@ dependencies {
     implementation(libs.androidx.fragment.ktx)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.jsch)
+    // JSch Androidon a Bouncy Castle-implementációkat választja (Java-verzió
+    // < 11/15-nek látszik): enélkül nincs ssh-ed25519 host key és curve25519 kulcscsere.
+    implementation(libs.bouncycastle.bcprov)
     implementation(libs.gson)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

@@ -2,6 +2,10 @@
 -keep class com.jcraft.jsch.** { *; }
 -dontwarn com.jcraft.jsch.**
 
+# Bouncy Castle — JSch's bc.* classes call it directly, so R8 traces what is
+# used; some optional JDK-only references (LDAP, javax.naming) are absent here.
+-dontwarn org.bouncycastle.**
+
 # Gson — reflection-based (de)serialisation
 -keep class com.google.gson.** { *; }
 -keepattributes Signature

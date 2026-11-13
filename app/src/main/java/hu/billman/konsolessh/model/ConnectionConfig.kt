@@ -1,7 +1,9 @@
 package hu.billman.konsolessh.model
 
+import kotlinx.serialization.Serializable
 import java.util.UUID
 
+@Serializable
 data class ConnectionConfig(
     val id: String = UUID.randomUUID().toString(),
     val name: String = "",
@@ -19,6 +21,7 @@ data class ConnectionConfig(
     val jumpUsername: String = "",
     val jumpPassword: String = ""
 ) {
+    @Serializable
     enum class AuthType {
         PASSWORD, PRIVATE_KEY
     }

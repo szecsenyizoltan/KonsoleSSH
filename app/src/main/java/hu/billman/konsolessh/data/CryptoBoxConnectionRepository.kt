@@ -7,8 +7,6 @@ import android.util.Log
 import androidx.core.content.edit
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import hu.billman.konsolessh.model.ConnectionConfig
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -37,7 +35,6 @@ class CryptoBoxConnectionRepository(
 ) : ConnectionRepository {
 
     private val appContext: Context = context.applicationContext
-    private val gson = Gson()
 
     // Read-modify-write (saveOne, delete) must not interleave.
     private val mutex = Mutex()
@@ -93,7 +90,7 @@ class CryptoBoxConnectionRepository(
     }
 
     private fun write(connections: List<ConnectionConfig>) {
-        val json = gson.toJson(connections).toByteArray(Charsets.UTF_8)
+        val json = ConnectionJson.encode(connections).toByteArray(Charsets.UTF_8)
         // Keystore failures surface as several unrelated types (ProviderException,
         // KeyStoreException, IllegalStateException); none may lead to plaintext.
         val encrypted = try {
@@ -109,7 +106,7 @@ class CryptoBoxConnectionRepository(
     }
 
     private fun decryptAndParse(base64: String): List<ConnectionConfig> {
-        val list: List<ConnectionConfig>? = try {
+        val list: List<ConnectionConfig> = try {
             val raw = Base64.decode(base64, Base64.NO_WRAP)
             // Versions before 1.1.27 could store a plaintext fallback; it stays
             // readable and is encrypted on the next write.
@@ -118,12 +115,12 @@ class CryptoBoxConnectionRepository(
             } else {
                 cryptoBox.decrypt(raw)
             }
-            gson.fromJson(String(json, Charsets.UTF_8), LIST_TYPE)
+            ConnectionJson.decode(String(json, Charsets.UTF_8))
         } catch (e: Exception) {
             Log.e(TAG, "stored connections are unreadable", e)
             throw ConnectionStoreException("stored connections are unreadable", e)
         }
-        return list.orEmpty().sortedByName()
+        return list.sortedByName()
     }
 
     private fun List<ConnectionConfig>.sortedByName() = sortedBy { it.displayName().lowercase() }
@@ -149,7 +146,7 @@ class CryptoBoxConnectionRepository(
             )
             val json = legacyPrefs.getString(LEGACY_KEY_CONNECTIONS, null)
             if (!json.isNullOrEmpty()) {
-                val list: List<ConnectionConfig> = gson.fromJson(json, LIST_TYPE)
+                val list = ConnectionJson.decode(json)
                 Log.i(TAG, "Read ${list.size} entries from EncryptedSharedPreferences legacy")
                 return list
             }
@@ -165,7 +162,7 @@ class CryptoBoxConnectionRepository(
         val plain = appContext.getSharedPreferences(PLAIN_LEGACY_PREFS, Context.MODE_PRIVATE)
         val json = plain.getString(LEGACY_KEY_CONNECTIONS, null) ?: return emptyList()
         return try {
-            val list: List<ConnectionConfig> = gson.fromJson(json, LIST_TYPE)
+            val list = ConnectionJson.decode(json)
             Log.i(TAG, "Read ${list.size} entries from plain-prefs legacy")
             list
         } catch (e: Exception) {
@@ -190,6 +187,5 @@ class CryptoBoxConnectionRepository(
 
         /** Prefix of the plaintext fallback older versions wrote; read-only now. */
         private val PLAIN_MARKER = "PLAIN\u0000".toByteArray(Charsets.UTF_8)
-        private val LIST_TYPE = object : TypeToken<List<ConnectionConfig>>() {}.type
     }
 }

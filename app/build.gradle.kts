@@ -4,6 +4,7 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 val keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -102,7 +103,7 @@ dependencies {
     // JSch Androidon a Bouncy Castle-implementációkat választja (Java-verzió
     // < 11/15-nek látszik): enélkül nincs ssh-ed25519 host key és curve25519 kulcscsere.
     implementation(libs.bouncycastle.bcprov)
-    implementation(libs.gson)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.constraintlayout)
@@ -111,6 +112,9 @@ dependencies {
     // Unit tests (JVM + Robolectric for Android classes)
     testImplementation(libs.junit4)
     testImplementation(libs.robolectric)
+    // Writes JSON the way versions up to 1.1.30 did, for the compatibility tests;
+    // also parses the terminal conformance fixtures.
+    testImplementation(libs.gson)
     testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.androidx.test.core)

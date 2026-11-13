@@ -83,9 +83,15 @@ class SshTestServers : AutoCloseable {
         }
     }
 
+    /**
+     * Whether the remote shell still runs. A process that has exited but was
+     * not reaped stays in /proc as a zombie; in a CI container whose init is
+     * a plain `sleep`, orphaned shells are never reaped, so the state field of
+     * /proc/<pid>/stat decides, not the directory.
+     */
     fun shellAlive(): Boolean {
         val pid = shellPidFile.takeIf { it.exists() }?.readText()?.trim() ?: return false
-        return File("/proc/$pid").exists()
+        return processRunning(pid)
     }
 
     private fun start(name: String, fixedPort: Int? = null) {
@@ -144,6 +150,17 @@ class SshTestServers : AutoCloseable {
     }
 
     companion object {
+        /** Zombie and dead, from proc(5). */
+        private val DEAD_STATES = setOf('Z', 'X', 'x')
+
+        /** True while [pid] runs; a zombie counts as gone. */
+        fun processRunning(pid: String): Boolean {
+            val stat = runCatching { File("/proc/$pid/stat").readText() }.getOrNull() ?: return false
+            // "pid (comm) S ...": comm may contain spaces and parentheses, the state follows the last ')'.
+            val state = stat.substringAfterLast(')').trim().firstOrNull()
+            return state != null && state !in DEAD_STATES
+        }
+
         const val MARKER = "KONSOLE_TEST_SHELL"
         const val LOOPBACK = "127.0.0.1"
         private val SSHD = File("/usr/sbin/sshd")

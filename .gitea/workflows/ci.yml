@@ -30,12 +30,16 @@ jobs:
         with:
           packages: platform-tools
 
-      # The SSH integration tests start their own sshd instances.
+      # The SSH integration tests start their own sshd instances. Without
+      # systemd nothing creates sshd's privilege separation directory, and
+      # sshd refuses to start without it.
       - name: OpenSSH server
         run: |
           SUDO=$(command -v sudo || true)
           $SUDO apt-get update -q
           $SUDO apt-get install -y -q openssh-server
+          $SUDO mkdir -p /run/sshd
+          $SUDO chmod 0755 /run/sshd
 
       - name: Unit and integration tests, with coverage
         env:

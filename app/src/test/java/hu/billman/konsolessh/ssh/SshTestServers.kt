@@ -84,6 +84,61 @@ class SshTestServers : AutoCloseable {
     }
 
     /**
+     * What is left of the servers, for a failure message: the shell, every
+     * process under each sshd with its state, every TCP socket on the server
+     * ports in any state, and the server logs. CI failures that do not
+     * reproduce locally are diagnosed from this.
+     */
+    fun diagnostics(): String = buildString {
+        val shell = shellPidFile.takeIf { it.exists() }?.readText()?.trim()
+        appendLine("shell pid: ${shell ?: "-"} ${shell?.let(::describe).orEmpty()}")
+        val all = processTable()
+        processes.keys.forEach { name ->
+            val root = File(dir, "$name.pid").takeIf { it.exists() }?.readText()?.trim()
+            appendLine("sshd $name (pid ${root ?: "?"}, port ${ports[name]}):")
+            root?.let { descendants(it, all) }?.forEach { pid -> appendLine("  ${describe(pid)}") }
+        }
+        val hexPorts = ports.values.map { "%04X".format(it) }.toSet()
+        appendLine("tcp sockets on server ports:")
+        listOf("/proc/net/tcp", "/proc/net/tcp6").map(::File).filter { it.exists() }.forEach { file ->
+            file.readLines().drop(1).map { it.trim().split(Regex("\\s+")) }
+                .filter { cols -> cols[1].substringAfter(':') in hexPorts || cols[2].substringAfter(':') in hexPorts }
+                .forEach { cols -> appendLine("  ${cols[1]} -> ${cols[2]} state ${TCP_STATES[cols[3]] ?: cols[3]}") }
+        }
+        dir.listFiles().orEmpty().filter { it.name.endsWith(".log") }.forEach { log ->
+            appendLine("${log.name}: ${log.readText().trim().takeLast(LOG_TAIL).ifEmpty { "(empty)" }}")
+        }
+    }
+
+    /** pid -> parent pid, for every process visible in /proc. */
+    private fun processTable(): Map<String, String> =
+        File("/proc").listFiles().orEmpty().filter { it.name.all(Char::isDigit) }.mapNotNull { proc ->
+            val stat = runCatching { File(proc, "stat").readText() }.getOrNull() ?: return@mapNotNull null
+            proc.name to stat.substringAfterLast(')').trim().split(' ').getOrElse(1) { "" }
+        }.toMap()
+
+    private fun descendants(root: String, table: Map<String, String>): List<String> {
+        val children = table.entries.groupBy({ it.value }, { it.key })
+        val result = mutableListOf<String>()
+        val queue = ArrayDeque(children[root].orEmpty())
+        while (queue.isNotEmpty()) {
+            val pid = queue.removeFirst()
+            result += pid
+            queue.addAll(children[pid].orEmpty())
+        }
+        return result
+    }
+
+    private fun describe(pid: String): String {
+        val stat = runCatching { File("/proc/$pid/stat").readText() }.getOrNull() ?: return "(gone)"
+        val fields = stat.substringAfterLast(')').trim().split(' ')
+        val cmdline = runCatching { File("/proc/$pid/cmdline").readText().replace('\u0000', ' ').trim() }
+            .getOrDefault("")
+        return "pid $pid state ${fields.getOrElse(0) { "?" }} ppid ${fields.getOrElse(1) { "?" }} " +
+            "${stat.substringAfter('(').substringBeforeLast(')')} [$cmdline]"
+    }
+
+    /**
      * Whether the remote shell still runs. A process that has exited but was
      * not reaped stays in /proc as a zombie; in a CI container whose init is
      * a plain `sleep`, orphaned shells are never reaped, so the state field of
@@ -167,6 +222,12 @@ class SshTestServers : AutoCloseable {
         private val SFTP_SERVER = listOf("/usr/lib/openssh/sftp-server", "/usr/libexec/openssh/sftp-server")
             .firstOrNull { File(it).exists() } ?: "/usr/lib/openssh/sftp-server"
         private const val TCP_ESTABLISHED = "01"
+        private const val LOG_TAIL = 2000
+        private val TCP_STATES = mapOf(
+            "01" to "ESTABLISHED", "02" to "SYN_SENT", "03" to "SYN_RECV", "04" to "FIN_WAIT1",
+            "05" to "FIN_WAIT2", "06" to "TIME_WAIT", "07" to "CLOSE", "08" to "CLOSE_WAIT",
+            "09" to "LAST_ACK", "0A" to "LISTEN", "0B" to "CLOSING",
+        )
         private const val START_TIMEOUT_MS = 10_000L
         private const val STOP_SECONDS = 5L
         private const val POLL_MS = 50L

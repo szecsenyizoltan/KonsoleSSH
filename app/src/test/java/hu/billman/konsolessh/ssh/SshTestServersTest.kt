@@ -34,4 +34,17 @@ class SshTestServersTest {
         }
         assertFalse(SshTestServers.processRunning(sleeper))
     }
+
+    @Test
+    fun `diagnostics list every server, its processes and its listening socket`() {
+        SshTestServers().use { servers ->
+            val text = servers.diagnostics()
+            println(text)
+            listOf("gw", "hv", "vm").forEach { name ->
+                assertTrue(text, text.contains("sshd $name (pid "))
+                assertTrue(text, text.contains("%04X".format(servers.port(name))))
+            }
+            assertTrue(text, text.contains("LISTEN"))
+        }
+    }
 }

@@ -70,7 +70,9 @@ class SessionFaultInjectionTest {
     private fun await(what: String, condition: () -> Boolean) {
         val deadline = System.currentTimeMillis() + TIMEOUT_MS
         while (!condition()) {
-            if (System.currentTimeMillis() > deadline) fail("timed out: $what (${manager.state.value.tabs})")
+            if (System.currentTimeMillis() > deadline) {
+                fail("timed out: $what (${manager.state.value.tabs})\n${servers.diagnostics()}")
+            }
             Thread.sleep(POLL_MS)
         }
     }

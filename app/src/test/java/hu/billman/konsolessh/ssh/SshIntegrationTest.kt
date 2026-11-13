@@ -80,7 +80,7 @@ class SshIntegrationTest {
     private fun eventually(what: String, condition: () -> Boolean) {
         val deadline = System.currentTimeMillis() + TIMEOUT_MS
         while (!condition()) {
-            if (System.currentTimeMillis() > deadline) fail("timed out: $what")
+            if (System.currentTimeMillis() > deadline) fail("timed out: $what\n${servers.diagnostics()}")
             Thread.sleep(POLL_MS)
         }
     }

@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application) apply false
+    // Pins the Kotlin Gradle plugin version that AGP's built-in Kotlin uses.
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.detekt)
 }

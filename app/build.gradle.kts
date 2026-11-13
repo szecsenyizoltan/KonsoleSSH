@@ -1,9 +1,9 @@
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
 }
 
 val keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -76,16 +76,18 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
     buildFeatures {
         viewBinding = true
     }
 
     lint {
         baseline = file("lint-baseline.xml")
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
     }
 }
 

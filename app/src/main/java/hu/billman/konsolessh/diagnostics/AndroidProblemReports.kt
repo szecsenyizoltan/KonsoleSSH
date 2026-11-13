@@ -13,9 +13,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.time.Instant
 
 /**
  * [ProblemReports] Androidon: az ANR-nyom az [ApplicationExitInfo]-ból jön
@@ -97,8 +95,7 @@ class AndroidProblemReports(
             "${Build.MANUFACTURER} ${Build.MODEL}"
     }
 
-    private fun format(timestamp: Long) =
-        SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z", Locale.ROOT).format(Date(timestamp))
+    private fun format(timestamp: Long) = ReportTime.format(Instant.ofEpochMilli(timestamp))
 
     companion object {
         /** A FileProvider-ben is ez a könyvtár szerepel. */

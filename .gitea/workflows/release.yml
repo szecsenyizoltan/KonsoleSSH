@@ -1,0 +1,130 @@
+name: Release
+
+# A tag vX.Y.Z builds the signed APK and AAB, attaches the APK to a Gitea
+# release and uploads the AAB to Google Play.
+#
+# The tag must match versionName in app/build.gradle.kts; the release commit
+# sets both versionName and versionCode (see the versioning rules).
+#
+# Repository secrets: KEYSTORE_BASE64, KEYSTORE_STORE_PASSWORD,
+# KEYSTORE_KEY_ALIAS, KEYSTORE_KEY_PASSWORD, PLAY_SERVICE_ACCOUNT_JSON
+# (optional: without it the Play upload is skipped).
+# Repository variable PLAY_TRACKS: comma-separated Play tracks
+# (default: internal,alpha).
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Tag matches versionName
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          NAME=$(sed -nE 's/^\s*versionName = "([^"]+)".*/\1/p' app/build.gradle.kts | head -1)
+          if [ "$TAG" != "v$NAME" ]; then
+            echo "::error::Tag $TAG does not match versionName $NAME"
+            exit 1
+          fi
+          echo "VERSION_NAME=$NAME" >> "$GITHUB_ENV"
+
+      - name: JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Android SDK (licences; AGP downloads the platform and build tools)
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+
+      - name: Write signing secrets to a temporary directory
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEYSTORE_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::error::KEYSTORE_BASE64 secret is not set"
+            exit 1
+          fi
+          SECRETS_DIR="$RUNNER_TEMP/konsolessh-secrets"
+          mkdir -p "$SECRETS_DIR" && chmod 700 "$SECRETS_DIR"
+          echo "$KEYSTORE_BASE64" | base64 -d > "$SECRETS_DIR/release.jks"
+          {
+            echo "storeFile=$SECRETS_DIR/release.jks"
+            echo "storePassword=$STORE_PASSWORD"
+            echo "keyAlias=$KEY_ALIAS"
+            echo "keyPassword=$KEY_PASSWORD"
+          } > keystore.properties
+
+      - name: Tests, then signed APK and AAB
+        run: ./gradlew --no-daemon :app:testDebugUnitTest :app:assembleRelease :app:bundleRelease
+
+      - name: Name the artifacts, compute the signer fingerprint
+        run: |
+          APK="KonsoleSSH-$VERSION_NAME-release.apk"
+          AAB="KonsoleSSH-$VERSION_NAME-release.aab"
+          cp app/build/outputs/apk/release/app-release.apk "$APK"
+          cp app/build/outputs/bundle/release/app-release.aab "$AAB"
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -1)
+          FP=$("$APKSIGNER" verify --print-certs "$APK" | grep -i 'SHA-256 digest:' | head -1 \
+               | sed -E 's/.*: *//' | tr '[:lower:]' '[:upper:]' | sed -E 's/(..)/\1:/g; s/:$//')
+          echo "APK=$APK" >> "$GITHUB_ENV"
+          echo "AAB=$AAB" >> "$GITHUB_ENV"
+          echo "SIGNER_SHA256=$FP" >> "$GITHUB_ENV"
+
+      - name: Gitea release with the APK
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          API="$GITHUB_SERVER_URL/api/v1/repos/$GITHUB_REPOSITORY"
+          BODY=$(python3 -c 'import json,os; print(json.dumps({
+            "tag_name": os.environ["GITHUB_REF_NAME"],
+            "name": os.environ["GITHUB_REF_NAME"],
+            "body": "Install `%s` directly, or update from Google Play: both are signed with the same key.\n\nSigner SHA-256: `%s`" % (os.environ["APK"], os.environ["SIGNER_SHA256"]),
+          }))')
+          ID=$(curl -fsS -H "Authorization: token $TOKEN" "$API/releases/tags/$GITHUB_REF_NAME" 2>/dev/null \
+               | python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])' 2>/dev/null || true)
+          if [ -z "$ID" ]; then
+            ID=$(curl -fsS -X POST -H "Authorization: token $TOKEN" -H 'Content-Type: application/json' \
+                 -d "$BODY" "$API/releases" | python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])')
+          fi
+          curl -fsS -X POST -H "Authorization: token $TOKEN" \
+               -F "attachment=@$APK" "$API/releases/$ID/assets?name=$APK" > /dev/null
+          echo "Release $GITHUB_REF_NAME (id $ID): $APK attached"
+
+      - name: Check the Play secret
+        id: play
+        env:
+          PLAY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -n "$PLAY_JSON" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::PLAY_SERVICE_ACCOUNT_JSON is not set, skipping the Play upload"
+          fi
+
+      - name: Upload the AAB to Google Play
+        if: steps.play.outputs.present == 'true'
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: hu.billman.konsolessh
+          releaseFiles: ${{ env.AAB }}
+          tracks: ${{ vars.PLAY_TRACKS || 'internal,alpha' }}
+          status: completed
+          mappingFile: app/build/outputs/mapping/release/mapping.txt
+
+      - name: Remove the signing secrets
+        if: always()
+        run: rm -rf keystore.properties "$RUNNER_TEMP/konsolessh-secrets"

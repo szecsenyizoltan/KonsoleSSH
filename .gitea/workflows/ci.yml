@@ -1,0 +1,52 @@
+name: CI
+
+# Every push and pull request: JVM unit tests and the SSH integration tests
+# against real sshd instances (with coverage), Android lint, detekt.
+#
+# Not here yet: the instrumented emulator tests. They need KVM on the runner;
+# until then run them locally with ./gradlew :app:connectedDebugAndroidTest.
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Android SDK (licences; AGP downloads the platform and build tools)
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+
+      # The SSH integration tests start their own sshd instances.
+      - name: OpenSSH server
+        run: |
+          SUDO=$(command -v sudo || true)
+          $SUDO apt-get update -q
+          $SUDO apt-get install -y -q openssh-server
+
+      - name: Unit and integration tests, with coverage
+        env:
+          KONSOLE_REQUIRE_SSHD: '1'
+        run: ./gradlew --no-daemon :app:createDebugUnitTestCoverageReport
+
+      - name: Coverage summary
+        run: python3 tools/coverage-summary.py
+
+      - name: Android lint
+        run: ./gradlew --no-daemon :app:lintDebug
+
+      - name: detekt
+        run: ./gradlew --no-daemon detekt

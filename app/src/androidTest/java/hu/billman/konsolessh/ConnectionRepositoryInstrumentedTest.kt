@@ -6,12 +6,17 @@ import androidx.test.platform.app.InstrumentationRegistry
 import hu.billman.konsolessh.data.AesGcmKeystoreBox
 import hu.billman.konsolessh.data.CryptoBoxConnectionRepository
 import hu.billman.konsolessh.model.ConnectionConfig
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.io.File
 
 /**
  * Eszközön fut, valódi Android Keystore-ral. Saját tárfájlt és kulcsot
@@ -21,21 +26,34 @@ import org.junit.runner.RunWith
 class ConnectionRepositoryInstrumentedTest {
 
     private lateinit var context: Context
+    private lateinit var file: File
+    private val scopes = mutableListOf<CoroutineScope>()
 
-    private fun repo() = CryptoBoxConnectionRepository(
-        context,
-        AesGcmKeystoreBox(keyAlias = "konsole_instrumented_test_key"),
-        prefsName = PREFS,
-    )
+    /** One DataStore per file at a time: a new repository closes the previous one first. */
+    private fun repo(): CryptoBoxConnectionRepository {
+        scopes.forEach { it.cancel() }
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO).also { scopes += it }
+        return CryptoBoxConnectionRepository.create(
+            context,
+            AesGcmKeystoreBox(keyAlias = "konsole_instrumented_test_key"),
+            scope,
+            storeFile = file,
+            legacyPrefsName = PREFS,
+        )
+    }
 
     @Before
     fun setUp() {
         context = InstrumentationRegistry.getInstrumentation().targetContext
+        file = File(context.filesDir, "datastore/connections_instrumented_test.pb")
+        file.delete()
         context.deleteSharedPreferences(PREFS)
     }
 
     @After
     fun tearDown() {
+        scopes.forEach { it.cancel() }
+        file.delete()
         context.deleteSharedPreferences(PREFS)
     }
 

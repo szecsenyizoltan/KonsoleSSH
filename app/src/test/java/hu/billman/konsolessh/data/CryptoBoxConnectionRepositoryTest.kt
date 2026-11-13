@@ -5,8 +5,13 @@ import android.util.Base64
 import androidx.test.core.app.ApplicationProvider
 import com.google.gson.Gson
 import hu.billman.konsolessh.model.ConnectionConfig
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
 import org.junit.After
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -17,45 +22,49 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.io.File
 
 /**
- * A CryptoBoxConnectionRepository CRUD-, hiba- és migrációs viselkedése.
- * FakeCryptoBox-szal, hogy a Robolectric ne igényeljen Android Keystore-t.
+ * CRUD, failure and migration behaviour of the DataStore connection store,
+ * with [FakeCryptoBox] so that Robolectric needs no Android Keystore.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class CryptoBoxConnectionRepositoryTest {
 
     private lateinit var context: Context
+    private lateinit var file: File
+    private val scopes = mutableListOf<CoroutineScope>()
 
     @Before
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
-        clearAllPrefs()
+        file = File(context.filesDir, "datastore/connections_test.pb")
+        clearAll()
     }
 
     @After
     fun tearDown() {
-        clearAllPrefs()
+        scopes.forEach { it.cancel() }
+        clearAll()
     }
 
-    private fun clearAllPrefs() {
-        context.deleteSharedPreferences(BOX)
-        context.deleteSharedPreferences("konsole_connections_enc")
-        context.deleteSharedPreferences(LEGACY_PLAIN)
+    private fun clearAll() {
+        file.delete()
+        listOf(BOX, LEGACY_ENC, LEGACY_PLAIN).forEach { context.deleteSharedPreferences(it) }
     }
 
-    private fun newRepo(box: CryptoBox = FakeCryptoBox()) = CryptoBoxConnectionRepository(context, box)
+    /** One DataStore per file at a time: a new repository closes the previous one first. */
+    private fun newRepo(box: CryptoBox = FakeCryptoBox()): CryptoBoxConnectionRepository {
+        scopes.forEach { it.cancel() }
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO).also { scopes += it }
+        return CryptoBoxConnectionRepository.create(context, box, scope, storeFile = file, legacyPrefsName = BOX)
+    }
 
     private fun cfg(id: String, name: String = id) =
         ConnectionConfig(id = id, name = name, host = "10.0.0.1", username = "root")
 
-    private fun payload(): String? =
-        context.getSharedPreferences(BOX, Context.MODE_PRIVATE).getString("payload", null)
-
-    private fun putPayload(value: String) {
-        context.getSharedPreferences(BOX, Context.MODE_PRIVATE).edit().putString("payload", value).commit()
-    }
+    private fun stored(): ByteArray? = file.takeIf { it.exists() }?.readBytes()
 
     private suspend fun assertStoreError(block: suspend () -> Unit) {
         try {
@@ -121,27 +130,35 @@ class CryptoBoxConnectionRepositoryTest {
         assertEquals(full, newRepo().get("full"))
     }
 
-    // ── Hibák: olvashatatlan tárra nem írunk ──────────────────────────────────
+    @Test
+    fun `the file holds only encrypted bytes`() = runBlocking {
+        newRepo().saveOne(cfg("a", "VisibleName").copy(password = "VisiblePassword"))
+        val text = String(stored()!!, Charsets.ISO_8859_1)
+        assertFalse(text.contains("VisibleName"))
+        assertFalse(text.contains("VisiblePassword"))
+    }
+
+    // ── Failures: an unreadable store is never written ────────────────────────
 
     @Test
-    fun `corrupted payload throws instead of looking empty`() = runBlocking {
-        putPayload("!!!not-valid-base64-garbage")
+    fun `a damaged file throws instead of looking empty`() = runBlocking {
+        file.parentFile?.mkdirs()
+        file.writeBytes("!!!not-a-store".toByteArray())
         assertStoreError { newRepo().load() }
     }
 
     @Test
     fun `saveOne and delete do not overwrite an unreadable store`() = runBlocking {
-        val repo = newRepo()
-        repo.saveOne(cfg("a", "Alpha"))
-        val original = payload()
+        newRepo().saveOne(cfg("a", "Alpha"))
+        val original = stored()
         // Same data, but the key "changed": decrypt fails like a Keystore failure would.
         val otherKey = newRepo(FakeCryptoBox(maskKey = 0x11))
 
         assertStoreError { otherKey.saveOne(cfg("b")) }
         assertStoreError { otherKey.delete("a") }
 
-        assertEquals(original, payload())
-        assertEquals(listOf("a"), repo.load().map { it.id })
+        assertArrayEquals(original, stored())
+        assertEquals(listOf("a"), newRepo().load().map { it.id })
     }
 
     @Test
@@ -151,69 +168,93 @@ class CryptoBoxConnectionRepositoryTest {
             override fun decrypt(payload: ByteArray): ByteArray = payload
         }
         assertStoreError { newRepo(failingBox).saveOne(cfg("a", "Alpha")) }
-        assertNull(payload())
+        assertFalse(String(stored() ?: ByteArray(0), Charsets.ISO_8859_1).contains("Alpha"))
     }
 
-    @Test
-    fun `plaintext fallback written by older versions stays readable and gets encrypted on next write`() =
-        runBlocking {
-            val json = Gson().toJson(listOf(cfg("old", "Old")))
-            putPayload(Base64.encodeToString("PLAIN\u0000".toByteArray() + json.toByteArray(), Base64.NO_WRAP))
+    // ── Migration from the stores of older versions ───────────────────────────
 
-            val repo = newRepo()
-            assertEquals(listOf("old"), repo.load().map { it.id })
+    private fun putBoxPayload(value: String) {
+        context.getSharedPreferences(BOX, Context.MODE_PRIVATE).edit().putString("payload", value).commit()
+    }
 
-            repo.saveOne(cfg("new", "New"))
-            val raw = Base64.decode(payload(), Base64.NO_WRAP)
-            assertFalse(String(raw, Charsets.ISO_8859_1).startsWith("PLAIN"))
-            assertEquals(listOf("new", "old"), newRepo().load().map { it.id })
-        }
+    private fun boxPayloadOf(vararg configs: ConnectionConfig, box: CryptoBox = FakeCryptoBox()): String =
+        Base64.encodeToString(box.encrypt(Gson().toJson(configs.toList()).toByteArray()), Base64.NO_WRAP)
 
-    // ── Migráció a régi tárakból ──────────────────────────────────────────────
-
-    private fun putLegacy(vararg configs: ConnectionConfig) {
+    private fun putLegacyPlain(vararg configs: ConnectionConfig) {
         context.getSharedPreferences(LEGACY_PLAIN, Context.MODE_PRIVATE)
             .edit().putString("connections", Gson().toJson(configs.toList())).commit()
     }
 
+    private fun prefsFile(name: String) = File(context.applicationInfo.dataDir, "shared_prefs/$name.xml")
+
     @Test
-    fun `legacy plain-prefs are migrated, then deleted once the new payload exists`() = runBlocking {
-        putLegacy(cfg("legacy1", "Legacy Alpha"), cfg("legacy2", "Legacy Beta"))
+    fun `the 1_1_x payload is migrated, then its preferences are deleted`() = runBlocking {
+        putBoxPayload(boxPayloadOf(cfg("b", "Beta"), cfg("a", "Alpha")))
 
-        assertEquals(setOf("legacy1", "legacy2"), newRepo().load().map { it.id }.toSet())
-
-        val box = context.getSharedPreferences(BOX, Context.MODE_PRIVATE)
-        assertTrue(box.contains("payload"))
-        assertTrue(box.getBoolean("_migrated_from_legacy_v1", false))
-        val legacy = context.getSharedPreferences(LEGACY_PLAIN, Context.MODE_PRIVATE)
-        assertFalse(legacy.contains("connections"))
+        assertEquals(listOf("Alpha", "Beta"), newRepo().load().map { it.name })
+        assertFalse(context.getSharedPreferences(BOX, Context.MODE_PRIVATE).contains("payload"))
+        assertEquals(listOf("Alpha", "Beta"), newRepo().load().map { it.name })
     }
 
     @Test
-    fun `migration runs once`() = runBlocking {
-        putLegacy(cfg("x", "Y"))
-        assertEquals(1, newRepo().load().size)
-        assertEquals(listOf("Y"), newRepo().load().map { it.name })
+    fun `plaintext fallback written by older versions is migrated and stored encrypted`() = runBlocking {
+        val json = Gson().toJson(listOf(cfg("old", "OldName")))
+        putBoxPayload(Base64.encodeToString("PLAIN\u0000".toByteArray() + json.toByteArray(), Base64.NO_WRAP))
+
+        assertEquals(listOf("old"), newRepo().load().map { it.id })
+        assertFalse(String(stored()!!, Charsets.ISO_8859_1).contains("OldName"))
+    }
+
+    @Test
+    fun `an unreadable 1_1_x payload fails like an unreadable store and is kept`() = runBlocking {
+        val payload = boxPayloadOf(cfg("a"), box = FakeCryptoBox(maskKey = 0x11))
+        putBoxPayload(payload)
+
+        assertStoreError { newRepo().load() }
+        assertStoreError { newRepo().saveOne(cfg("b")) }
+        assertEquals(payload, context.getSharedPreferences(BOX, Context.MODE_PRIVATE).getString("payload", null))
+    }
+
+    @Test
+    fun `legacy plain preferences are migrated, then deleted`() = runBlocking {
+        putLegacyPlain(cfg("legacy1", "Legacy Alpha"), cfg("legacy2", "Legacy Beta"))
+
+        assertEquals(setOf("legacy1", "legacy2"), newRepo().load().map { it.id }.toSet())
+        assertFalse(context.getSharedPreferences(LEGACY_PLAIN, Context.MODE_PRIVATE).contains("connections"))
+    }
+
+    @Test
+    fun `migration runs once, deleting everything keeps it empty`() = runBlocking {
+        putLegacyPlain(cfg("x", "Y"))
+        val repo = newRepo()
+        assertEquals(listOf("Y"), repo.load().map { it.name })
+        repo.delete("x")
+        assertTrue(newRepo().load().isEmpty())
     }
 
     @Test
     fun `failed migration write keeps the legacy store for a retry`() = runBlocking {
-        putLegacy(cfg("x", "Y"))
+        putLegacyPlain(cfg("x", "Y"))
         val failingBox = object : CryptoBox {
             override fun encrypt(plaintext: ByteArray): ByteArray = error("keystore broke")
             override fun decrypt(payload: ByteArray): ByteArray = payload
         }
 
-        assertEquals(listOf("x"), newRepo(failingBox).load().map { it.id })
+        assertStoreError { newRepo(failingBox).load() }
+        assertTrue(context.getSharedPreferences(LEGACY_PLAIN, Context.MODE_PRIVATE).contains("connections"))
 
-        val legacy = context.getSharedPreferences(LEGACY_PLAIN, Context.MODE_PRIVATE)
-        assertTrue(legacy.contains("connections"))
-        val box = context.getSharedPreferences(BOX, Context.MODE_PRIVATE)
-        assertFalse(box.getBoolean("_migrated_from_legacy_v1", false))
+        assertEquals(listOf("x"), newRepo().load().map { it.id })
+    }
+
+    @Test
+    fun `a fresh install does not open the EncryptedSharedPreferences store`() = runBlocking {
+        assertTrue(newRepo().load().isEmpty())
+        assertFalse(prefsFile(LEGACY_ENC).exists())
     }
 
     private companion object {
-        const val BOX = "konsole_connections_box"
+        const val BOX = "konsole_connections_box_test"
+        const val LEGACY_ENC = "konsole_connections_enc"
         const val LEGACY_PLAIN = "konsole_connections"
     }
 }

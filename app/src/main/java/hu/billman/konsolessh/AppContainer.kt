@@ -41,12 +41,12 @@ class AppContainer(
     // Lazy, so the Keystore is not touched before first use (tests, Robolectric).
     private val cryptoBox: CryptoBox by lazy { AesGcmKeystoreBox() }
 
-    val connectionRepository: ConnectionRepository by lazy {
-        CryptoBoxConnectionRepository(appContext, cryptoBox)
-    }
-
     // Disk work for small stores; outlives every screen, like the sessions.
     private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    val connectionRepository: ConnectionRepository by lazy {
+        CryptoBoxConnectionRepository.create(appContext, cryptoBox, ioScope)
+    }
 
     val settingsRepository: SettingsRepository by lazy { DataStoreSettingsRepository.create(appContext, ioScope) }
 

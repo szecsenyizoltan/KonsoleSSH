@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.InputStream
@@ -62,6 +63,13 @@ class MainViewModel(
     }
 
     suspend fun latestProblemReport(): File? = problemReports.latest()
+
+    private val _pickerExpanded = MutableStateFlow<Set<String>>(emptySet())
+
+    /** Group paths open in the tab picker; kept while the activity lives, so reopening the picker keeps them. */
+    val pickerExpanded: StateFlow<Set<String>> = _pickerExpanded.asStateFlow()
+
+    fun togglePickerGroup(path: String) = _pickerExpanded.update { if (path in it) it - path else it + path }
 
     /** Saved terminal font size in sp; 0 until loaded, or when none was saved. */
     val fontSizeSp: StateFlow<Float> = settings.fontSizeSp.stateIn(viewModelScope, SharingStarted.Eagerly, 0f)

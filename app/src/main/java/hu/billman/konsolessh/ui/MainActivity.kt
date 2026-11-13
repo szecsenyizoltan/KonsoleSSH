@@ -32,7 +32,6 @@ import hu.billman.konsolessh.R
 import hu.billman.konsolessh.databinding.ActivityMainBinding
 import hu.billman.konsolessh.service.SshForegroundService
 import hu.billman.konsolessh.session.ConnectionStatus
-import hu.billman.konsolessh.session.SessionsState
 import hu.billman.konsolessh.session.TabState
 import hu.billman.konsolessh.terminal.Modifier
 import hu.billman.konsolessh.terminal.TerminalView
@@ -60,7 +59,6 @@ class MainActivity : AppCompatActivity(), KeybarController.Host {
 
     private var promptDialog: Dialog? = null
     private var shownPromptId: Long? = null
-    private var lastActiveCount = 0
     private var reportDialog: Dialog? = null
 
     private val pickFileForUpload = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -110,17 +108,28 @@ class MainActivity : AppCompatActivity(), KeybarController.Host {
     private fun observeViewModel() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { viewModel.sessionsState.collect(::render) }
+                launch { viewModel.sessionsState.collect { renderTabs(it.tabs) } }
                 launch { viewModel.selectTab.collect { applyPendingSelection() } }
                 launch { viewModel.modifiers.state.collect(keybar::render) }
                 launch { viewModel.problemReport.collect(::offerProblemReport) }
+                launch { viewModel.activePrompt.collect(::renderPrompt) }
+                launch { viewModel.connectErrors.collect { errors -> errors.forEach(::showConnectError) } }
+                // Started from the visible activity, as Android requires; the service stops itself.
                 launch {
-                    viewModel.storeError.collect { error ->
-                        error ?: return@collect
-                        KonsoleToast.show(binding.root, SshErrorMessages.text(this@MainActivity, error))
-                        viewModel.onStoreErrorShown()
+                    viewModel.serviceNeeded.collect { needed ->
+                        if (needed) SshForegroundService.start(this@MainActivity)
                     }
                 }
+                launch { viewModel.confirm.collect(::showConfirm) }
+                launch { viewModel.message.collect(::showMessage) }
+                launch {
+                    viewModel.reportToShare.collect { report ->
+                        report ?: return@collect
+                        ProblemReportUi.share(this@MainActivity, report)
+                        viewModel.onReportShared()
+                    }
+                }
+                launch { viewModel.exit.collect { exit -> if (exit) finishApp() } }
             }
         }
     }
@@ -133,25 +142,28 @@ class MainActivity : AppCompatActivity(), KeybarController.Host {
         }
     }
 
-    private fun shareLatestProblemReport() {
-        lifecycleScope.launch {
-            val report = viewModel.latestProblemReport()
-            if (report == null) {
-                KonsoleToast.show(binding.root, getString(R.string.report_none))
-            } else {
-                ProblemReportUi.share(this@MainActivity, report)
-            }
+    private fun showMessage(message: MainViewModel.Message?) {
+        message ?: return
+        val text = when (message) {
+            is MainViewModel.Message.Error -> SshErrorMessages.text(this, message.error)
+            MainViewModel.Message.NoProblemReport -> getString(R.string.report_none)
         }
+        KonsoleToast.show(binding.root, text)
+        viewModel.onMessageShown()
     }
 
-    private fun render(state: SessionsState) {
-        // The service runs only while a session needs it and stops itself when
-        // none is left; starting it here keeps the start in the foreground.
-        if (state.activeCount > 0 && lastActiveCount == 0) SshForegroundService.start(this)
-        lastActiveCount = state.activeCount
-        renderTabs(state.tabs)
-        renderPrompt(state.tabs)
-        state.tabs.filter { it.error != null }.forEach(::showConnectError)
+    private fun showConfirm(confirm: MainViewModel.Confirm?) {
+        confirm ?: return
+        val text = when (confirm) {
+            is MainViewModel.Confirm.CloseTab -> getString(R.string.close_tab_confirm, confirm.title)
+            is MainViewModel.Confirm.CloseApp -> getString(R.string.close_app_confirm, confirm.connected)
+        }
+        AlertDialog.Builder(this, R.style.KonsoleDialog)
+            .setMessage(text)
+            .setPositiveButton(R.string.action_close) { _, _ -> viewModel.confirmed(confirm) }
+            .setNegativeButton(R.string.action_cancel, null)
+            .show()
+        viewModel.onConfirmShown()
     }
 
     // ── Dialog / sheet results ────────────────────────────────────────────────
@@ -173,7 +185,7 @@ class MainActivity : AppCompatActivity(), KeybarController.Host {
                 TabPickerSheet.Action.EDIT_CONNECTION -> connectionId?.let {
                     NewConnectionDialog.newForEdit(it).show(supportFragmentManager, DIALOG_TAG)
                 }
-                TabPickerSheet.Action.CLOSE_APP -> closeApp()
+                TabPickerSheet.Action.CLOSE_APP -> viewModel.requestCloseApp()
             }
         }
     }
@@ -184,29 +196,25 @@ class MainActivity : AppCompatActivity(), KeybarController.Host {
 
     // ── Prompts and errors ────────────────────────────────────────────────────
 
-    private fun renderPrompt(tabs: List<TabState>) {
-        val tab = tabs.firstOrNull { it.prompt != null }
-        val prompt = tab?.prompt
+    private fun renderPrompt(active: MainViewModel.TabPrompt?) {
+        val prompt = active?.prompt
         if (prompt?.id == shownPromptId) return
         promptDialog?.dismiss()
         shownPromptId = prompt?.id
-        promptDialog = if (tab != null && prompt != null) {
-            PromptDialogs.show(this, prompt) { answer -> viewModel.answerPrompt(tab.id, prompt.id, answer) }
-        } else {
-            null
+        promptDialog = active?.let {
+            PromptDialogs.show(this, it.prompt) { answer -> viewModel.answerPrompt(it.tabId, it.prompt.id, answer) }
         }
     }
 
     // A failed connect closes its tab after the toast unless the user acts first.
-    private fun showConnectError(tab: TabState) {
-        val error = tab.error ?: return
-        viewModel.onErrorShown(tab.id)
+    private fun showConnectError(failed: MainViewModel.ConnectError) {
+        viewModel.onErrorShown(failed.tabId)
         KonsoleToast.showAutoAction(
             anchor = binding.root,
-            message = SshErrorMessages.text(this, error),
+            message = SshErrorMessages.text(this, failed.error),
             actionLabel = getString(R.string.close_tab),
             timeoutMs = ERROR_TOAST_MS,
-        ) { viewModel.closeTab(tab.id) }
+        ) { viewModel.closeTab(failed.tabId) }
     }
 
     // ── Tabs ──────────────────────────────────────────────────────────────────
@@ -259,7 +267,7 @@ class MainActivity : AppCompatActivity(), KeybarController.Host {
             val view = LayoutInflater.from(this).inflate(R.layout.tab_custom, binding.tabLayout, false)
             view.findViewById<TextView>(R.id.tabTitle).text = tab.title
             view.setOnClickListener { binding.viewPager.setCurrentItem(pagerAdapter.positionOf(tab.id), true) }
-            view.findViewById<TextView>(R.id.tabClose).setOnClickListener { confirmCloseTab(tab.id) }
+            view.findViewById<TextView>(R.id.tabClose).setOnClickListener { viewModel.requestCloseTab(tab.id) }
             view.setOnLongClickListener {
                 showRenameDialog(tab)
                 true
@@ -286,19 +294,6 @@ class MainActivity : AppCompatActivity(), KeybarController.Host {
         statusColor(status)?.let(dot::setTextColor)
     }
 
-    private fun confirmCloseTab(tabId: String) {
-        val tab = viewModel.sessionsState.value.tab(tabId) ?: return
-        if (tab.status != ConnectionStatus.CONNECTED) {
-            viewModel.closeTab(tabId)
-            return
-        }
-        AlertDialog.Builder(this, R.style.KonsoleDialog)
-            .setMessage(getString(R.string.close_tab_confirm, tab.title))
-            .setPositiveButton(R.string.action_close) { _, _ -> viewModel.closeTab(tabId) }
-            .setNegativeButton(R.string.action_cancel, null)
-            .show()
-    }
-
     private fun showRenameDialog(tab: TabState) {
         val padding = resources.getDimensionPixelSize(R.dimen.dialog_padding)
         val editText = EditText(this).apply {
@@ -314,7 +309,7 @@ class MainActivity : AppCompatActivity(), KeybarController.Host {
             .setTitle(R.string.dialog_rename_tab_title)
             .setView(editText)
             .setPositiveButton(R.string.action_ok) { _, _ ->
-                viewModel.renameTab(tab.id, editText.text.toString().trim().ifEmpty { tab.title })
+                viewModel.renameTab(tab.id, editText.text.toString())
             }
             .setNegativeButton(R.string.action_cancel, null)
             .show()
@@ -352,21 +347,7 @@ class MainActivity : AppCompatActivity(), KeybarController.Host {
 
     // ── App lifecycle ─────────────────────────────────────────────────────────
 
-    private fun closeApp() {
-        val active = viewModel.sessionsState.value.connectedCount
-        if (active == 0) {
-            doCloseApp()
-            return
-        }
-        AlertDialog.Builder(this, R.style.KonsoleDialog)
-            .setMessage(getString(R.string.close_app_confirm, active))
-            .setPositiveButton(R.string.action_close) { _, _ -> doCloseApp() }
-            .setNegativeButton(R.string.action_cancel, null)
-            .show()
-    }
-
-    private fun doCloseApp() {
-        viewModel.closeAll()
+    private fun finishApp() {
         SshForegroundService.stop(this)
         finishAffinity()
     }
@@ -401,7 +382,7 @@ class MainActivity : AppCompatActivity(), KeybarController.Host {
             true
         }
         R.id.action_close_tab -> {
-            currentTabId()?.let(::confirmCloseTab)
+            currentTabId()?.let(viewModel::requestCloseTab)
             true
         }
         R.id.action_language -> {
@@ -409,11 +390,11 @@ class MainActivity : AppCompatActivity(), KeybarController.Host {
             true
         }
         R.id.action_problem_report -> {
-            shareLatestProblemReport()
+            viewModel.shareLatestProblemReport()
             true
         }
         R.id.action_exit -> {
-            closeApp()
+            viewModel.requestCloseApp()
             true
         }
         else -> super.onOptionsItemSelected(item)

@@ -8,6 +8,7 @@ import hu.billman.konsolessh.data.SettingsRepository
 import hu.billman.konsolessh.diagnostics.ProblemReports
 import hu.billman.konsolessh.session.ConnectionStatus
 import hu.billman.konsolessh.session.OutputChunk
+import hu.billman.konsolessh.session.PendingPrompt
 import hu.billman.konsolessh.session.PromptAnswer
 import hu.billman.konsolessh.session.SessionManager
 import hu.billman.konsolessh.session.SessionsState
@@ -18,6 +19,8 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -45,8 +48,57 @@ class MainViewModel(
     /** Frissen nyitott fül, amelyre a felületnek át kell váltania. */
     val selectTab: StateFlow<String?> = _selectTab.asStateFlow()
 
-    private val _storeError = MutableStateFlow<SshError?>(null)
-    val storeError: StateFlow<SshError?> = _storeError.asStateFlow()
+    /** A question the user must answer before something is closed. */
+    sealed interface Confirm {
+        data class CloseTab(val tabId: String, val title: String) : Confirm
+        data class CloseApp(val connected: Int) : Confirm
+    }
+
+    /** Short one-time notices. */
+    sealed interface Message {
+        data class Error(val error: SshError) : Message
+        data object NoProblemReport : Message
+    }
+
+    /** A host key or password question, and the tab it belongs to. */
+    data class TabPrompt(val tabId: String, val prompt: PendingPrompt)
+
+    /** A failed connect, shown once; the tab closes after it unless the user acts. */
+    data class ConnectError(val tabId: String, val error: SshError)
+
+    private val _confirm = MutableStateFlow<Confirm?>(null)
+    val confirm: StateFlow<Confirm?> = _confirm.asStateFlow()
+
+    private val _message = MutableStateFlow<Message?>(null)
+    val message: StateFlow<Message?> = _message.asStateFlow()
+
+    private val _reportToShare = MutableStateFlow<File?>(null)
+
+    /** A problem report the user asked to share. */
+    val reportToShare: StateFlow<File?> = _reportToShare.asStateFlow()
+
+    private val _exit = MutableStateFlow(false)
+
+    /** All sessions are closed; the screen should finish the app. */
+    val exit: StateFlow<Boolean> = _exit.asStateFlow()
+
+    /** The question to show: one at a time, the first tab's that has one. */
+    val activePrompt: StateFlow<TabPrompt?> = sessions.state.derive { state ->
+        state.tabs.firstNotNullOfOrNull { tab -> tab.prompt?.let { TabPrompt(tab.id, it) } }
+    }
+
+    val connectErrors: StateFlow<List<ConnectError>> = sessions.state.derive { state ->
+        state.tabs.mapNotNull { tab -> tab.error?.let { ConnectError(tab.id, it) } }
+    }
+
+    /**
+     * Whether a session needs the foreground service. The screen starts it when
+     * this turns true; the service stops itself when no session is left.
+     */
+    val serviceNeeded: StateFlow<Boolean> = sessions.state.derive { it.activeCount > 0 }
+
+    private fun <T> StateFlow<SessionsState>.derive(transform: (SessionsState) -> T): StateFlow<T> =
+        map(transform).distinctUntilChanged().stateIn(viewModelScope, SharingStarted.Eagerly, transform(value))
 
     private val _problemReport = MutableStateFlow<File?>(null)
 
@@ -62,7 +114,50 @@ class MainViewModel(
         viewModelScope.launch { problemReports.markSeen() }
     }
 
-    suspend fun latestProblemReport(): File? = problemReports.latest()
+    fun shareLatestProblemReport() {
+        viewModelScope.launch {
+            val report = problemReports.latest()
+            if (report == null) _message.value = Message.NoProblemReport else _reportToShare.value = report
+        }
+    }
+
+    fun onReportShared() {
+        _reportToShare.value = null
+    }
+
+    fun onMessageShown() {
+        _message.value = null
+    }
+
+    fun onConfirmShown() {
+        _confirm.value = null
+    }
+
+    /** Closing a connected tab needs a confirmation; any other tab closes at once. */
+    fun requestCloseTab(tabId: String) {
+        val tab = sessions.state.value.tab(tabId) ?: return
+        if (tab.status == ConnectionStatus.CONNECTED) {
+            _confirm.value = Confirm.CloseTab(tabId, tab.title)
+        } else {
+            closeTab(tabId)
+        }
+    }
+
+    /** Exiting with live connections needs a confirmation. */
+    fun requestCloseApp() {
+        val connected = sessions.state.value.connectedCount
+        if (connected == 0) exitApp() else _confirm.value = Confirm.CloseApp(connected)
+    }
+
+    fun confirmed(confirm: Confirm) = when (confirm) {
+        is Confirm.CloseTab -> closeTab(confirm.tabId)
+        is Confirm.CloseApp -> exitApp()
+    }
+
+    private fun exitApp() {
+        sessions.closeAll()
+        _exit.value = true
+    }
 
     private val _pickerExpanded = MutableStateFlow<Set<String>>(emptySet())
 
@@ -83,11 +178,11 @@ class MainViewModel(
             val config = try {
                 repository.get(connectionId)
             } catch (e: ConnectionStoreException) {
-                _storeError.value = SshError.StoreUnreadable
+                _message.value = Message.Error(SshError.StoreUnreadable)
                 return@launch
             }
             if (config == null) {
-                _storeError.value = SshError.ConnectionMissing
+                _message.value = Message.Error(SshError.ConnectionMissing)
             } else {
                 _selectTab.value = sessions.openTab(config)
             }
@@ -96,10 +191,6 @@ class MainViewModel(
 
     fun onTabSelected() {
         _selectTab.value = null
-    }
-
-    fun onStoreErrorShown() {
-        _storeError.value = null
     }
 
     /** Csak az új fület kapcsolja; egy megszakadt kapcsolat a felhasználóra vár. */
@@ -111,9 +202,10 @@ class MainViewModel(
 
     fun closeTab(tabId: String) = sessions.closeTab(tabId)
 
-    fun closeAll() = sessions.closeAll()
-
-    fun renameTab(tabId: String, title: String) = sessions.renameTab(tabId, title)
+    /** A blank name keeps the current one. */
+    fun renameTab(tabId: String, title: String) {
+        title.trim().takeIf { it.isNotEmpty() }?.let { sessions.renameTab(tabId, it) }
+    }
 
     fun onErrorShown(tabId: String) = sessions.clearError(tabId)
 

@@ -5,8 +5,9 @@ import androidx.test.core.app.ApplicationProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.job
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -36,14 +37,23 @@ class DataStoreSettingsRepositoryTest {
 
     @After
     fun tearDown() {
-        scopes.forEach { it.cancel() }
+        closeScopes()
         file.delete()
         context.deleteSharedPreferences(LEGACY)
     }
 
-    /** One DataStore per file at a time: a new repository closes the previous one first. */
+    private fun closeScopes() = runBlocking {
+        scopes.forEach { it.coroutineContext.job.cancelAndJoin() }
+        scopes.clear()
+    }
+
+    /**
+     * One DataStore per file at a time: a new repository closes the previous
+     * one first, and waits for it, since DataStore releases the file only when
+     * its scope has completed.
+     */
     private fun newRepo(): DataStoreSettingsRepository {
-        scopes.forEach { it.cancel() }
+        closeScopes()
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO).also { scopes += it }
         return DataStoreSettingsRepository(DataStoreSettingsRepository.createStore(context, scope, LEGACY) { file })
     }

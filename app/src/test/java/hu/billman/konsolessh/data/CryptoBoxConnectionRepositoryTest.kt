@@ -8,7 +8,8 @@ import hu.billman.konsolessh.model.ConnectionConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.job
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertArrayEquals
@@ -45,7 +46,7 @@ class CryptoBoxConnectionRepositoryTest {
 
     @After
     fun tearDown() {
-        scopes.forEach { it.cancel() }
+        closeScopes()
         clearAll()
     }
 
@@ -54,11 +55,26 @@ class CryptoBoxConnectionRepositoryTest {
         listOf(BOX, LEGACY_ENC, LEGACY_PLAIN).forEach { context.deleteSharedPreferences(it) }
     }
 
-    /** One DataStore per file at a time: a new repository closes the previous one first. */
+    private fun closeScopes() = runBlocking {
+        scopes.forEach { it.coroutineContext.job.cancelAndJoin() }
+        scopes.clear()
+    }
+
+    /**
+     * One DataStore per file at a time: a new repository closes the previous
+     * one first, and waits for it, since DataStore releases the file only when
+     * its scope has completed.
+     */
     private fun newRepo(box: CryptoBox = FakeCryptoBox()): CryptoBoxConnectionRepository {
-        scopes.forEach { it.cancel() }
+        closeScopes()
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO).also { scopes += it }
-        return CryptoBoxConnectionRepository.create(context, box, scope, storeFile = file, legacyPrefsName = BOX)
+        return CryptoBoxConnectionRepository.create(
+            context,
+            box,
+            scope,
+            storeFile = file,
+            legacyStores = LegacyConnectionsMigration.Stores(box = BOX, encrypted = LEGACY_ENC, plain = LEGACY_PLAIN),
+        )
     }
 
     private fun cfg(id: String, name: String = id) =
@@ -247,6 +263,18 @@ class CryptoBoxConnectionRepositoryTest {
     }
 
     @Test
+    fun `a repository with its own store names never touches the default old stores`() = runBlocking {
+        val real = context.getSharedPreferences(LegacyConnectionsMigration.PLAIN_LEGACY_PREFS, Context.MODE_PRIVATE)
+        real.edit().putString("connections", Gson().toJson(listOf(cfg("real")))).commit()
+        try {
+            assertTrue(newRepo().load().isEmpty())
+            assertTrue(real.contains("connections"))
+        } finally {
+            context.deleteSharedPreferences(LegacyConnectionsMigration.PLAIN_LEGACY_PREFS)
+        }
+    }
+
+    @Test
     fun `a fresh install does not open the EncryptedSharedPreferences store`() = runBlocking {
         assertTrue(newRepo().load().isEmpty())
         assertFalse(prefsFile(LEGACY_ENC).exists())
@@ -254,7 +282,7 @@ class CryptoBoxConnectionRepositoryTest {
 
     private companion object {
         const val BOX = "konsole_connections_box_test"
-        const val LEGACY_ENC = "konsole_connections_enc"
-        const val LEGACY_PLAIN = "konsole_connections"
+        const val LEGACY_ENC = "konsole_connections_enc_test"
+        const val LEGACY_PLAIN = "konsole_connections_test"
     }
 }

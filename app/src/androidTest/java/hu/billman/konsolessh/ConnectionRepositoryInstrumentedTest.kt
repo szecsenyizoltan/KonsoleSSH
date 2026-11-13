@@ -5,11 +5,13 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import hu.billman.konsolessh.data.AesGcmKeystoreBox
 import hu.billman.konsolessh.data.CryptoBoxConnectionRepository
+import hu.billman.konsolessh.data.LegacyConnectionsMigration
 import hu.billman.konsolessh.model.ConnectionConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.job
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -29,16 +31,30 @@ class ConnectionRepositoryInstrumentedTest {
     private lateinit var file: File
     private val scopes = mutableListOf<CoroutineScope>()
 
-    /** One DataStore per file at a time: a new repository closes the previous one first. */
+    private fun closeScopes() = runBlocking {
+        scopes.forEach { it.coroutineContext.job.cancelAndJoin() }
+        scopes.clear()
+    }
+
+    /**
+     * One DataStore per file at a time: a new repository closes the previous
+     * one first, and waits for it, since DataStore releases the file only when
+     * its scope has completed.
+     */
     private fun repo(): CryptoBoxConnectionRepository {
-        scopes.forEach { it.cancel() }
+        closeScopes()
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO).also { scopes += it }
         return CryptoBoxConnectionRepository.create(
             context,
             AesGcmKeystoreBox(keyAlias = "konsole_instrumented_test_key"),
             scope,
             storeFile = file,
-            legacyPrefsName = PREFS,
+            // The migration deletes the stores it reads: never let it see the app's real ones.
+            legacyStores = LegacyConnectionsMigration.Stores(
+                box = PREFS,
+                encrypted = "${PREFS}_enc",
+                plain = "${PREFS}_plain",
+            ),
         )
     }
 
@@ -52,7 +68,7 @@ class ConnectionRepositoryInstrumentedTest {
 
     @After
     fun tearDown() {
-        scopes.forEach { it.cancel() }
+        closeScopes()
         file.delete()
         context.deleteSharedPreferences(PREFS)
     }

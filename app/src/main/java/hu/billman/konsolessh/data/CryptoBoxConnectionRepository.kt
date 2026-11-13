@@ -58,20 +58,20 @@ class CryptoBoxConnectionRepository internal constructor(
 
         /**
          * The app's connection store. Only one may exist per file and process.
-         * [storeFile] and [legacyPrefsName] are replaced in tests only.
+         * [storeFile] and [legacyStores] are replaced in tests only.
          */
-        fun create(
+        internal fun create(
             context: Context,
             cryptoBox: CryptoBox,
             scope: CoroutineScope,
             storeFile: File = context.applicationContext.dataStoreFile(FILE_NAME),
-            legacyPrefsName: String = LegacyConnectionsMigration.PREFS_NAME,
+            legacyStores: LegacyConnectionsMigration.Stores = LegacyConnectionsMigration.Stores(),
         ): CryptoBoxConnectionRepository {
             val appContext = context.applicationContext
             return CryptoBoxConnectionRepository(
                 DataStoreFactory.create(
                     serializer = EncryptedConnectionsSerializer(cryptoBox),
-                    migrations = listOf(LegacyConnectionsMigration(appContext, cryptoBox, legacyPrefsName)),
+                    migrations = listOf(LegacyConnectionsMigration(appContext, cryptoBox, legacyStores)),
                     scope = scope,
                     produceFile = { storeFile },
                 ),

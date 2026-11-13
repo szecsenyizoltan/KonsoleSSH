@@ -30,13 +30,26 @@ import java.io.File
 internal class LegacyConnectionsMigration(
     private val context: Context,
     private val cryptoBox: CryptoBox,
-    private val prefsName: String = PREFS_NAME,
+    private val stores: Stores = Stores(),
 ) : DataMigration<List<ConnectionConfig>> {
+
+    /**
+     * SharedPreferences names of the old stores. Tests that run inside the
+     * installed app pass their own names: this migration deletes what it
+     * reads, and must never reach the app's real data from a test.
+     */
+    data class Stores(
+        val box: String = PREFS_NAME,
+        val encrypted: String = LEGACY_ENC_PREFS,
+        val plain: String = PLAIN_LEGACY_PREFS,
+    )
+
+    private val prefsName = stores.box
 
     override suspend fun shouldMigrate(currentData: List<ConnectionConfig>): Boolean {
         val box = prefs(prefsName)
         val oldestPending = !box.getBoolean(KEY_MIGRATED_FLAG, false) &&
-            (prefsFileExists(LEGACY_ENC_PREFS) || prefs(PLAIN_LEGACY_PREFS).contains(LEGACY_KEY_CONNECTIONS))
+            (prefsFileExists(stores.encrypted) || prefs(stores.plain).contains(LEGACY_KEY_CONNECTIONS))
         return currentData.isEmpty() && (box.contains(KEY_PAYLOAD) || oldestPending)
     }
 
@@ -46,7 +59,7 @@ internal class LegacyConnectionsMigration(
     }
 
     override suspend fun cleanUp() {
-        listOf(prefsName, LEGACY_ENC_PREFS, PLAIN_LEGACY_PREFS).forEach { name ->
+        listOf(stores.box, stores.encrypted, stores.plain).forEach { name ->
             runCatching { context.deleteSharedPreferences(name) }
         }
     }
@@ -70,12 +83,12 @@ internal class LegacyConnectionsMigration(
 
     @Suppress("TooGenericExceptionCaught")
     private fun readEncryptedPrefs(): List<ConnectionConfig>? {
-        if (!prefsFileExists(LEGACY_ENC_PREFS)) return null
+        if (!prefsFileExists(stores.encrypted)) return null
         return try {
             val masterKey = MasterKey.Builder(context).setKeyScheme(MasterKey.KeyScheme.AES256_GCM).build()
             val encrypted = EncryptedSharedPreferences.create(
                 context,
-                LEGACY_ENC_PREFS,
+                stores.encrypted,
                 masterKey,
                 EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
@@ -89,7 +102,7 @@ internal class LegacyConnectionsMigration(
 
     @Suppress("TooGenericExceptionCaught")
     private fun readPlainPrefs(): List<ConnectionConfig> = try {
-        prefs(PLAIN_LEGACY_PREFS).getString(LEGACY_KEY_CONNECTIONS, null)?.let(ConnectionJson::decode).orEmpty()
+        prefs(stores.plain).getString(LEGACY_KEY_CONNECTIONS, null)?.let(ConnectionJson::decode).orEmpty()
     } catch (e: Exception) {
         Log.w(TAG, "plain store unreadable, skipped", e)
         emptyList()
@@ -109,8 +122,8 @@ internal class LegacyConnectionsMigration(
         const val PREFS_NAME = "konsole_connections_box"
         private const val KEY_PAYLOAD = "payload"
         private const val KEY_MIGRATED_FLAG = "_migrated_from_legacy_v1"
-        private const val LEGACY_ENC_PREFS = "konsole_connections_enc"
-        private const val PLAIN_LEGACY_PREFS = "konsole_connections"
+        const val LEGACY_ENC_PREFS = "konsole_connections_enc"
+        const val PLAIN_LEGACY_PREFS = "konsole_connections"
         private const val LEGACY_KEY_CONNECTIONS = "connections"
 
         /** Prefix of the plaintext fallback written before 1.1.27. */

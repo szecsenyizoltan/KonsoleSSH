@@ -101,6 +101,7 @@ class MainActivity : AppCompatActivity(), KeybarController.Host {
         // The prompt stays pending; the recreated activity shows it again.
         promptDialog?.dismiss()
         reportDialog?.dismiss()
+        uploads.dismiss()
         keybar.dispose()
         super.onDestroy()
     }
@@ -130,6 +131,7 @@ class MainActivity : AppCompatActivity(), KeybarController.Host {
                     }
                 }
                 launch { viewModel.exit.collect { exit -> if (exit) finishApp() } }
+                launch { viewModel.upload.collect(uploads::render) }
             }
         }
     }
@@ -147,6 +149,8 @@ class MainActivity : AppCompatActivity(), KeybarController.Host {
         val text = when (message) {
             is MainViewModel.Message.Error -> SshErrorMessages.text(this, message.error)
             MainViewModel.Message.NoProblemReport -> getString(R.string.report_none)
+            is MainViewModel.Message.UploadUndone -> getString(R.string.upload_undone, message.name)
+            is MainViewModel.Message.UndoFailed -> getString(R.string.upload_undo_failed, message.reason)
         }
         KonsoleToast.show(binding.root, text)
         viewModel.onMessageShown()

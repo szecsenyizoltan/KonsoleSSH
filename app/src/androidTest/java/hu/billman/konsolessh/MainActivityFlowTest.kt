@@ -3,6 +3,7 @@ package hu.billman.konsolessh
 import android.Manifest
 import android.os.Build
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso.onView
@@ -17,7 +18,10 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import hu.billman.konsolessh.model.ConnectionConfig
 import hu.billman.konsolessh.session.ConnectionStatus
+import hu.billman.konsolessh.ui.KonsoleViewModelFactory
 import hu.billman.konsolessh.ui.MainActivity
+import hu.billman.konsolessh.ui.MainViewModel
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.Matchers.allOf
 import org.junit.After
@@ -27,6 +31,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.io.ByteArrayInputStream
 
 /**
  * A főképernyő kritikus folyamatai valódi felülettel, hamis munkamenettel
@@ -59,6 +64,9 @@ class MainActivityFlowTest {
         container.sessionManager.closeAll()
         container.connectionRepository.delete(connection.id)
         FakeTerminalSession.askHostKey = true
+        FakeTerminalSession.uploadGate?.complete(Unit)
+        FakeTerminalSession.uploadGate = null
+        FakeTerminalSession.uploaded.clear()
     }
 
     private fun openFakeTab() {
@@ -119,6 +127,29 @@ class MainActivityFlowTest {
     }
 
     @Test
+    fun anUploadKeepsRunningThroughRecreation() {
+        FakeTerminalSession.askHostKey = false
+        val gate = CompletableDeferred<Unit>().also { FakeTerminalSession.uploadGate = it }
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            openFakeTab()
+            await("connected") { tabStatus() == ConnectionStatus.CONNECTED }
+            val tabId = container.sessionManager.state.value.tabs.single().id
+            scenario.onActivity { activity ->
+                val factory = KonsoleViewModelFactory.from(activity)
+                val viewModel = ViewModelProvider(activity, factory)[MainViewModel::class.java]
+                viewModel.startUpload(tabId, UPLOAD_NAME, 2) { ByteArrayInputStream(ByteArray(2)) }
+            }
+            onView(withId(R.id.progressBar)).inRoot(isDialog()).check(matches(isDisplayed()))
+
+            scenario.recreate()
+
+            onView(withId(R.id.progressBar)).inRoot(isDialog()).check(matches(isDisplayed()))
+            gate.complete(Unit)
+            await("upload finished") { UPLOAD_NAME in FakeTerminalSession.uploaded }
+        }
+    }
+
+    @Test
     fun backSendsTheAppToTheBackgroundAndKeepsTheSession() {
         FakeTerminalSession.askHostKey = false
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
@@ -137,5 +168,6 @@ class MainActivityFlowTest {
         const val POLL_MS = 50L
         const val SETTLE_MS = 500L
         const val RECREATIONS = 2
+        const val UPLOAD_NAME = "upload-test.txt"
     }
 }

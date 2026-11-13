@@ -11,9 +11,12 @@ import hu.billman.konsolessh.session.TabState
 import hu.billman.konsolessh.ssh.SshError
 import hu.billman.konsolessh.ui.MainViewModel.Confirm
 import hu.billman.konsolessh.ui.MainViewModel.Message
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,6 +31,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import java.io.ByteArrayInputStream
 import java.io.File
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -52,7 +56,13 @@ class MainViewModelTest {
     @After
     fun tearDown() = Dispatchers.resetMain()
 
-    private fun vm() = MainViewModel(sessions, FakeConnectionRepository(), settings, reports)
+    private fun vm() = MainViewModel(
+        sessions,
+        FakeConnectionRepository(),
+        settings,
+        reports,
+        ioDispatcher = UnconfinedTestDispatcher(),
+    )
 
     private fun tab(id: String, status: ConnectionStatus, prompt: PendingPrompt? = null, error: SshError? = null) =
         TabState(id, "c-$id", "Tab $id", "Tab $id", "h", status, error, prompt)
@@ -142,6 +152,68 @@ class MainViewModelTest {
         assertTrue(vm.serviceNeeded.value)
         state.value = SessionsState(listOf(tab("a", ConnectionStatus.DISCONNECTED)))
         assertFalse(vm.serviceNeeded.value)
+    }
+
+    // ── Upload ────────────────────────────────────────────────────────────────
+
+    @Test
+    fun `an upload reports progress, then offers an undo that deletes the file`() {
+        state.value = SessionsState(listOf(tab("a", ConnectionStatus.CONNECTED)))
+        val gate = CompletableDeferred<Unit>()
+        val seen = mutableListOf<MainViewModel.Upload?>()
+        coEvery { sessions.upload("a", any(), "f.txt", 10, any()) } coAnswers {
+            arg<(Long, Long) -> Unit>(4)(4, 10)
+            gate.await()
+        }
+        val vm = vm()
+        vm.startUpload("a", "f.txt", 10) { ByteArrayInputStream(ByteArray(10)) }
+        seen += vm.upload.value
+        gate.complete(Unit)
+
+        assertEquals(listOf(MainViewModel.Upload.Running("f.txt", 4, 10)), seen)
+        val done = vm.upload.value as MainViewModel.Upload.Done
+        assertEquals(MainViewModel.Upload.Done("a", "f.txt"), done)
+
+        vm.onUploadShown()
+        assertNull(vm.upload.value)
+        vm.undoUpload(done)
+        coVerify { sessions.deleteRemote("a", "f.txt") }
+        assertEquals(Message.UploadUndone("f.txt"), vm.message.value)
+    }
+
+    @Test
+    fun `uploading to a tab that is not connected is refused`() {
+        state.value = SessionsState(listOf(tab("a", ConnectionStatus.DISCONNECTED)))
+        val vm = vm()
+        vm.startUpload("a", "f", 1) { error("must not be opened") }
+        assertEquals(MainViewModel.Upload.NotConnected, vm.upload.value)
+        vm.startUpload(null, "f", 1) { error("must not be opened") }
+        assertEquals(MainViewModel.Upload.NotConnected, vm.upload.value)
+    }
+
+    @Test
+    fun `a failed upload reports why, and a failed undo too`() {
+        state.value = SessionsState(listOf(tab("a", ConnectionStatus.CONNECTED)))
+        coEvery { sessions.upload(any(), any(), any(), any(), any()) } throws java.io.IOException("disk full")
+        coEvery { sessions.deleteRemote(any(), any()) } throws java.io.IOException("gone")
+        val vm = vm()
+        vm.startUpload("a", "f", 1) { ByteArrayInputStream(ByteArray(1)) }
+        assertEquals(MainViewModel.Upload.Failed("disk full"), vm.upload.value)
+
+        vm.undoUpload(MainViewModel.Upload.Done("a", "f"))
+        assertEquals(Message.UndoFailed("gone"), vm.message.value)
+    }
+
+    @Test
+    fun `showing an outcome does not clear a running upload`() {
+        state.value = SessionsState(listOf(tab("a", ConnectionStatus.CONNECTED)))
+        val gate = CompletableDeferred<Unit>()
+        coEvery { sessions.upload(any(), any(), any(), any(), any()) } coAnswers { gate.await() }
+        val vm = vm()
+        vm.startUpload("a", "f", 1) { ByteArrayInputStream(ByteArray(1)) }
+        vm.onUploadShown()
+        assertTrue(vm.upload.value is MainViewModel.Upload.Running)
+        gate.complete(Unit)
     }
 
     // ── Problem reports and messages ──────────────────────────────────────────

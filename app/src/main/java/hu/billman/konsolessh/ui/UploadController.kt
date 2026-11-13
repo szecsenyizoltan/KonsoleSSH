@@ -8,19 +8,15 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import hu.billman.konsolessh.R
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.util.Locale
 
 /**
- * SFTP-feltöltés az aktív fül home könyvtárába, folyamatjelzővel és
- * visszavonással. A tényleges átvitel a [MainViewModel]-en át a
- * munkamenet-kezelőben fut; itt csak a felület és a fájl megnyitása van.
+ * The upload screen parts: picks the file's name and size, opens it through
+ * the application's content resolver, and draws [MainViewModel.upload]. The
+ * transfer itself runs in the ViewModel, so the activity may be recreated
+ * meanwhile; a new controller shows the same progress.
  */
 class UploadController(
     private val activity: AppCompatActivity,
@@ -28,69 +24,62 @@ class UploadController(
     private val anchor: View,
 ) {
 
+    private var dialog: AlertDialog? = null
+    private var bar: ProgressBar? = null
+    private var status: TextView? = null
+
     fun upload(tabId: String?, uri: Uri) {
-        if (tabId == null || !viewModel.isConnected(tabId)) {
-            val reason = activity.getString(R.string.upload_not_connected)
-            KonsoleToast.show(anchor, activity.getString(R.string.upload_failed, reason))
+        val name = displayName(uri) ?: DEFAULT_NAME
+        // The application context: the upload may outlive this activity.
+        val resolver = activity.applicationContext.contentResolver
+        viewModel.startUpload(tabId, name, size(uri)) {
+            resolver.openInputStream(uri) ?: throw IOException("cannot open $uri")
+        }
+    }
+
+    fun render(upload: MainViewModel.Upload?) {
+        if (upload is MainViewModel.Upload.Running) {
+            showProgress(upload)
             return
         }
-        val name = displayName(uri) ?: DEFAULT_NAME
-        val view = LayoutInflater.from(activity).inflate(R.layout.dialog_upload_progress, null)
-        val bar = view.findViewById<ProgressBar>(R.id.progressBar)
-        val status = view.findViewById<TextView>(R.id.textStatus)
-        status.text = name
-        val dialog = AlertDialog.Builder(activity, R.style.KonsoleDialog)
-            .setTitle(activity.getString(R.string.upload_title, name))
-            .setView(view)
-            .setCancelable(false)
-            .show()
-
-        activity.lifecycleScope.launch {
-            val error = try {
-                withContext(Dispatchers.IO) {
-                    val input = activity.contentResolver.openInputStream(uri) ?: throw IOException("cannot open $uri")
-                    input.use {
-                        viewModel.upload(tabId, it, name, size(uri)) { done, total ->
-                            activity.runOnUiThread { showProgress(bar, status, name, done, total) }
-                        }
-                    }
-                }
-                null
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                e
-            }
-            dialog.dismiss()
-            if (error == null) {
-                KonsoleToast.showWithAction(
-                    anchor = anchor,
-                    message = activity.getString(R.string.upload_done, HOME_DIR, name),
-                    actionLabel = activity.getString(R.string.undo),
-                    timeoutMs = UNDO_TIMEOUT_MS,
-                ) { undo(tabId, name) }
-            } else {
-                val reason = error.message ?: error.javaClass.simpleName
-                KonsoleToast.show(anchor, activity.getString(R.string.upload_failed, reason))
-            }
+        dismiss()
+        when (upload) {
+            null, is MainViewModel.Upload.Running -> return
+            MainViewModel.Upload.NotConnected -> failed(activity.getString(R.string.upload_not_connected))
+            is MainViewModel.Upload.Failed -> failed(upload.reason)
+            is MainViewModel.Upload.Done -> KonsoleToast.showWithAction(
+                anchor = anchor,
+                message = activity.getString(R.string.upload_done, HOME_DIR, upload.name),
+                actionLabel = activity.getString(R.string.undo),
+                timeoutMs = UNDO_TIMEOUT_MS,
+            ) { viewModel.undoUpload(upload) }
         }
+        viewModel.onUploadShown()
     }
 
-    private fun undo(tabId: String, remoteName: String) {
-        activity.lifecycleScope.launch {
-            val message = try {
-                viewModel.deleteRemote(tabId, remoteName)
-                activity.getString(R.string.upload_undone, remoteName)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                activity.getString(R.string.upload_undo_failed, e.message ?: e.javaClass.simpleName)
-            }
-            KonsoleToast.show(anchor, message)
-        }
+    fun dismiss() {
+        dialog?.dismiss()
+        dialog = null
+        bar = null
+        status = null
     }
 
-    private fun showProgress(bar: ProgressBar, status: TextView, name: String, done: Long, total: Long) {
+    private fun failed(reason: String) = KonsoleToast.show(anchor, activity.getString(R.string.upload_failed, reason))
+
+    private fun showProgress(upload: MainViewModel.Upload.Running) {
+        if (dialog == null) {
+            val view = LayoutInflater.from(activity).inflate(R.layout.dialog_upload_progress, null)
+            bar = view.findViewById(R.id.progressBar)
+            status = view.findViewById(R.id.textStatus)
+            dialog = AlertDialog.Builder(activity, R.style.KonsoleDialog)
+                .setTitle(activity.getString(R.string.upload_title, upload.name))
+                .setView(view)
+                .setCancelable(false)
+                .show()
+        }
+        val bar = bar ?: return
+        val status = status ?: return
+        val (name, done, total) = upload
         if (total > 0L) {
             bar.isIndeterminate = false
             bar.progress = ((done * PROGRESS_MAX) / total).toInt()

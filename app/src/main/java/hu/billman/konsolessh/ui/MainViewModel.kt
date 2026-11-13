@@ -14,6 +14,9 @@ import hu.billman.konsolessh.session.SessionManager
 import hu.billman.konsolessh.session.SessionsState
 import hu.billman.konsolessh.ssh.SshError
 import hu.billman.konsolessh.terminal.KeyModifiers
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,6 +27,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.InputStream
 
@@ -37,6 +41,7 @@ class MainViewModel(
     private val repository: ConnectionRepository,
     private val settings: SettingsRepository,
     private val problemReports: ProblemReports,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : ViewModel() {
 
     val sessionsState: StateFlow<SessionsState> = sessions.state
@@ -58,6 +63,19 @@ class MainViewModel(
     sealed interface Message {
         data class Error(val error: SshError) : Message
         data object NoProblemReport : Message
+        data class UploadUndone(val name: String) : Message
+        data class UndoFailed(val reason: String) : Message
+    }
+
+    /**
+     * A file upload to the home directory of a tab's server. It runs in the
+     * ViewModel, so a rotation does not cancel it.
+     */
+    sealed interface Upload {
+        data class Running(val name: String, val done: Long, val total: Long) : Upload
+        data class Done(val tabId: String, val name: String) : Upload
+        data class Failed(val reason: String) : Upload
+        data object NotConnected : Upload
     }
 
     /** A host key or password question, and the tab it belongs to. */
@@ -76,6 +94,9 @@ class MainViewModel(
 
     /** A problem report the user asked to share. */
     val reportToShare: StateFlow<File?> = _reportToShare.asStateFlow()
+
+    private val _upload = MutableStateFlow<Upload?>(null)
+    val upload: StateFlow<Upload?> = _upload.asStateFlow()
 
     private val _exit = MutableStateFlow(false)
 
@@ -226,16 +247,49 @@ class MainViewModel(
 
     fun snapshot(tabId: String): OutputChunk? = sessions.snapshot(tabId)
 
-    fun isConnected(tabId: String): Boolean =
-        sessions.state.value.tab(tabId)?.status == ConnectionStatus.CONNECTED
+    /**
+     * Uploads [name] ([size] bytes, or -1 when unknown) to the tab's server.
+     * [open] is called on an IO thread; it must not hold on to an activity.
+     */
+    fun startUpload(tabId: String?, name: String, size: Long, open: () -> InputStream) {
+        if (_upload.value is Upload.Running) return
+        if (tabId == null || sessions.state.value.tab(tabId)?.status != ConnectionStatus.CONNECTED) {
+            _upload.value = Upload.NotConnected
+            return
+        }
+        _upload.value = Upload.Running(name, 0, size)
+        viewModelScope.launch {
+            _upload.value = try {
+                withContext(ioDispatcher) {
+                    open().use { input ->
+                        sessions.upload(tabId, input, name, size) { done, total ->
+                            _upload.value = Upload.Running(name, done, total)
+                        }
+                    }
+                }
+                Upload.Done(tabId, name)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Upload.Failed(e.message ?: e.javaClass.simpleName)
+            }
+        }
+    }
 
-    suspend fun upload(
-        tabId: String,
-        input: InputStream,
-        remoteName: String,
-        size: Long,
-        onProgress: (transferred: Long, total: Long) -> Unit,
-    ) = sessions.upload(tabId, input, remoteName, size, onProgress)
+    /** The upload's outcome was shown; a running upload is not affected. */
+    fun onUploadShown() = _upload.update { it as? Upload.Running }
 
-    suspend fun deleteRemote(tabId: String, path: String) = sessions.deleteRemote(tabId, path)
+    /** Deletes a just-uploaded file again. */
+    fun undoUpload(done: Upload.Done) {
+        viewModelScope.launch {
+            _message.value = try {
+                withContext(ioDispatcher) { sessions.deleteRemote(done.tabId, done.name) }
+                Message.UploadUndone(done.name)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Message.UndoFailed(e.message ?: e.javaClass.simpleName)
+            }
+        }
+    }
 }

@@ -5,9 +5,11 @@ import hu.billman.konsolessh.ssh.HostKeyPrompt
 import hu.billman.konsolessh.ssh.SessionPrompter
 import hu.billman.konsolessh.ssh.TerminalSession
 import hu.billman.konsolessh.ssh.TerminalSessionFactory
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.InputStream
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 
@@ -49,8 +51,11 @@ class FakeTerminalSession(private val prompter: SessionPrompter) : TerminalSessi
 
     override fun resize(cols: Int, rows: Int) = Unit
 
-    override suspend fun upload(input: InputStream, remoteName: String, size: Long, onProgress: (Long, Long) -> Unit) =
-        Unit
+    override suspend fun upload(input: InputStream, remoteName: String, size: Long, onProgress: (Long, Long) -> Unit) {
+        onProgress(0, size)
+        uploadGate?.await()
+        uploaded.add(remoteName)
+    }
 
     override suspend fun deleteRemote(path: String) = Unit
 
@@ -65,6 +70,12 @@ class FakeTerminalSession(private val prompter: SessionPrompter) : TerminalSessi
 
         /** A következő kapcsolódás feltegye-e a host key kérdést. */
         @Volatile var askHostKey = true
+
+        /** When set, an upload waits for it, so a test can act while the upload runs. */
+        @Volatile var uploadGate: CompletableDeferred<Unit>? = null
+
+        /** Remote names of the uploads that finished. */
+        val uploaded: MutableList<String> = CopyOnWriteArrayList()
 
         val factory = TerminalSessionFactory { _, _, prompter -> FakeTerminalSession(prompter) }
     }

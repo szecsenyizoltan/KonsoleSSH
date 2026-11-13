@@ -104,6 +104,7 @@ dependencies {
     // < 11/15-nek látszik): enélkül nincs ssh-ed25519 host key és curve25519 kulcscsere.
     implementation(libs.bouncycastle.bcprov)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.constraintlayout)

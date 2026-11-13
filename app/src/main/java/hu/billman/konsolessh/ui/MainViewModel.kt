@@ -15,8 +15,10 @@ import hu.billman.konsolessh.ssh.SshError
 import hu.billman.konsolessh.terminal.KeyModifiers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.InputStream
@@ -61,11 +63,12 @@ class MainViewModel(
 
     suspend fun latestProblemReport(): File? = problemReports.latest()
 
-    var fontSizeSp: Float
-        get() = settings.fontSizeSp
-        set(value) {
-            settings.fontSizeSp = value
-        }
+    /** Saved terminal font size in sp; 0 until loaded, or when none was saved. */
+    val fontSizeSp: StateFlow<Float> = settings.fontSizeSp.stateIn(viewModelScope, SharingStarted.Eagerly, 0f)
+
+    fun saveFontSize(sp: Float) {
+        viewModelScope.launch { settings.setFontSizeSp(sp) }
+    }
 
     fun openTab(connectionId: String) {
         viewModelScope.launch {

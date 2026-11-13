@@ -347,7 +347,7 @@ class MainActivity : AppCompatActivity(), KeybarController.Host {
     private fun zoom(delta: Float) {
         val terminal = currentTerminal() ?: return
         terminal.zoom(delta)
-        viewModel.fontSizeSp = terminal.fontSize
+        viewModel.saveFontSize(terminal.fontSize)
     }
 
     // ── App lifecycle ─────────────────────────────────────────────────────────

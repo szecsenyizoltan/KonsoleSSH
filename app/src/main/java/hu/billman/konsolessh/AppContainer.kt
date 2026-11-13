@@ -5,7 +5,7 @@ import hu.billman.konsolessh.data.AesGcmKeystoreBox
 import hu.billman.konsolessh.data.ConnectionRepository
 import hu.billman.konsolessh.data.CryptoBox
 import hu.billman.konsolessh.data.CryptoBoxConnectionRepository
-import hu.billman.konsolessh.data.PrefsSettingsRepository
+import hu.billman.konsolessh.data.DataStoreSettingsRepository
 import hu.billman.konsolessh.data.SettingsRepository
 import hu.billman.konsolessh.diagnostics.AndroidProblemReports
 import hu.billman.konsolessh.diagnostics.ProblemReports
@@ -45,7 +45,10 @@ class AppContainer(
         CryptoBoxConnectionRepository(appContext, cryptoBox)
     }
 
-    val settingsRepository: SettingsRepository by lazy { PrefsSettingsRepository(appContext) }
+    // Disk work for small stores; outlives every screen, like the sessions.
+    private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    val settingsRepository: SettingsRepository by lazy { DataStoreSettingsRepository.create(appContext, ioScope) }
 
     // One instance, so parallel tabs do not overwrite each other's entries.
     val hostKeyStore: HostKeyStore by lazy {

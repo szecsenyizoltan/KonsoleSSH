@@ -21,6 +21,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.launch
@@ -54,7 +55,11 @@ class SshTerminalFragment : Fragment(), TerminalPage {
         val terminal = _binding?.terminalView ?: return
         renderedEnd = 0L
 
-        viewModel.fontSizeSp.takeIf { it > 0f }?.let { sp -> terminal.post { terminalView?.setFontSize(sp) } }
+        // The saved size is applied once, when the tab's view is created.
+        viewLifecycleOwner.lifecycleScope.launch {
+            val sp = viewModel.fontSizeSp.first { it > 0f }
+            terminal.post { terminalView?.setFontSize(sp) }
+        }
         terminal.onKeyInput = { bytes -> viewModel.send(tabId, bytes) }
         // Query answers are not keystrokes: sticky modifiers must not touch them.
         terminal.onTerminalResponse = { bytes -> viewModel.sendRaw(tabId, bytes) }

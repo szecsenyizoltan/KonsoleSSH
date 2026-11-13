@@ -397,7 +397,7 @@ class NewConnectionDialog : DialogFragment() {
 
     private fun populateFromConfig(config: ConnectionConfig) {
         binding.editName.setText(config.name)
-        val isInternal = isPrivatePrefix(config.host)
+        val isInternal = PrivateAddress.isPrivate(config.host)
         updateHostLabels(isInternal)
         binding.editHost.setText(config.host)
         binding.editPort.setText(config.port.toString())
@@ -418,7 +418,7 @@ class NewConnectionDialog : DialogFragment() {
         binding.radioGroupAuth.setOnCheckedChangeListener { _, _ -> updateAuthTypeVisibility() }
         binding.editHost.addTextChangedListener(
             afterTextChanged { text ->
-                val internal = isPrivatePrefix(text.trim())
+                val internal = PrivateAddress.isPrivate(text)
                 updateHostLabels(internal)
                 updateJumpVisibility(internal, viewModel.selectedJumpId != null)
             },
@@ -434,12 +434,6 @@ class NewConnectionDialog : DialogFragment() {
     private fun updateHostLabels(isInternal: Boolean) {
         binding.layoutHost.hint = getString(if (isInternal) R.string.host_internal_hint else R.string.host_hint)
         binding.layoutPort.hint = getString(if (isInternal) R.string.port_internal_hint else R.string.port_hint)
-    }
-
-    /** True as soon as the first octet reveals a private range (10/172/192). */
-    private fun isPrivatePrefix(host: String): Boolean {
-        if (!host.contains('.')) return false
-        return host.substringBefore('.').toIntOrNull() in PRIVATE_FIRST_OCTETS
     }
 
     private fun updateAuthTypeVisibility() {
@@ -478,5 +472,3 @@ class NewConnectionDialog : DialogFragment() {
         override fun afterTextChanged(s: Editable?) = action(s?.toString().orEmpty())
     }
 }
-
-private val PRIVATE_FIRST_OCTETS = setOf(10, 172, 192)

@@ -350,9 +350,8 @@ de réflexion (JSch, modèles Gson) est préservé via `app/proguard-rules.pro`.
 | ------------------------------------- | ------------------------------------------------------- |
 | `INTERNET`                            | Connexion SSH                                           |
 | `ACCESS_NETWORK_STATE`                | Vérification de l'état du réseau                        |
-| `CHANGE_NETWORK_STATE`                | Foreground service (type connectedDevice)               |
 | `FOREGROUND_SERVICE`                  | Démarrage du service en arrière-plan                    |
-| `FOREGROUND_SERVICE_CONNECTED_DEVICE` | Foreground service réseau (API 34+)                     |
+| `FOREGROUND_SERVICE_SPECIAL_USE`     | Foreground service pour les sessions SSH ouvertes (API 34+) |
 | `POST_NOTIFICATIONS`                  | Notification persistante de session (API 33+)           |
 | `ACCESS_LOCAL_NETWORK`                | Hôtes SSH du réseau local sous Android 17+ (API 37+) |
 

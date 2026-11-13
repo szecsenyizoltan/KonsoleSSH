@@ -376,9 +376,8 @@ tudja a crash-stack-eket.
 | ------------------------------------- | ---------------------------------------------------------- |
 | `INTERNET`                            | SSH kapcsolat                                              |
 | `ACCESS_NETWORK_STATE`                | Hálózat állapot-ellenőrzés                                 |
-| `CHANGE_NETWORK_STATE`                | Foreground service (connectedDevice típus)                 |
 | `FOREGROUND_SERVICE`                  | Háttér-service indítás                                     |
-| `FOREGROUND_SERVICE_CONNECTED_DEVICE` | Hálózati foreground service (API 34+)                      |
+| `FOREGROUND_SERVICE_SPECIAL_USE`     | Foreground service a nyitott SSH-munkamenetekhez (API 34+) |
 | `POST_NOTIFICATIONS`                  | Tartós session-kezelő értesítés (API 33+)                  |
 | `ACCESS_LOCAL_NETWORK`                | Helyi hálózati SSH-szerverek Android 17+ alatt (API 37+) |
 

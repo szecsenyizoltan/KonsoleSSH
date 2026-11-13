@@ -350,9 +350,8 @@ erzeugt, damit Play Console Stack-Traces deobfuszifizieren kann.
 | ------------------------------------- | -------------------------------------------------------- |
 | `INTERNET`                            | SSH-Verbindung                                           |
 | `ACCESS_NETWORK_STATE`                | Prüfung der Netzwerk-Erreichbarkeit                      |
-| `CHANGE_NETWORK_STATE`                | Foreground Service (Typ connectedDevice)                 |
 | `FOREGROUND_SERVICE`                  | Start des Hintergrunddienstes                            |
-| `FOREGROUND_SERVICE_CONNECTED_DEVICE` | Netzwerk-Foreground-Service (API 34+)                    |
+| `FOREGROUND_SERVICE_SPECIAL_USE`     | Foreground Service für offene SSH-Sitzungen (API 34+) |
 | `POST_NOTIFICATIONS`                  | Persistente Sitzungs-Benachrichtigung (API 33+)          |
 | `ACCESS_LOCAL_NETWORK`                | SSH-Hosts im lokalen Netz unter Android 17+ (API 37+) |
 

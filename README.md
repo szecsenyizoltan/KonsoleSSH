@@ -375,9 +375,8 @@ A `mapping.txt` is produced so the Play Console can deobfuscate stack traces.
 | ------------------------------------- | ------------------------------------------------------- |
 | `INTERNET`                            | SSH connection                                          |
 | `ACCESS_NETWORK_STATE`                | Network reachability checks                             |
-| `CHANGE_NETWORK_STATE`                | Foreground service (connectedDevice type)               |
 | `FOREGROUND_SERVICE`                  | Background service startup                              |
-| `FOREGROUND_SERVICE_CONNECTED_DEVICE` | Network foreground service (API 34+)                    |
+| `FOREGROUND_SERVICE_SPECIAL_USE`     | Foreground service for open SSH sessions (API 34+) |
 | `POST_NOTIFICATIONS`                  | Persistent session-keeper notification (API 33+)        |
 | `ACCESS_LOCAL_NETWORK`                | Local network SSH hosts on Android 17+ (API 37+) |
 

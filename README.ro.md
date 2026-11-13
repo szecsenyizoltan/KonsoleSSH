@@ -350,9 +350,8 @@ Build-ul **release** este minificat cu R8 și are resursele reduse. Codul care f
 | ------------------------------------- | ------------------------------------------------------ |
 | `INTERNET`                            | Conexiune SSH                                          |
 | `ACCESS_NETWORK_STATE`                | Verificarea stării rețelei                             |
-| `CHANGE_NETWORK_STATE`                | Foreground service (tip connectedDevice)               |
 | `FOREGROUND_SERVICE`                  | Pornirea serviciului de fundal                         |
-| `FOREGROUND_SERVICE_CONNECTED_DEVICE` | Foreground service de rețea (API 34+)                  |
+| `FOREGROUND_SERVICE_SPECIAL_USE`     | Foreground service pentru sesiunile SSH deschise (API 34+) |
 | `POST_NOTIFICATIONS`                  | Notificare persistentă pentru sesiune (API 33+)        |
 | `ACCESS_LOCAL_NETWORK`                | Gazde SSH din rețeaua locală pe Android 17+ (API 37+) |
 

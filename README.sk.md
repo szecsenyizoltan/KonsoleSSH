@@ -350,9 +350,8 @@ targetSdk    37   (Android 17)
 | ------------------------------------- | --------------------------------------------------------- |
 | `INTERNET`                            | SSH pripojenie                                            |
 | `ACCESS_NETWORK_STATE`                | Kontrola stavu siete                                      |
-| `CHANGE_NETWORK_STATE`                | Foreground service (typ connectedDevice)                  |
 | `FOREGROUND_SERVICE`                  | Spustenie služby na pozadí                                |
-| `FOREGROUND_SERVICE_CONNECTED_DEVICE` | Sieťový foreground service (API 34+)                      |
+| `FOREGROUND_SERVICE_SPECIAL_USE`     | Foreground service pre otvorené SSH relácie (API 34+) |
 | `POST_NOTIFICATIONS`                  | Trvalé oznámenie o relácii (API 33+)                      |
 | `ACCESS_LOCAL_NETWORK`                | SSH hostitelia v lokálnej sieti na Android 17+ (API 37+) |
 

@@ -350,9 +350,8 @@ para que Play Console pueda desofuscar los stack traces.
 | ------------------------------------- | ----------------------------------------------------- |
 | `INTERNET`                            | Conexión SSH                                          |
 | `ACCESS_NETWORK_STATE`                | Verificación del estado de la red                     |
-| `CHANGE_NETWORK_STATE`                | Foreground service (tipo connectedDevice)             |
 | `FOREGROUND_SERVICE`                  | Iniciar el servicio en segundo plano                  |
-| `FOREGROUND_SERVICE_CONNECTED_DEVICE` | Foreground service de red (API 34+)                   |
+| `FOREGROUND_SERVICE_SPECIAL_USE`     | Foreground service para sesiones SSH abiertas (API 34+) |
 | `POST_NOTIFICATIONS`                  | Notificación persistente de sesión (API 33+)          |
 | `ACCESS_LOCAL_NETWORK`                | Hosts SSH de la red local en Android 17+ (API 37+) |
 

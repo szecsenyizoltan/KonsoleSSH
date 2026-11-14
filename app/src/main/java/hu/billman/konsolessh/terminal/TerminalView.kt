@@ -478,8 +478,10 @@ class TerminalView @JvmOverloads constructor(
 
     private fun startSelectionAt(x: Float, y: Float) {
         val (line, col) = touchToLineCol(x, y)
-        selStartLine = line; selStartCol = col
-        selEndLine = line; selEndCol = col
+        selStartLine = line
+        selStartCol = col
+        selEndLine = line
+        selEndCol = col
         selActive = true
         parent?.requestDisallowInterceptTouchEvent(true)
         invalidate()
@@ -503,7 +505,10 @@ class TerminalView @JvmOverloads constructor(
     }
 
     private fun isInSelection(ns: IntArray, lineIdx: Int, col: Int): Boolean {
-        val sl = ns[0]; val sc = ns[1]; val el = ns[2]; val ec = ns[3]
+        val sl = ns[0]
+        val sc = ns[1]
+        val el = ns[2]
+        val ec = ns[3]
         return when {
             lineIdx < sl || lineIdx > el -> false
             lineIdx == sl && lineIdx == el -> col in sc..ec
@@ -518,7 +523,10 @@ class TerminalView @JvmOverloads constructor(
     private fun selectedTextLocked(): String {
         if (!selActive) return ""
         val ns = normalizedSel()
-        val sl = ns[0]; val sc = ns[1]; val el = ns[2]; val ec = ns[3]
+        val sl = ns[0]
+        val sc = ns[1]
+        val el = ns[2]
+        val ec = ns[3]
         val sb = StringBuilder()
         val cols = buffer.cols
         for (li in sl..el) {
@@ -579,8 +587,16 @@ class TerminalView @JvmOverloads constructor(
         override fun onPrepareActionMode(mode: ActionMode, menu: Menu) = false
         override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
             when (item.itemId) {
-                ID_COPY -> { copyToClipboard(); mode.finish(); return true }
-                ID_PASTE -> { pasteFromClipboard(); mode.finish(); return true }
+                ID_COPY -> {
+                    copyToClipboard()
+                    mode.finish()
+                    return true
+                }
+                ID_PASTE -> {
+                    pasteFromClipboard()
+                    mode.finish()
+                    return true
+                }
             }
             return false
         }
@@ -625,16 +641,21 @@ class TerminalView @JvmOverloads constructor(
     override fun onTouchEvent(ev: MotionEvent): Boolean {
         when (ev.action) {
             MotionEvent.ACTION_DOWN -> {
-                touchX0 = ev.x; touchY0 = ev.y
-                touchX = ev.x; touchY = ev.y
-                touchMoved = false; touchScrollFrac = 0f
+                touchX0 = ev.x
+                touchY0 = ev.y
+                touchX = ev.x
+                touchY = ev.y
+                touchMoved = false
+                touchScrollFrac = 0f
                 ownsGesture = false
                 selectionFromThisPress = false
-                lpX = ev.x; lpY = ev.y
+                lpX = ev.x
+                lpY = ev.y
                 postDelayed(longPressRunnable, LONG_PRESS_MS)
             }
             MotionEvent.ACTION_MOVE -> {
-                val dx = ev.x - touchX; val dy = ev.y - touchY
+                val dx = ev.x - touchX
+                val dy = ev.y - touchY
                 if (!touchMoved && (abs(ev.x - touchX0) > 8f || abs(ev.y - touchY0) > 8f)) {
                     touchMoved = true
                     removeCallbacks(longPressRunnable)
@@ -643,7 +664,8 @@ class TerminalView @JvmOverloads constructor(
                 if (selActive) {
                     ownsGesture = true
                     val (line, col) = touchToLineCol(ev.x, ev.y)
-                    selEndLine = line; selEndCol = col
+                    selEndLine = line
+                    selEndCol = col
                     invalidate()
                     selActionMode?.invalidateContentRect()
                 } else if (touchMoved) {
@@ -662,7 +684,8 @@ class TerminalView @JvmOverloads constructor(
                             invalidate()
                         }
                     }
-                    touchX = ev.x; touchY = ev.y
+                    touchX = ev.x
+                    touchY = ev.y
                 }
             }
             MotionEvent.ACTION_UP -> {
@@ -693,21 +716,28 @@ class TerminalView @JvmOverloads constructor(
                 when (event.keyCode) {
                     KeyEvent.KEYCODE_PAGE_UP -> {
                         scrollRowOff = (scrollRowOff + buffer.rows).coerceAtMost(buffer.scrollbackSize)
-                        invalidate(); return true
+                        invalidate()
+                        return true
                     }
                     KeyEvent.KEYCODE_PAGE_DOWN -> {
                         scrollRowOff = (scrollRowOff - buffer.rows).coerceAtLeast(0)
-                        invalidate(); return true
+                        invalidate()
+                        return true
                     }
                 }
             }
             val bytes = keyCodeToBytes(event.keyCode, event)
-            if (bytes != null) { onKeyInput?.invoke(bytes); return true }
+            if (bytes != null) {
+                onKeyInput?.invoke(bytes)
+                return true
+            }
         }
         if (event.action == KeyEvent.ACTION_UP) {
             if (event.isShiftPressed && event.keyCode in
                 listOf(KeyEvent.KEYCODE_PAGE_UP, KeyEvent.KEYCODE_PAGE_DOWN)
-            ) return true
+            ) {
+                return true
+            }
             if (keyCodeToBytes(event.keyCode, event) != null) return true
         }
         return super.dispatchKeyEvent(event)
@@ -802,7 +832,10 @@ class TerminalView @JvmOverloads constructor(
         override fun sendKeyEvent(event: KeyEvent): Boolean {
             if (event.action == KeyEvent.ACTION_DOWN) {
                 val bytes = keyCodeToBytes(event.keyCode, event)
-                if (bytes != null) { onKeyInput?.invoke(bytes); return true }
+                if (bytes != null) {
+                    onKeyInput?.invoke(bytes)
+                    return true
+                }
             }
             return super.sendKeyEvent(event)
         }

@@ -175,7 +175,7 @@ class TerminalBufferTest {
     @Test
     fun `resize coerces cursor to new bounds`() {
         val buf = TerminalBuffer(initialCols = 20, initialRows = 10)
-        buf.writeString(ESC + "[8;15H")  // 1-based → row 7, col 14
+        buf.writeString(ESC + "[8;15H") // 1-based → row 7, col 14
         assertEquals(7, buf.cursorRow)
         assertEquals(14, buf.cursorCol)
         buf.resize(10, 5)
@@ -186,7 +186,7 @@ class TerminalBufferTest {
     @Test
     fun `resize preserves scrollback`() {
         val buf = TerminalBuffer(initialCols = 3, initialRows = 2)
-        buf.writeString("X\r\nY\r\nZ")  // scrolls at least one line
+        buf.writeString("X\r\nY\r\nZ") // scrolls at least one line
         val sbBefore = buf.scrollbackSize
         assertTrue(sbBefore >= 1)
         buf.resize(5, 4)
@@ -303,12 +303,12 @@ class TerminalBufferTest {
         buf.writeString("R1\r\nR2\r\nR3\r\nR4")
         // After writing 4 lines into 3-row screen: first "R1" moves to scrollback
         assertEquals(1, buf.scrollbackSize)
-        assertEquals("R", buf.cellAt(0, 0)!!.ch)   // scrollback[0] = "R1"
+        assertEquals("R", buf.cellAt(0, 0)!!.ch) // scrollback[0] = "R1"
         assertEquals("1", buf.cellAt(0, 1)!!.ch)
         // Screen now holds R2, R3, R4
-        assertEquals("R", buf.cellAt(1, 0)!!.ch)   // screen[0] = "R2"
+        assertEquals("R", buf.cellAt(1, 0)!!.ch) // screen[0] = "R2"
         assertEquals("2", buf.cellAt(1, 1)!!.ch)
-        assertEquals("R", buf.cellAt(3, 0)!!.ch)   // screen[2] = "R4"
+        assertEquals("R", buf.cellAt(3, 0)!!.ch) // screen[2] = "R4"
         assertEquals("4", buf.cellAt(3, 1)!!.ch)
     }
 

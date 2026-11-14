@@ -213,22 +213,22 @@ class TerminalBuffer(
             i++
             when (ansiState) {
                 AnsiState.NORMAL -> when (ch) {
-                    '\u001B'              -> ansiState = AnsiState.ESCAPE
-                    '\r'                  -> _cursorCol = 0
-                    '\n'                  -> lineFeed()
-                    '\b'                  -> { if (_cursorCol > 0) _cursorCol-- }
-                    '\t'                  -> {
+                    '\u001B' -> ansiState = AnsiState.ESCAPE
+                    '\r' -> _cursorCol = 0
+                    '\n' -> lineFeed()
+                    '\b' -> { if (_cursorCol > 0) _cursorCol-- }
+                    '\t' -> {
                         _cursorCol = ((_cursorCol / TAB_WIDTH) + 1) * TAB_WIDTH
                         if (_cursorCol >= _cols) _cursorCol = _cols - 1
                     }
-                    '\u0007'              -> { /* BEL */ }
-                    '\u000E'              -> shiftedOut = true    // SO: G1
-                    '\u000F'              -> shiftedOut = false   // SI: G0
-                    '\u009B'              -> startCsi()
-                    '\u009D'              -> ansiState = AnsiState.OSC
-                    '\u0090'              -> ansiState = AnsiState.DCS
+                    '\u0007' -> { /* BEL */ }
+                    '\u000E' -> shiftedOut = true // SO: G1
+                    '\u000F' -> shiftedOut = false // SI: G0
+                    '\u009B' -> startCsi()
+                    '\u009D' -> ansiState = AnsiState.OSC
+                    '\u0090' -> ansiState = AnsiState.DCS
                     in '\u0080'..'\u009F' -> { /* other C1: silently ignore */ }
-                    else                  -> if (ch >= ' ') printChar(ch)
+                    else -> if (ch >= ' ') printChar(ch)
                 }
                 AnsiState.ESCAPE -> {
                     ansiState = AnsiState.NORMAL
@@ -269,8 +269,8 @@ class TerminalBuffer(
                 }
                 AnsiState.OSC, AnsiState.DCS -> {
                     when (ch) {
-                        '\u0007' -> ansiState = AnsiState.NORMAL   // BEL terminates OSC
-                        '\u001B' -> ansiState = AnsiState.ESCAPE   // ESC \ (ST) — consume \
+                        '\u0007' -> ansiState = AnsiState.NORMAL // BEL terminates OSC
+                        '\u001B' -> ansiState = AnsiState.ESCAPE // ESC \ (ST) — consume \
                     }
                     // any other payload byte is swallowed
                 }
@@ -425,8 +425,14 @@ class TerminalBuffer(
             'B' -> _cursorRow = (_cursorRow + n1).coerceAtMost(_rows - 1)
             'C' -> _cursorCol = (_cursorCol + n1).coerceAtMost(_cols - 1)
             'D' -> _cursorCol = (_cursorCol - n1).coerceAtLeast(0)
-            'E' -> { _cursorRow = (_cursorRow + n1).coerceAtMost(_rows - 1); _cursorCol = 0 }
-            'F' -> { _cursorRow = (_cursorRow - n1).coerceAtLeast(0); _cursorCol = 0 }
+            'E' -> {
+                _cursorRow = (_cursorRow + n1).coerceAtMost(_rows - 1)
+                _cursorCol = 0
+            }
+            'F' -> {
+                _cursorRow = (_cursorRow - n1).coerceAtLeast(0)
+                _cursorCol = 0
+            }
             'G', '`' -> _cursorCol = (n1 - 1).coerceIn(0, _cols - 1)
             'a' -> _cursorCol = (_cursorCol + n1).coerceAtMost(_cols - 1)
             'd' -> _cursorRow = (n1 - 1).coerceIn(0, _rows - 1)
@@ -459,8 +465,12 @@ class TerminalBuffer(
             'r' -> {
                 val top = ((parts.getOrNull(0)?.toIntOrNull() ?: 1) - 1).coerceIn(0, _rows - 1)
                 val bot = ((parts.getOrNull(1)?.toIntOrNull() ?: _rows) - 1).coerceIn(0, _rows - 1)
-                if (top < bot) { scrollTop = top; scrollBot = bot }
-                _cursorRow = 0; _cursorCol = 0
+                if (top < bot) {
+                    scrollTop = top
+                    scrollBot = bot
+                }
+                _cursorRow = 0
+                _cursorCol = 0
             }
             'm' -> handleSGR(cleaned)
             'h' -> if (isPrivate) handleMode(n1, true)
@@ -495,7 +505,8 @@ class TerminalBuffer(
         if (_altScreenActive) return
         savedMainScreen = screen
         screen = newScreen(_cols, _rows)
-        scrollTop = 0; scrollBot = _rows - 1
+        scrollTop = 0
+        scrollBot = _rows - 1
         _altScreenActive = true
     }
 
@@ -505,12 +516,14 @@ class TerminalBuffer(
         savedMainScreen = null
         _altScreenActive = false
         if (restoreCursor) restoreCursor()
-        scrollTop = 0; scrollBot = _rows - 1
+        scrollTop = 0
+        scrollBot = _rows - 1
     }
 
     // DECSC / DECRC (ESC 7 / 8, CSI ?1048 h/l, and the cursor half of ?1049).
     private fun saveCursor() {
-        savedRow = _cursorRow; savedCol = _cursorCol
+        savedRow = _cursorRow
+        savedCol = _cursorCol
     }
 
     private fun restoreCursor() {
@@ -543,7 +556,10 @@ class TerminalBuffer(
     // ── SGR ──────────────────────────────────────────────────────────────────
 
     private fun handleSGR(params: String) {
-        if (params.isEmpty()) { resetStyle(); return }
+        if (params.isEmpty()) {
+            resetStyle()
+            return
+        }
         val parts = params.split(";")
         var i = 0
         while (i < parts.size) {
@@ -575,23 +591,31 @@ class TerminalBuffer(
                 in 90..97 -> curFg = ansi16(p - 90 + 8)
                 in 100..107 -> curBg = ansi16(p - 100 + 8)
                 38 -> when (parts.getOrNull(i + 1)?.toIntOrNull()) {
-                    5 -> { curFg = xterm256(parts.getOrNull(i + 2)?.toIntOrNull() ?: 0); i += 2 }
+                    5 -> {
+                        curFg = xterm256(parts.getOrNull(i + 2)?.toIntOrNull() ?: 0)
+                        i += 2
+                    }
                     2 -> {
                         curFg = TermColor.rgb(
                             parts.getOrNull(i + 2)?.toIntOrNull() ?: 0,
                             parts.getOrNull(i + 3)?.toIntOrNull() ?: 0,
                             parts.getOrNull(i + 4)?.toIntOrNull() ?: 0,
-                        ); i += 4
+                        )
+                        i += 4
                     }
                 }
                 48 -> when (parts.getOrNull(i + 1)?.toIntOrNull()) {
-                    5 -> { curBg = xterm256(parts.getOrNull(i + 2)?.toIntOrNull() ?: 0); i += 2 }
+                    5 -> {
+                        curBg = xterm256(parts.getOrNull(i + 2)?.toIntOrNull() ?: 0)
+                        i += 2
+                    }
                     2 -> {
                         curBg = TermColor.rgb(
                             parts.getOrNull(i + 2)?.toIntOrNull() ?: 0,
                             parts.getOrNull(i + 3)?.toIntOrNull() ?: 0,
                             parts.getOrNull(i + 4)?.toIntOrNull() ?: 0,
-                        ); i += 4
+                        )
+                        i += 4
                     }
                 }
             }
@@ -600,9 +624,14 @@ class TerminalBuffer(
     }
 
     private fun resetStyle() {
-        curFg = TermColor.DEFAULT_FG; curBg = TermColor.DEFAULT_BG
-        curBold = false; curUnderline = false; curReverse = false
-        curDim = false; curItalic = false; curStrike = false
+        curFg = TermColor.DEFAULT_FG
+        curBg = TermColor.DEFAULT_BG
+        curBold = false
+        curUnderline = false
+        curReverse = false
+        curDim = false
+        curItalic = false
+        curStrike = false
     }
 
     // SGR-paletta: SgrPalette.
@@ -654,9 +683,12 @@ class TerminalBuffer(
         screen = newScreen(_cols, _rows)
         utf8Carry = ByteArray(0)
         scrollback.clear()
-        _cursorRow = 0; _cursorCol = 0
-        savedRow = 0; savedCol = 0
-        scrollTop = 0; scrollBot = _rows - 1
+        _cursorRow = 0
+        _cursorCol = 0
+        savedRow = 0
+        savedCol = 0
+        scrollTop = 0
+        scrollBot = _rows - 1
         _altScreenActive = false
         savedMainScreen = null
         _appCursorKeys = false
@@ -674,7 +706,8 @@ class TerminalBuffer(
     fun clearScreen() {
         synchronized(lock) {
             screen = newScreen(_cols, _rows)
-            _cursorRow = 0; _cursorCol = 0
+            _cursorRow = 0
+            _cursorCol = 0
             resetStyle()
         }
         notifyChanged()

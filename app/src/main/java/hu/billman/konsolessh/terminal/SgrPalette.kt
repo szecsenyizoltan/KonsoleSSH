@@ -11,22 +11,22 @@ object SgrPalette {
 
     /** Standard 16-color xterm-paletta (0..15). */
     private val ANSI_16: Array<TermColor> = arrayOf(
-        TermColor.rgb(0x00, 0x00, 0x00),   // 0  black
-        TermColor.rgb(0xAA, 0x00, 0x00),   // 1  red
-        TermColor.rgb(0x00, 0xAA, 0x00),   // 2  green
-        TermColor.rgb(0xAA, 0x55, 0x00),   // 3  yellow (xterm amber, TerminalBuffer-kompat)
-        TermColor.rgb(0x00, 0x00, 0xAA),   // 4  blue
-        TermColor.rgb(0xAA, 0x00, 0xAA),   // 5  magenta
-        TermColor.rgb(0x00, 0xAA, 0xAA),   // 6  cyan
-        TermColor.rgb(0xAA, 0xAA, 0xAA),   // 7  white
-        TermColor.rgb(0x55, 0x55, 0x55),   // 8  bright black (gray)
-        TermColor.rgb(0xFF, 0x55, 0x55),   // 9  bright red
-        TermColor.rgb(0x55, 0xFF, 0x55),   // 10 bright green
-        TermColor.rgb(0xFF, 0xFF, 0x55),   // 11 bright yellow
-        TermColor.rgb(0x55, 0x55, 0xFF),   // 12 bright blue
-        TermColor.rgb(0xFF, 0x55, 0xFF),   // 13 bright magenta
-        TermColor.rgb(0x55, 0xFF, 0xFF),   // 14 bright cyan
-        TermColor.rgb(0xFF, 0xFF, 0xFF),   // 15 bright white
+        TermColor.rgb(0x00, 0x00, 0x00), // 0  black
+        TermColor.rgb(0xAA, 0x00, 0x00), // 1  red
+        TermColor.rgb(0x00, 0xAA, 0x00), // 2  green
+        TermColor.rgb(0xAA, 0x55, 0x00), // 3  yellow (xterm amber, TerminalBuffer-kompat)
+        TermColor.rgb(0x00, 0x00, 0xAA), // 4  blue
+        TermColor.rgb(0xAA, 0x00, 0xAA), // 5  magenta
+        TermColor.rgb(0x00, 0xAA, 0xAA), // 6  cyan
+        TermColor.rgb(0xAA, 0xAA, 0xAA), // 7  white
+        TermColor.rgb(0x55, 0x55, 0x55), // 8  bright black (gray)
+        TermColor.rgb(0xFF, 0x55, 0x55), // 9  bright red
+        TermColor.rgb(0x55, 0xFF, 0x55), // 10 bright green
+        TermColor.rgb(0xFF, 0xFF, 0x55), // 11 bright yellow
+        TermColor.rgb(0x55, 0x55, 0xFF), // 12 bright blue
+        TermColor.rgb(0xFF, 0x55, 0xFF), // 13 bright magenta
+        TermColor.rgb(0x55, 0xFF, 0xFF), // 14 bright cyan
+        TermColor.rgb(0xFF, 0xFF, 0xFF), // 15 bright white
     )
 
     /**

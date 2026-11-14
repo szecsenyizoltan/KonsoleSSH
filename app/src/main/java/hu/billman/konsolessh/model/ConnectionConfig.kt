@@ -15,8 +15,8 @@ data class ConnectionConfig(
     val privateKey: String = "",
     val privateKeyPassphrase: String = "",
     // Jump host (SSH -J)
-    val jumpConnectionId: String = "",  // reference to a saved connection (preferred)
-    val jumpHost: String = "",          // manual entry (used when jumpConnectionId is blank)
+    val jumpConnectionId: String = "", // reference to a saved connection (preferred)
+    val jumpHost: String = "", // manual entry (used when jumpConnectionId is blank)
     val jumpPort: Int = 22,
     val jumpUsername: String = "",
     val jumpPassword: String = ""

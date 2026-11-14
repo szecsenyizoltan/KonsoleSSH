@@ -1,7 +1,8 @@
 name: CI
 
 # Every push and pull request: JVM unit tests and the SSH integration tests
-# against real sshd instances (with coverage), Android lint, detekt.
+# against real sshd instances (with coverage), Android lint, detekt, and a
+# CVE scan of the locked dependencies.
 #
 # Not here yet: the instrumented emulator tests. They need KVM on the runner;
 # until then run them locally with ./gradlew :app:connectedDebugAndroidTest.
@@ -54,3 +55,20 @@ jobs:
 
       - name: detekt
         run: ./gradlew --no-daemon detekt
+
+      # The dependencies that ship in the APK must have no known
+      # vulnerability. Build tools (lint) and test libraries are scanned too,
+      # but only reported: they never reach a device.
+      - name: OSV-Scanner
+        run: |
+          curl -sSfL -o /tmp/osv-scanner \
+            https://github.com/google/osv-scanner/releases/download/v2.0.2/osv-scanner_linux_amd64
+          chmod +x /tmp/osv-scanner
+          mkdir -p build/osv
+          grep -E '^#|releaseRuntimeClasspath' app/gradle.lockfile > build/osv/gradle.lockfile
+          echo "::group::Release runtime (must be clean)"
+          /tmp/osv-scanner scan source --lockfile build/osv/gradle.lockfile
+          echo "::endgroup::"
+          echo "::group::All configurations (report only)"
+          /tmp/osv-scanner scan source --lockfile app/gradle.lockfile || true
+          echo "::endgroup::"

@@ -134,6 +134,15 @@ GPL-3.0-or-later; vezi [LICENSE](LICENSE).
 
 ## Istoricul versiunilor
 
+- **2.0.0** — un nou format de stocare și o interfață reconstruită.
+  Conexiunile salvate trec într-un fișier DataStore criptat, iar setările în
+  DataStore; actualizarea le migrează o dată și șterge fișierele vechi, astfel
+  că 1.x nu le mai poate citi după aceea. Toate ecranele sunt reconstruite cu
+  Jetpack Compose și Material 3. O încărcare de fișier continuă și în timpul
+  unei rotiri; sugestia de jump host recunoaște adresele private după
+  intervalele lor reale; glisarea între file funcționează și deasupra
+  terminalului. Serviciul de fundal folosește tipul de serviciu în prim-plan
+  `specialUse`. Meniul are un link către politica de confidențialitate
 - **1.1.30** — îmbunătățiri de calitate conduse de teste. Terminal: comparat cu tmux
   pe sesiuni înregistrate de bash, vim, less, htop și mc; corectate secvențele CSI
   cu octet intermediar (forma cursorului din vim afișa un `q` rătăcit), ștergerea cu

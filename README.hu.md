@@ -134,6 +134,15 @@ GPL-3.0-or-later; lásd [LICENSE](LICENSE).
 
 ## Verziótörténet
 
+- **2.0.0** — új tárolási formátum és újraépített felület. A mentett kapcsolatok
+  titkosított DataStore-fájlba, a beállítások DataStore-ba kerülnek; a frissítés
+  egyszer átköltözteti őket és törli a régi fájlokat, ezért utána az 1.x már nem
+  tudja olvasni őket. Minden képernyő Jetpack Compose-zal és Material 3-mal
+  épült újra. A fájlfeltöltés forgatás közben is folytatódik; a jump host
+  javaslat a privát címeket a valódi tartományaik alapján ismeri fel; a fülek
+  közti lapozás a terminál fölött is működik. A háttérszolgáltatás a
+  `specialUse` előtérszolgáltatás-típust használja. A menüből elérhetők az
+  adatvédelmi irányelvek
 - **1.1.30** — tesztekkel vezérelt minőségjavítás. Terminál: tmux-szal
   összevetve rögzített bash, vim, less, htop és mc munkameneteken; javítva a köztes
   bájtos CSI-szekvenciák (a vim kurzoralakja egy kósza `q`-t írt ki), a háttérszínes

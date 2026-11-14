@@ -134,6 +134,14 @@ GPL-3.0-or-later; pozri [LICENSE](LICENSE).
 
 ## História verzií
 
+- **2.0.0** — nový formát ukladania a prestavané rozhranie. Uložené pripojenia
+  sa presúvajú do šifrovaného súboru DataStore a nastavenia do DataStore;
+  aktualizácia ich raz zmigruje a odstráni staré súbory, takže verzia 1.x ich
+  potom už neprečíta. Všetky obrazovky sú prestavané pomocou Jetpack Compose a
+  Material 3. Nahrávanie súboru pokračuje aj počas otočenia; návrh jump hostu
+  rozpoznáva súkromné adresy podľa ich skutočných rozsahov; prepínanie kariet
+  potiahnutím funguje aj nad terminálom. Služba na pozadí používa typ služby v
+  popredí `specialUse`. Ponuka odkazuje na zásady ochrany osobných údajov
 - **1.1.30** — zlepšenie kvality vedené testami. Terminál: porovnaný s tmux na
   nahraných reláciách bash, vim, less, htop a mc; opravené sekvencie CSI s
   medzibajtom (tvar kurzora vo vim vypísal zablúdené `q`), mazanie farbou pozadia

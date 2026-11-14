@@ -134,6 +134,16 @@ GPL-3.0-or-later ; voir [LICENSE](LICENSE).
 
 ## Historique des versions
 
+- **2.0.0** — un nouveau format de stockage et une interface reconstruite.
+  Les connexions enregistrées passent dans un fichier DataStore chiffré et les
+  réglages dans DataStore ; la mise à jour les migre une fois et supprime les
+  anciens fichiers, si bien que 1.x ne peut plus les lire ensuite. Tous les
+  écrans sont reconstruits avec Jetpack Compose et Material 3. Un envoi de
+  fichier continue pendant une rotation ; la suggestion de jump host reconnaît
+  les adresses privées d'après leurs plages réelles ; le balayage entre onglets
+  fonctionne aussi au-dessus du terminal. Le service d'arrière-plan utilise le
+  type de service de premier plan `specialUse`. Le menu renvoie à la politique
+  de confidentialité
 - **1.1.30** — qualité pilotée par les tests. Terminal : comparé à tmux sur des
   sessions bash, vim, less, htop et mc enregistrées ; corrigés les séquences CSI à
   octet intermédiaire (la forme du curseur de vim affichait un `q` parasite),

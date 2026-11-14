@@ -135,6 +135,14 @@ GPL-3.0-or-later; see [LICENSE](LICENSE).
 
 ## Release history
 
+- **2.0.0** — a new storage format and a rebuilt interface. Saved connections
+  move into an encrypted DataStore file and settings into DataStore; the
+  upgrade migrates them once and removes the old files, so 1.x can no longer
+  read them afterwards. Every screen is rebuilt with Jetpack Compose and
+  Material 3. A file upload keeps running through a rotation; the jump host
+  suggestion recognises private addresses by their real ranges; swiping
+  between tabs works over the terminal too. The background service uses the
+  `specialUse` foreground service type. The menu links to the privacy policy
 - **1.1.30** — quality work driven by tests. Terminal: compared against tmux on
   recorded bash, vim, less, htop and mc sessions; fixed CSI sequences with an
   intermediate byte (vim's cursor shape printed a stray `q`), back colour erase

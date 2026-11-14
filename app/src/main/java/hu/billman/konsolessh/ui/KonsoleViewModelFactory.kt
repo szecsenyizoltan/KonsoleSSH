@@ -1,35 +1,29 @@
 package hu.billman.konsolessh.ui
 
 import android.content.Context
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import hu.billman.konsolessh.AppContainer
 
 /**
  * Hands the [AppContainer]'s dependencies to the ViewModels' constructors,
  * so tests can construct the ViewModels with fakes instead.
  */
-class KonsoleViewModelFactory(
-    private val container: AppContainer,
-) : ViewModelProvider.Factory {
+object KonsoleViewModelFactory {
 
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T = when {
-        modelClass.isAssignableFrom(MainViewModel::class.java) ->
+    fun from(context: Context): ViewModelProvider.Factory = create(AppContainer.from(context))
+
+    fun create(container: AppContainer): ViewModelProvider.Factory = viewModelFactory {
+        initializer {
             MainViewModel(
                 container.sessionManager,
                 container.connectionRepository,
                 container.settingsRepository,
                 container.problemReports,
             )
-        modelClass.isAssignableFrom(ConnectionsViewModel::class.java) ->
-            ConnectionsViewModel(container.connectionRepository)
-        modelClass.isAssignableFrom(NewConnectionViewModel::class.java) ->
-            NewConnectionViewModel(container.connectionRepository, container.keyProvisioner)
-        else -> error("Unknown ViewModel class: ${modelClass.name}")
-    } as T
-
-    companion object {
-        fun from(context: Context) = KonsoleViewModelFactory(AppContainer.from(context))
+        }
+        initializer { ConnectionsViewModel(container.connectionRepository) }
+        initializer { NewConnectionViewModel(container.connectionRepository, container.keyProvisioner) }
     }
 }

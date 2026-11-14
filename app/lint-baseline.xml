@@ -19,15 +19,4 @@
             file="src/main/res/mipmap-anydpi-v26"/>
     </issue>
 
-    <issue
-        id="ClickableViewAccessibility"
-        message="Custom view `TerminalView` overrides `onTouchEvent` but not `performClick`"
-        errorLine1="    override fun onTouchEvent(ev: MotionEvent): Boolean {"
-        errorLine2="                 ~~~~~~~~~~~~">
-        <location
-            file="src/main/java/hu/billman/konsolessh/terminal/TerminalView.kt"
-            line="470"
-            column="18"/>
-    </issue>
-
 </issues>

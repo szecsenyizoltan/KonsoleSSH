@@ -669,12 +669,20 @@ class TerminalView @JvmOverloads constructor(
                 removeCallbacks(longPressRunnable)
                 when {
                     selActive && !touchMoved && !selectionFromThisPress -> selActionMode?.finish()
-                    !touchMoved && !selActive -> focusAndShowKeyboard()
+                    !touchMoved && !selActive -> performClick()
                 }
             }
         }
         // The down and the up are always this view's; a move only once the gesture is.
         return ev.action != MotionEvent.ACTION_MOVE || ownsGesture
+    }
+
+    // A tap opens the keyboard; going through performClick lets accessibility
+    // services trigger the same action.
+    override fun performClick(): Boolean {
+        super.performClick()
+        focusAndShowKeyboard()
+        return true
     }
 
     // ── Key dispatch ─────────────────────────────────────────────────────────

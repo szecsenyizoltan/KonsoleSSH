@@ -168,6 +168,9 @@
 
     <!-- Problem report -->
     <string name="menu_problem_report">Enviar informe de error</string>
+    <string name="menu_privacy_policy">Política de privacidad</string>
+    <string name="privacy_policy_url">https://konsolessh.billman.hu/es/privacy/</string>
+    <string name="err_no_browser">Ninguna app puede abrir enlaces web</string>
     <string name="report_title">KonsoleSSH dejó de responder o se cerró</string>
     <string name="report_message">La última vez la app se bloqueó o se cerró inesperadamente. Se guardó un informe en este dispositivo: versión de la app y de Android, modelo del dispositivo y el rastro técnico. No contiene contraseñas ni claves. ¿Compartirlo con el desarrollador?</string>
     <string name="report_share">Compartir informe</string>

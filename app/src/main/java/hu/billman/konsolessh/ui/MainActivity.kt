@@ -1,6 +1,7 @@
 package hu.billman.konsolessh.ui
 
 import android.Manifest
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
@@ -36,6 +37,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
+import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -161,6 +163,7 @@ class MainActivity : AppCompatActivity(), KeybarHost {
                 onManageConnections = { startActivity(Intent(this, ConnectionEditActivity::class.java)) },
                 onLanguage = { pickingLanguage = true },
                 onProblemReport = viewModel::shareLatestProblemReport,
+                onPrivacyPolicy = ::openPrivacyPolicy,
                 onExit = viewModel::requestCloseApp,
             ),
             page = { page ->
@@ -360,6 +363,16 @@ class MainActivity : AppCompatActivity(), KeybarHost {
         val terminal = currentTerminal() ?: return
         terminal.zoom(delta)
         viewModel.saveFontSize(terminal.fontSize)
+    }
+
+    /** Google Play requires the policy to be reachable from inside the app. */
+    private fun openPrivacyPolicy() {
+        val page = Intent(Intent.ACTION_VIEW, getString(R.string.privacy_policy_url).toUri())
+        try {
+            startActivity(page)
+        } catch (e: ActivityNotFoundException) {
+            toasts.show(getString(R.string.err_no_browser))
+        }
     }
 
     // ── App lifecycle ─────────────────────────────────────────────────────────

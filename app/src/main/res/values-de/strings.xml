@@ -168,6 +168,9 @@
 
     <!-- Problem report -->
     <string name="menu_problem_report">Fehlerbericht senden</string>
+    <string name="menu_privacy_policy">Datenschutzerklärung</string>
+    <string name="privacy_policy_url">https://konsolessh.billman.hu/de/privacy/</string>
+    <string name="err_no_browser">Keine App kann Weblinks öffnen</string>
     <string name="report_title">KonsoleSSH reagierte nicht oder ist abgestürzt</string>
     <string name="report_message">Beim letzten Mal ist die App eingefroren oder unerwartet beendet worden. Auf dem Gerät wurde ein Bericht gespeichert: App- und Android-Version, Gerätemodell und die technische Spur. Er enthält keine Passwörter oder Schlüssel. Mit dem Entwickler teilen?</string>
     <string name="report_share">Bericht teilen</string>

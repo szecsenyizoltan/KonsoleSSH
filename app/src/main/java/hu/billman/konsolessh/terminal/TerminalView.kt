@@ -143,7 +143,13 @@ class TerminalView @JvmOverloads constructor(
 
     private var lpX = 0f
     private var lpY = 0f
-    private val longPressRunnable = Runnable { startSelectionAt(lpX, lpY) }
+    private val longPressRunnable = Runnable {
+        selectionFromThisPress = true
+        startSelectionAt(lpX, lpY)
+    }
+
+    /** The current touch started the selection, so lifting the finger keeps it. */
+    private var selectionFromThisPress = false
 
     // ── Cursor blinking ──────────────────────────────────────────────────────
 
@@ -623,6 +629,7 @@ class TerminalView @JvmOverloads constructor(
                 touchX = ev.x; touchY = ev.y
                 touchMoved = false; touchScrollFrac = 0f
                 ownsGesture = false
+                selectionFromThisPress = false
                 lpX = ev.x; lpY = ev.y
                 postDelayed(longPressRunnable, LONG_PRESS_MS)
             }
@@ -661,7 +668,7 @@ class TerminalView @JvmOverloads constructor(
             MotionEvent.ACTION_UP -> {
                 removeCallbacks(longPressRunnable)
                 when {
-                    selActive && !touchMoved -> selActionMode?.finish()
+                    selActive && !touchMoved && !selectionFromThisPress -> selActionMode?.finish()
                     !touchMoved && !selActive -> focusAndShowKeyboard()
                 }
             }

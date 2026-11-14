@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Android 11 és korábbi; ugyanaz a kizárás, mint a data_extraction_rules.xml-ben. -->
+<!-- Android 11 and earlier; the same exclusions as in data_extraction_rules.xml. -->
 <full-backup-content>
     <exclude domain="file" path="datastore/connections.pb" />
         <exclude domain="sharedpref" path="konsole_connections_box.xml" />

@@ -184,7 +184,7 @@
     <string name="sym_check" translatable="false">✓</string>
     <string name="sym_plus" translatable="false">+</string>
 
-    <!-- Hibajelentés -->
+    <!-- Problem report -->
     <string name="menu_problem_report">Send problem report</string>
     <string name="report_title">KonsoleSSH stopped responding or crashed</string>
     <string name="report_message">Last time the app froze or closed unexpectedly. A report was saved on this device: app and Android version, device model and the technical trace. It contains no passwords or keys. Share it with the developer?</string>

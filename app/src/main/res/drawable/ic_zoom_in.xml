@@ -4,14 +4,14 @@
     android:viewportWidth="24"
     android:viewportHeight="24">
 
-    <!-- Nagyító kör -->
+    <!-- Lens -->
     <path
         android:pathData="M11,11 m-6,0 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0"
         android:strokeColor="@color/tab_selected_text"
         android:strokeWidth="1.8"
         android:fillColor="@android:color/transparent" />
 
-    <!-- Nagyító nyél -->
+    <!-- Handle -->
     <path
         android:pathData="M15.5,15.5 L21,21"
         android:strokeColor="@color/tab_selected_text"
@@ -19,7 +19,7 @@
         android:strokeLineCap="round"
         android:fillColor="@android:color/transparent" />
 
-    <!-- + jel -->
+    <!-- Plus sign -->
     <path
         android:pathData="M11,8 L11,14 M8,11 L14,11"
         android:strokeColor="@color/tab_selected_text"

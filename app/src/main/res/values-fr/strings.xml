@@ -166,7 +166,7 @@
     <string name="welcome_line_9">Nouvelle connexion : bouton \'+\'</string>
     <string name="welcome_swipe_hint">Balaie à droite pour l\'aide.</string>
 
-    <!-- Hibajelentés -->
+    <!-- Problem report -->
     <string name="menu_problem_report">Envoyer un rapport d’erreur</string>
     <string name="report_title">KonsoleSSH ne répondait plus ou a planté</string>
     <string name="report_message">La dernière fois, l’application s’est figée ou s’est fermée de façon inattendue. Un rapport a été enregistré sur cet appareil : versions de l’application et d’Android, modèle de l’appareil et trace technique. Il ne contient ni mot de passe ni clé. Le partager avec le développeur ?</string>

@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Android 12+ (API 31+). A kapcsolatprofilok Keystore-kulccsal titkosítottak,
-  a kulcs pedig nem kerül mentésbe, így visszaállítás után használhatatlanok
-  lennének. A régi fájlok között titkosítatlan is van, ezért mind kimarad.
+  Android 12+ (API 31+). The saved connections are encrypted with a Keystore
+  key, which is not backed up, so restored copies would be unusable. Some
+  of the old store files are not encrypted at all, so all of them are left
+  out.
 -->
 <data-extraction-rules>
     <cloud-backup>

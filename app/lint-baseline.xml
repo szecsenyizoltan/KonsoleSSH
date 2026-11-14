@@ -20,28 +20,6 @@
     </issue>
 
     <issue
-        id="AlwaysShowAction"
-        message="Prefer &quot;`SHOW_AS_ACTION_IF_ROOM`&quot; instead of &quot;`SHOW_AS_ACTION_ALWAYS`&quot;"
-        errorLine1="                .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)"
-        errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/hu/billman/konsolessh/terminal/TerminalView.kt"
-            line="435"
-            column="43"/>
-    </issue>
-
-    <issue
-        id="AlwaysShowAction"
-        message="Prefer &quot;`SHOW_AS_ACTION_IF_ROOM`&quot; instead of &quot;`SHOW_AS_ACTION_ALWAYS`&quot;"
-        errorLine1="                .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)"
-        errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/hu/billman/konsolessh/terminal/TerminalView.kt"
-            line="437"
-            column="43"/>
-    </issue>
-
-    <issue
         id="ClickableViewAccessibility"
         message="Custom view `TerminalView` overrides `onTouchEvent` but not `performClick`"
         errorLine1="    override fun onTouchEvent(ev: MotionEvent): Boolean {"

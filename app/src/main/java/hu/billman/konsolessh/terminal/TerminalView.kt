@@ -570,9 +570,9 @@ class TerminalView @JvmOverloads constructor(
     private val selCallback = object : ActionMode.Callback2() {
         override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
             menu.add(0, ID_COPY, 0, android.R.string.copy)
-                .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
             menu.add(0, ID_PASTE, 1, android.R.string.paste)
-                .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
             return true
         }
 

@@ -139,6 +139,14 @@ class MainActivity : AppCompatActivity(), KeybarHost {
         pager = pagerState
         pages = pageKeys
 
+        // With the last tab closed, the pager would stay on the cheat sheet that took
+        // the tab's place; the welcome page comes back instead.
+        var hadTabs by remember { mutableStateOf(false) }
+        LaunchedEffect(tabs.isEmpty()) {
+            if (tabs.isEmpty() && hadTabs) pagerState.scrollToPage(0)
+            hadTabs = tabs.isNotEmpty()
+        }
+
         // A freshly opened tab is shown at once.
         val selectTab by viewModel.selectTab.collectAsStateWithLifecycle()
         LaunchedEffect(selectTab, pageKeys) {

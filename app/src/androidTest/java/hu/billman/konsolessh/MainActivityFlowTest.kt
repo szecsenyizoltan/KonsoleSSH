@@ -182,6 +182,29 @@ class MainActivityFlowTest {
     }
 
     @Test
+    fun closingTheLastTabShowsTheWelcomePage() {
+        FakeTerminalSession.askHostKey = false
+        val welcome = app.getString(R.string.welcome_line_1)
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            openFakeTab()
+            await("connected") { tabStatus() == ConnectionStatus.CONNECTED }
+
+            container.sessionManager.closeTab(container.sessionManager.state.value.tabs.single().id)
+
+            await("welcome page shown") {
+                var text = ""
+                scenario.onActivity { activity ->
+                    val buffer = activity.currentTerminal()?.buffer ?: return@onActivity
+                    text = (0 until buffer.totalLines).joinToString("\n") { line ->
+                        buffer.lineAt(line).orEmpty().joinToString("") { it.ch }
+                    }
+                }
+                welcome in text
+            }
+        }
+    }
+
+    @Test
     fun backSendsTheAppToTheBackgroundAndKeepsTheSession() {
         FakeTerminalSession.askHostKey = false
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->

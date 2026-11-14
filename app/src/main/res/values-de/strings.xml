@@ -79,12 +79,10 @@
     <!-- Tab picker -->
     <string name="tab_active">aktiv</string>
     <string name="open_tabs">Offene Tabs</string>
-    <string name="group_n_connections">%1$d Verbindungen</string>
 
     <!-- Confirmations -->
     <string name="delete_connection_confirm">Verbindung \"%1$s\" löschen?</string>
     <string name="close_tab_confirm">Tab \'%1$s\' schließen?</string>
-    <string name="close_app_confirm">Es sind %1$d aktive Verbindungen geöffnet. App wirklich beenden?</string>
     <string name="no_saved_connections">Keine gespeicherten Verbindungen.</string>
 
     <!-- Content descriptions -->
@@ -115,8 +113,6 @@
 
     <!-- Notification / service -->
     <string name="service_idle">Läuft im Hintergrund</string>
-    <string name="service_one_active">1 aktive SSH-Verbindung</string>
-    <string name="service_n_active">%1$d aktive SSH-Verbindungen</string>
     <string name="channel_idle_name">SSH-Hintergrunddienst</string>
     <string name="channel_idle_desc">Läuft im Hintergrund, keine aktive Verbindung</string>
     <string name="channel_active_name">Aktive SSH-Verbindung</string>
@@ -177,4 +173,16 @@
     <string name="report_dismiss">Jetzt nicht</string>
     <string name="report_subject">KonsoleSSH-Fehlerbericht</string>
     <string name="report_none">Es wurde kein Fehlerbericht aufgezeichnet.</string>
+    <plurals name="group_connections">
+        <item quantity="one">%1$d Verbindung</item>
+        <item quantity="other">%1$d Verbindungen</item>
+    </plurals>
+    <plurals name="close_app_confirm">
+        <item quantity="one">Es ist %1$d aktive Verbindung geöffnet. App wirklich beenden?</item>
+        <item quantity="other">Es sind %1$d aktive Verbindungen geöffnet. App wirklich beenden?</item>
+    </plurals>
+    <plurals name="service_active">
+        <item quantity="one">%1$d aktive SSH-Verbindung</item>
+        <item quantity="other">%1$d aktive SSH-Verbindungen</item>
+    </plurals>
 </resources>

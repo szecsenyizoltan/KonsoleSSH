@@ -79,12 +79,10 @@
     <!-- Tab picker -->
     <string name="tab_active">aktív</string>
     <string name="open_tabs">Nyitott fülek</string>
-    <string name="group_n_connections">%1$d kapcsolat</string>
 
     <!-- Confirmations -->
     <string name="delete_connection_confirm">Törlöd a \"%1$s\" kapcsolatot?</string>
     <string name="close_tab_confirm">Bezárod a \'%1$s\' fület?</string>
-    <string name="close_app_confirm">%1$d aktív kapcsolat van nyitva. Biztosan bezárod az alkalmazást?</string>
     <string name="no_saved_connections">Nincsenek mentett kapcsolatok.</string>
 
     <!-- Content descriptions -->
@@ -115,8 +113,6 @@
 
     <!-- Notification / service -->
     <string name="service_idle">Fut a háttérben</string>
-    <string name="service_one_active">1 aktív SSH kapcsolat</string>
-    <string name="service_n_active">%1$d aktív SSH kapcsolat</string>
     <string name="channel_idle_name">SSH háttérszolgáltatás</string>
     <string name="channel_idle_desc">Fut a háttérben, nincs aktív kapcsolat</string>
     <string name="channel_active_name">SSH aktív kapcsolat</string>
@@ -177,4 +173,16 @@
     <string name="report_dismiss">Most nem</string>
     <string name="report_subject">KonsoleSSH hibajelentés</string>
     <string name="report_none">Nincs rögzített hibajelentés.</string>
+    <plurals name="group_connections">
+        <item quantity="one">%1$d kapcsolat</item>
+        <item quantity="other">%1$d kapcsolat</item>
+    </plurals>
+    <plurals name="close_app_confirm">
+        <item quantity="one">%1$d aktív kapcsolat van nyitva. Biztosan bezárod az alkalmazást?</item>
+        <item quantity="other">%1$d aktív kapcsolat van nyitva. Biztosan bezárod az alkalmazást?</item>
+    </plurals>
+    <plurals name="service_active">
+        <item quantity="one">%1$d aktív SSH kapcsolat</item>
+        <item quantity="other">%1$d aktív SSH kapcsolat</item>
+    </plurals>
 </resources>

@@ -79,12 +79,10 @@
     <!-- Tab picker -->
     <string name="tab_active">activă</string>
     <string name="open_tabs">File deschise</string>
-    <string name="group_n_connections">%1$d conexiuni</string>
 
     <!-- Confirmations -->
     <string name="delete_connection_confirm">Ștergi conexiunea \"%1$s\"?</string>
     <string name="close_tab_confirm">Închizi fila \'%1$s\'?</string>
-    <string name="close_app_confirm">Sunt deschise %1$d conexiuni active. Închizi aplicația?</string>
     <string name="no_saved_connections">Nu există conexiuni salvate.</string>
 
     <!-- Content descriptions -->
@@ -115,8 +113,6 @@
 
     <!-- Notification / service -->
     <string name="service_idle">Rulează în fundal</string>
-    <string name="service_one_active">1 conexiune SSH activă</string>
-    <string name="service_n_active">%1$d conexiuni SSH active</string>
     <string name="channel_idle_name">Serviciu SSH în fundal</string>
     <string name="channel_idle_desc">Rulează în fundal, nicio conexiune activă</string>
     <string name="channel_active_name">Conexiune SSH activă</string>
@@ -177,4 +173,19 @@
     <string name="report_dismiss">Nu acum</string>
     <string name="report_subject">Raport de eroare KonsoleSSH</string>
     <string name="report_none">Nu a fost înregistrat niciun raport de eroare.</string>
+    <plurals name="group_connections">
+        <item quantity="one">%1$d conexiune</item>
+        <item quantity="few">%1$d conexiuni</item>
+        <item quantity="other">%1$d de conexiuni</item>
+    </plurals>
+    <plurals name="close_app_confirm">
+        <item quantity="one">Este deschisă %1$d conexiune activă. Închizi aplicația?</item>
+        <item quantity="few">Sunt deschise %1$d conexiuni active. Închizi aplicația?</item>
+        <item quantity="other">Sunt deschise %1$d de conexiuni active. Închizi aplicația?</item>
+    </plurals>
+    <plurals name="service_active">
+        <item quantity="one">%1$d conexiune SSH activă</item>
+        <item quantity="few">%1$d conexiuni SSH active</item>
+        <item quantity="other">%1$d de conexiuni SSH active</item>
+    </plurals>
 </resources>

@@ -82,12 +82,10 @@
     <!-- Tab picker -->
     <string name="tab_active">active</string>
     <string name="open_tabs">Open tabs</string>
-    <string name="group_n_connections">%1$d connections</string>
 
     <!-- Confirmations -->
     <string name="delete_connection_confirm">Delete the \"%1$s\" connection?</string>
     <string name="close_tab_confirm">Close the \'%1$s\' tab?</string>
-    <string name="close_app_confirm">%1$d active connections are open. Really close the app?</string>
     <string name="no_saved_connections">No saved connections.</string>
 
     <!-- Content descriptions -->
@@ -118,8 +116,6 @@
 
     <!-- Notification / service -->
     <string name="service_idle">Running in the background</string>
-    <string name="service_one_active">1 active SSH connection</string>
-    <string name="service_n_active">%1$d active SSH connections</string>
     <string name="channel_idle_name">SSH background service</string>
     <string name="channel_idle_desc">Running in the background, no active connection</string>
     <string name="channel_active_name">SSH active connection</string>
@@ -196,4 +192,16 @@
     <string name="report_dismiss">Not now</string>
     <string name="report_subject">KonsoleSSH problem report</string>
     <string name="report_none">No problem report has been recorded.</string>
+    <plurals name="group_connections">
+        <item quantity="one">%1$d connection</item>
+        <item quantity="other">%1$d connections</item>
+    </plurals>
+    <plurals name="close_app_confirm">
+        <item quantity="one">%1$d active connection is open. Really close the app?</item>
+        <item quantity="other">%1$d active connections are open. Really close the app?</item>
+    </plurals>
+    <plurals name="service_active">
+        <item quantity="one">%1$d active SSH connection</item>
+        <item quantity="other">%1$d active SSH connections</item>
+    </plurals>
 </resources>

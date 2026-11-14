@@ -79,12 +79,10 @@
     <!-- Tab picker -->
     <string name="tab_active">actif</string>
     <string name="open_tabs">Onglets ouverts</string>
-    <string name="group_n_connections">%1$d connexions</string>
 
     <!-- Confirmations -->
     <string name="delete_connection_confirm">Supprimer la connexion \"%1$s\" ?</string>
     <string name="close_tab_confirm">Fermer l\'onglet \'%1$s\' ?</string>
-    <string name="close_app_confirm">%1$d connexions actives sont ouvertes. Vraiment fermer l\'application ?</string>
     <string name="no_saved_connections">Aucune connexion enregistrée.</string>
 
     <!-- Content descriptions -->
@@ -115,8 +113,6 @@
 
     <!-- Notification / service -->
     <string name="service_idle">Exécution en arrière-plan</string>
-    <string name="service_one_active">1 connexion SSH active</string>
-    <string name="service_n_active">%1$d connexions SSH actives</string>
     <string name="channel_idle_name">Service SSH en arrière-plan</string>
     <string name="channel_idle_desc">Exécution en arrière-plan, aucune connexion active</string>
     <string name="channel_active_name">Connexion SSH active</string>
@@ -177,4 +173,19 @@
     <string name="report_dismiss">Pas maintenant</string>
     <string name="report_subject">Rapport d’erreur KonsoleSSH</string>
     <string name="report_none">Aucun rapport d’erreur n’a été enregistré.</string>
+    <plurals name="group_connections">
+        <item quantity="one">%1$d connexion</item>
+        <item quantity="many">%1$d connexions</item>
+        <item quantity="other">%1$d connexions</item>
+    </plurals>
+    <plurals name="close_app_confirm">
+        <item quantity="one">%1$d connexion active est ouverte. Vraiment fermer l\'application ?</item>
+        <item quantity="many">%1$d connexions actives sont ouvertes. Vraiment fermer l\'application ?</item>
+        <item quantity="other">%1$d connexions actives sont ouvertes. Vraiment fermer l\'application ?</item>
+    </plurals>
+    <plurals name="service_active">
+        <item quantity="one">%1$d connexion SSH active</item>
+        <item quantity="many">%1$d connexions SSH actives</item>
+        <item quantity="other">%1$d connexions SSH actives</item>
+    </plurals>
 </resources>

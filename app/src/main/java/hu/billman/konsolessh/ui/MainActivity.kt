@@ -33,6 +33,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -294,7 +295,8 @@ class MainActivity : AppCompatActivity(), KeybarHost {
         shown?.let { question ->
             val text = when (question) {
                 is MainViewModel.Confirm.CloseTab -> stringResource(R.string.close_tab_confirm, question.title)
-                is MainViewModel.Confirm.CloseApp -> stringResource(R.string.close_app_confirm, question.connected)
+                is MainViewModel.Confirm.CloseApp ->
+                    pluralStringResource(R.plurals.close_app_confirm, question.connected, question.connected)
             }
             ConfirmCloseDialog(text, onConfirm = { viewModel.confirmed(question) }, onDismiss = { shown = null })
         }

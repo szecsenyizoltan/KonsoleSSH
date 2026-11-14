@@ -75,10 +75,10 @@ class SshForegroundService : Service() {
         getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
 
     private fun buildNotification(count: Int): Notification {
-        val text = when (count) {
-            0 -> getString(R.string.service_idle)
-            1 -> getString(R.string.service_one_active)
-            else -> getString(R.string.service_n_active, count)
+        val text = if (count == 0) {
+            getString(R.string.service_idle)
+        } else {
+            resources.getQuantityString(R.plurals.service_active, count, count)
         }
         val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
             ?.apply { flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP }

@@ -5,9 +5,9 @@ import org.junit.Test
 import java.io.File
 
 /**
- * A kulcsfeltöltő parancs ellenőrzése egy valódi POSIX shellel: a kulcs
- * megjegyzésében lévő speciális karakterek (backtick, $, idézőjel) nem
- * futhatnak le, a fájlba pontosan a kulcs kerül.
+ * Checks the key upload command with a real POSIX shell: special
+ * characters in the key's comment (backtick, $, quotes) must not run, and
+ * exactly the key lands in the file.
  */
 class SshKeyProvisionerTest {
 

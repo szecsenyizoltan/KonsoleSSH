@@ -6,8 +6,8 @@ import org.junit.Assert.assertThrows
 import org.junit.Test
 
 /**
- * Pure JVM teszt — a FakeCryptoBox a repository-tesztek alaptégla, a
- * kontraktust (round-trip + bad-payload detection) rögzítjük.
+ * The repository tests build on FakeCryptoBox, so its contract (round trip,
+ * detecting a bad payload) is pinned down here.
  */
 class FakeCryptoBoxTest {
 

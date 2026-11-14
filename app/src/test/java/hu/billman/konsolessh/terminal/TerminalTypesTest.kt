@@ -6,8 +6,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Pure JVM teszt — nincs Android-függőség, nincs Robolectric.
- * A Buffer-rétegnek ezt kell bizonyítania: a típusok platformfüggetlenek.
+ * Plain JVM, without Robolectric: running here shows the buffer's types do
+ * not depend on Android.
  */
 class TerminalTypesTest {
 

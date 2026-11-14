@@ -13,7 +13,7 @@ import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 import java.io.File
 
-/** Pure JVM teszt: a TOFU-döntések és a tár perzisztenciája, hálózat nélkül. */
+/** The trust-on-first-use decisions and the store's persistence, without a network. */
 class TofuHostKeyRepositoryTest {
 
     private lateinit var file: File

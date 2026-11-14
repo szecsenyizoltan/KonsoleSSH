@@ -14,9 +14,9 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 
 /**
- * Hálózat nélküli munkamenet az instrumentált tesztekhez: kapcsolódáskor
- * (ha [askHostKey]) host key kérdést tesz fel a valódi kérdés-útvonalon,
- * utána [GREETING]-et ír, és a bevitelt visszhangozza, mint egy pty.
+ * A network-free session for the instrumented tests. On connect it asks
+ * a host key question through the real prompt path (if [askHostKey]), then
+ * writes [GREETING] and echoes input like a pty.
  */
 class FakeTerminalSession(private val prompter: SessionPrompter) : TerminalSession {
 
@@ -68,7 +68,7 @@ class FakeTerminalSession(private val prompter: SessionPrompter) : TerminalSessi
         private const val POLL_MS = 50L
         private val PROMPT = HostKeyPrompt("fake.example", "ssh-ed25519", "SHA256:instrumented-test", changed = false)
 
-        /** A következő kapcsolódás feltegye-e a host key kérdést. */
+        /** Whether the next connect asks the host key question. */
         @Volatile var askHostKey = true
 
         /** When set, an upload waits for it, so a test can act while the upload runs. */

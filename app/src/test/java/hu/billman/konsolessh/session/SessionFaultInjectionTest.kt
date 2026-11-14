@@ -22,9 +22,9 @@ import org.junit.Test
 import java.io.File
 
 /**
- * Hibainjektálás valódi SSH-val: a [SessionManager] valódi [SshSession]-ökkel
- * dolgozik, a hálózatot egy [FlakyProxy] vágja el. A host key kérdésekre egy
- * automata „felhasználó” válaszol a kezelő állapotából, mint a felület.
+ * Fault injection with real SSH: the [SessionManager] works with real
+ * [SshSession]s, and a [FlakyProxy] cuts the network. An automatic "user"
+ * answers the host key questions from the manager's state, as the UI does.
  */
 class SessionFaultInjectionTest {
 

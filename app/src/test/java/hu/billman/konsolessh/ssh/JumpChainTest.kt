@@ -5,7 +5,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Pure JVM teszt: a jump-lánc feloldása a mentett kapcsolatokból. */
+/** Resolving the jump chain from the saved connections. */
 class JumpChainTest {
 
     private fun cfg(id: String, host: String, jump: String = "") =

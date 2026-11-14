@@ -1,10 +1,9 @@
 package hu.billman.konsolessh.data
 
 /**
- * Tesztekhez szánt CryptoBox-impl. Nem valódi titkosítás — determinista
- * mask (XOR egy konstans kulccsal) + magic-prefix, hogy a tesztek lássák
- * a különbséget a nyers és a "titkosított" bájtok között, de a
- * decrypt(encrypt(x)) == x kontraktus teljesüljön.
+ * A CryptoBox for tests. Not real encryption: a fixed XOR mask and a magic
+ * prefix, so tests can tell raw bytes from "encrypted" ones while
+ * decrypt(encrypt(x)) == x still holds.
  */
 class FakeCryptoBox(
     private val maskKey: Byte = 0x5A,

@@ -4,8 +4,9 @@ import hu.billman.konsolessh.diagnostics.ProblemReports
 import java.io.File
 
 /**
- * Az app hálózat nélküli munkamenetekkel ([FakeTerminalSession]) és hibajelentés
- * nélkül, hogy egy korábbi futás ANR-ablaka ne takarja el a tesztelt képernyőt.
+ * The app with network-free sessions ([FakeTerminalSession]) and without
+ * problem reports, so an earlier run's ANR dialog cannot cover the screen
+ * under test.
  */
 class TestKonsoleApplication : KonsoleApplication() {
     override fun createContainer() = AppContainer(

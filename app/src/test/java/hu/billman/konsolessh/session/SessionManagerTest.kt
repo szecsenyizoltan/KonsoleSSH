@@ -22,8 +22,9 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 
 /**
- * A munkamenet-kezelő viselkedése hálózat nélkül, hamis munkamenettel. Valódi
- * szálakon fut, mert a host key / jelszó kérdés a JSch-szálat blokkolja.
+ * The session manager's behaviour without a network, with a fake session.
+ * It runs on real threads, because the host key and password questions
+ * block the JSch thread.
  */
 class SessionManagerTest {
 

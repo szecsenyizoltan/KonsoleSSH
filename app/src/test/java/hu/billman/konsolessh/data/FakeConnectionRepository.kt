@@ -3,9 +3,9 @@ package hu.billman.konsolessh.data
 import hu.billman.konsolessh.model.ConnectionConfig
 
 /**
- * Tesztekhez szánt, in-memory ConnectionRepository impl. A sorrend
- * (displayName szerint) és a hibaviselkedés a valós impl szemantikáját
- * követi: [unreadable] esetén minden művelet [ConnectionStoreException]-t dob.
+ * An in-memory ConnectionRepository for tests. Its order (by display name)
+ * and its failures follow the real one: with [unreadable], every call
+ * throws [ConnectionStoreException].
  */
 class FakeConnectionRepository(
     initial: List<ConnectionConfig> = emptyList(),

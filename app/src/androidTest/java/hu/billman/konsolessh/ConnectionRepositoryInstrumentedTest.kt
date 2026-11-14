@@ -21,8 +21,8 @@ import org.junit.runner.RunWith
 import java.io.File
 
 /**
- * Eszközön fut, valódi Android Keystore-ral. Saját tárfájlt és kulcsot
- * használ, így a telepített app mentett kapcsolataihoz nem nyúl.
+ * Runs on a device, with the real Android Keystore. It uses its own store
+ * files and key, so the installed app's saved connections are left alone.
  */
 @RunWith(AndroidJUnit4::class)
 class ConnectionRepositoryInstrumentedTest {

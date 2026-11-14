@@ -8,11 +8,11 @@ import org.junit.Assert.fail
 import org.junit.Test
 
 /**
- * Összehasonlító teszt referencia-terminállal. A mintákat a
- * tools/terminal-conformance/record.py veszi fel: valódi programok (bash, vim,
- * less, htop, mc) kimenetét egy tmux-panelből, és minden ellenőrzési pontnál
- * azt, amit a tmux mutat. Itt ugyanaz a bájtsor a [TerminalBuffer]-be megy, és
- * a képernyőnek karakterre, színre, attribútumra és kurzorra egyeznie kell.
+ * Compares against a reference terminal. tools/terminal-conformance/record.py
+ * records the fixtures: the output of real programs (bash, vim, less, htop,
+ * mc) in a tmux pane, and at each checkpoint what tmux shows. Here the same
+ * bytes go into the [TerminalBuffer], and the screen must match in every
+ * character, colour, attribute and the cursor.
  */
 class TerminalConformanceTest {
 

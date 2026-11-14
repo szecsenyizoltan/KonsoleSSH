@@ -10,9 +10,9 @@ import org.robolectric.annotation.Config
 import java.io.File
 
 /**
- * Az SshSession állapotkezelése kapcsolódás nélkül: minden művelet biztonságos
- * a connect előtt és a disconnect után. A hálózati útvonalat az emulátoros
- * tesztek fedik le valódi sshd-vel.
+ * SshSession's state handling without connecting: every call is safe before
+ * connect and after disconnect. The network path is covered with a real
+ * sshd by SshIntegrationTest.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])

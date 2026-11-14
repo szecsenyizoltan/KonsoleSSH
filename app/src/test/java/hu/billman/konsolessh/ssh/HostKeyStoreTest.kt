@@ -8,7 +8,7 @@ import java.io.File
 import java.nio.file.Files
 import kotlin.concurrent.thread
 
-/** A known_hosts tár sérült fájllal, párhuzamos írással és újratöltéssel. */
+/** The known_hosts store with a corrupt file, parallel writes and reloading. */
 class HostKeyStoreTest {
 
     private val dir = Files.createTempDirectory("known-hosts").toFile().apply { deleteOnExit() }

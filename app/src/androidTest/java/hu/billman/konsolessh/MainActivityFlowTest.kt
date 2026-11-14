@@ -32,9 +32,10 @@ import org.junit.runner.RunWith
 import java.io.ByteArrayInputStream
 
 /**
- * A főképernyő kritikus folyamatai valódi felülettel, hamis munkamenettel
- * ([FakeTerminalSession]): kérdés és kimenet Activity-újraépülés után, és a
- * Vissza gomb, amely háttérbe küld, de a munkamenetet életben hagyja.
+ * The main screen's critical flows with the real UI and a fake session
+ * ([FakeTerminalSession]): a question and the output after the activity is
+ * recreated, and the Back button, which moves the app to the background
+ * but keeps the session alive.
  */
 @RunWith(AndroidJUnit4::class)
 class MainActivityFlowTest {

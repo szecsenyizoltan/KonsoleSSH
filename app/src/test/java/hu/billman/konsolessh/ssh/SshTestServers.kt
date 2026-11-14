@@ -9,13 +9,14 @@ import java.nio.file.Files
 import java.util.concurrent.TimeUnit
 
 /**
- * Valódi OpenSSH szerverek a tesztekhez, a gépen futó `sshd`-vel: egy átjáró
- * (gw), egy belső gép (hv) és a cél (vm), mind 127.0.0.1-en, szabad porton.
- * A gw és a hv csak továbbít; a vm kapcsolódáskor egy szkriptet futtat, amely
- * jelzőt ír, a PID-jét fájlba menti, majd a bemenetet visszhangozza.
+ * Real OpenSSH servers for the tests, using the machine's `sshd`: a gateway
+ * (gw), an internal host (hv) and the target (vm), all on 127.0.0.1 at free
+ * ports. gw and hv only forward; on connect, vm runs a script that prints
+ * a marker, saves its PID to a file and echoes its input.
  *
- * Ha nincs `sshd` (fejlesztői gép csomag nélkül), a tesztek kihagyódnak; a
- * CI telepíti, és ott a hiánya hiba (KONSOLE_REQUIRE_SSHD=1).
+ * Without `sshd` (a developer machine without the package) the tests are
+ * skipped; CI installs it, and there its absence is an error
+ * (KONSOLE_REQUIRE_SSHD=1).
  */
 class SshTestServers : AutoCloseable {
 
@@ -61,7 +62,7 @@ class SshTestServers : AutoCloseable {
         jumpConnectionId = jump?.id.orEmpty(),
     )
 
-    /** A szerver új host kulccsal indul újra (pl. megváltozott kulcs teszteléséhez). */
+    /** Restarts the server with a new host key, e.g. to test a changed key. */
     fun restartWithNewHostKey(name: String) {
         processes.remove(name)?.let { process ->
             process.destroy()
@@ -72,7 +73,7 @@ class SshTestServers : AutoCloseable {
         start(name, ports.getValue(name))
     }
 
-    /** Élő TCP-kapcsolatok száma a szerver portjára (a /proc/net/tcp alapján). */
+    /** The number of live TCP connections to the server's port, from /proc/net/tcp. */
     fun established(name: String): Int {
         val hexPort = "%04X".format(port(name))
         return listOf("/proc/net/tcp", "/proc/net/tcp6").map(::File).filter { it.exists() }.sumOf { file ->

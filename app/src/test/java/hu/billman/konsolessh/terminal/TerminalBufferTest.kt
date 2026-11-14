@@ -9,10 +9,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Fázis 5 / Lépés 2: váz-szintű tesztek a TerminalBuffer-hez.
- * A write/resize/reset/clearScreen még NOOP — azokra a tesztek Lépés 3–4-ben
- * érkeznek. Itt a kezdeti állapot, a read-only API és a ChangeListener
- * kontraktusa ellenőrzendő.
+ * The TerminalBuffer's behaviour: initial state and the read API, resizing,
+ * plain text and control characters, CSI/SGR and modes, threading, wide
+ * characters and character sets, and fuzzed input.
  */
 class TerminalBufferTest {
 
@@ -148,7 +147,7 @@ class TerminalBufferTest {
         assertEquals(" ", l1c0.ch)
     }
 
-    // ── Lépés 5: resize ──────────────────────────────────────────────────────
+    // ── Resize ───────────────────────────────────────────────────────────────────
 
     @Test
     fun `resize grows dimensions and fills new cells with blanks`() {
@@ -223,7 +222,7 @@ class TerminalBufferTest {
         assertEquals(1, count)
     }
 
-    // ── Lépés 3: NORMAL ág — print + control karakterek ──────────────────────
+    // ── Plain text and control characters ────────────────────────────────────────
 
     @Test
     fun `writeString prints ASCII into row 0 and advances cursor`() {
@@ -346,7 +345,7 @@ class TerminalBufferTest {
         assertEquals(4, buf.cursorCol)
     }
 
-    // ── Lépés 4: CSI / SGR / módok / alt-screen ──────────────────────────────
+    // ── CSI, SGR, modes, alternate screen ────────────────────────────────────────
 
     private val ESC = "\u001B"
 
@@ -557,13 +556,13 @@ class TerminalBufferTest {
         assertEquals(3, buf.cursorCol)
     }
 
-    // ── Szálkezelés és darabolt bemenet ─────────────────────────────────────
+    // ── Threading and split input ────────────────────────────────────────────────
 
     @Test
     fun `multibyte character split across writes is decoded once`() {
         val buf = TerminalBuffer()
         val bytes = "ő€🔥".toByteArray(Charsets.UTF_8)
-        // Minden lehetséges vágási pont: a karakterek nem romolhatnak el.
+        // Every possible split point: no character may be damaged.
         for (cut in 1 until bytes.size) {
             buf.reset()
             buf.write(bytes.copyOfRange(0, cut))
@@ -590,7 +589,7 @@ class TerminalBufferTest {
         val buf = TerminalBuffer(initialCols = 80, initialRows = 24)
         var notifications = 0
         buf.setChangeListener { notifications++ }
-        // Ékezetes sorok: a szelethatár UTF-8 karakter közepére is esik.
+        // Accented lines, so a slice boundary also falls inside UTF-8 characters.
         val line = "árvíztűrő tükörfúrógép 0123456789\r\n"
         val text = line.repeat(1000)
         buf.write(text.toByteArray(Charsets.UTF_8))
@@ -617,7 +616,7 @@ class TerminalBufferTest {
         writer.start()
         while (writer.isAlive) {
             buf.withLock {
-                // Ugyanaz, amit az onDraw olvas: a sorok a zár alatt konzisztensek.
+                // What onDraw reads: the lines are consistent under the lock.
                 for (i in 0 until buf.totalLines) assertNotNull(buf.lineAt(i))
                 assertTrue(buf.cursorRow in 0 until buf.rows)
             }
@@ -628,13 +627,13 @@ class TerminalBufferTest {
         assertEquals(200, buf.scrollbackSize)
     }
 
-    // ── Szélesség, karakterkészlet, lekérdezések ────────────────────────────
+    // ── Width, character sets, queries ───────────────────────────────────────────
 
     @Test
     fun `cjk character takes two cells and wraps when only one is left`() {
         val buf = TerminalBuffer(initialCols = 5, initialRows = 3)
         buf.writeString("abcd中")
-        // Az 5. oszlopba nem fér két cella: üres marad, a karakter új sorba kerül.
+        // Two cells do not fit in column 5: it stays empty and the character wraps.
         assertEquals(" ", buf.cellAt(0, 4)!!.ch)
         assertEquals("中", buf.cellAt(1, 0)!!.ch)
         assertEquals(TerminalBuffer.WIDE_TAIL, buf.cellAt(1, 1)!!.ch)
@@ -701,7 +700,7 @@ class TerminalBufferTest {
         assertEquals(1, answers.size)
     }
 
-    // ── xterm alt-screen módok és átméretezés ───────────────────────────────
+    // ── xterm alternate-screen modes and resizing ────────────────────────────────
 
     private fun TerminalBuffer.row(r: Int) =
         (0 until cols).joinToString("") { cellAt(scrollbackSize + r, it)!!.ch }.trimEnd()
@@ -770,7 +769,7 @@ class TerminalBufferTest {
         assertTrue(buf.cellAt(0, 2)!!.underline)
     }
 
-    // ── ECMA-48 CSI, BCE, ncurses-szekvenciák ───────────────────────────────
+    // ── ECMA-48 CSI, BCE, ncurses sequences ──────────────────────────────────────
 
     @Test
     fun `sequence with an intermediate byte is consumed, not printed`() {
@@ -823,7 +822,7 @@ class TerminalBufferTest {
         assertEquals(5, buf.cursorCol)
     }
 
-    // ── Fuzz: tetszőleges bemenet sem törheti el a puffert ──────────────────
+    // ── Fuzz: no input may break the buffer ──────────────────────────────────────
 
     @Test
     fun `random escape-heavy input keeps every invariant`() {

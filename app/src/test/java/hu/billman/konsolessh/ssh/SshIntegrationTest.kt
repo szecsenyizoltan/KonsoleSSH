@@ -19,10 +19,10 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 /**
- * Az [SshSession] valódi OpenSSH szerverekkel ([SshTestServers]): host key
- * ellenőrzés, többlépcsős jump-lánc, bontás kapcsolódás közben, szerveroldali
- * bontás, SFTP a láncon át. A szivárgást a szerver oldaláról mérjük: élő
- * TCP-kapcsolatok és a shell folyamata.
+ * [SshSession] against real OpenSSH servers ([SshTestServers]): host key
+ * checking, a multi-hop jump chain, disconnecting while connecting, a
+ * server-side disconnect, SFTP through the chain. Leaks are measured on
+ * the server side: live TCP connections and the shell's process.
  */
 class SshIntegrationTest {
 
@@ -62,7 +62,7 @@ class SshIntegrationTest {
         withTimeout(TIMEOUT_MS) { session.connect(COLS, ROWS) {} }
     }
 
-    /** A shell kimenete, amíg meg nem jelenik benne [expected] (vagy lejár az idő). */
+    /** The shell's output, read until [expected] appears in it or the time runs out. */
     private fun readUntil(session: SshSession, expected: String): String {
         val out = StringBuilder()
         val done = reader.submit {

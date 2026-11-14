@@ -9,9 +9,10 @@ import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.concurrent.thread
 
 /**
- * TCP-továbbító a kliens és egy szerver közé, hibainjektáláshoz: a [cut]
- * minden élő kapcsolatot azonnal elvág, mintha a hálózat megszakadt volna
- * (wifi → mobilnet váltás, NAT-időtúllépés). Új kapcsolatot utána is fogad.
+ * A TCP relay between the client and a server, for fault injection: [cut]
+ * severs every live connection at once, as if the network dropped (a
+ * Wi-Fi to mobile switch, a NAT timeout). It still accepts new connections
+ * afterwards.
  */
 class FlakyProxy(private val targetPort: Int) : AutoCloseable {
 
@@ -40,7 +41,7 @@ class FlakyProxy(private val targetPort: Int) : AutoCloseable {
         pump(upstream.getInputStream(), client.getOutputStream(), client, upstream)
     }
 
-    /** Minden élő kapcsolat azonnali elvágása. */
+    /** Severs every live connection at once. */
     fun cut() {
         sockets.forEach { runCatching { it.close() } }
         sockets.clear()

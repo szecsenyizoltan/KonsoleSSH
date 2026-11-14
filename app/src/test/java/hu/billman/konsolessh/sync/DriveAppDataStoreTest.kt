@@ -73,6 +73,19 @@ class DriveAppDataStoreTest {
         assertEquals(1, requests.count { it == "PATCH /upload/drive/v3/files/f1" })
     }
 
+    @Test
+    fun `a refused token is forgotten and the request retried with a fresh one`() = runBlocking {
+        val tokens = ArrayDeque(listOf("expired", "good"))
+        val forgotten = mutableListOf<String>()
+        val store = DriveAppDataStore(
+            accessToken = { tokens.removeFirst() },
+            forgetToken = { forgotten += it },
+            baseUrl = "http://127.0.0.1:${server.address.port}",
+        )
+        assertNull(store.read())
+        assertEquals(listOf("expired"), forgotten)
+    }
+
     @Test(expected = DriveAuthException::class)
     fun `a refused token is reported as an authorization problem`() {
         runBlocking { store(token = "expired").read() }

@@ -9,6 +9,7 @@ import hu.billman.konsolessh.model.ConnectionConfig
  */
 class FakeConnectionRepository(
     initial: List<ConnectionConfig> = emptyList(),
+    private val clock: () -> Long = { 0L },
 ) : ConnectionRepository {
 
     private val storage: MutableMap<String, ConnectionConfig> = initial.associateBy { it.id }.toMutableMap()
@@ -33,7 +34,7 @@ class FakeConnectionRepository(
     override suspend fun delete(id: String) {
         check()
         storage.remove(id)
-        deleted[id] = 0L
+        deleted[id] = clock()
     }
 
     val deleted = mutableMapOf<String, Long>()

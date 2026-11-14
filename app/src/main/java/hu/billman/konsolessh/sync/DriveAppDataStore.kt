@@ -28,10 +28,12 @@ class DriveAuthException(message: String) : IOException(message)
  * The sync file in the hidden app data folder of the user's Google Drive.
  * Only this app can see that folder, and it does not show in Drive's own
  * interface. The Drive REST API is called directly; [accessToken] supplies
- * a token for the drive.appdata scope.
+ * a token for the drive.appdata scope. A token Drive refuses is handed to
+ * [forgetToken] and the request is tried once more with a fresh one.
  */
 class DriveAppDataStore(
     private val accessToken: suspend () -> String,
+    private val forgetToken: suspend (String) -> Unit = {},
     private val baseUrl: String = "https://www.googleapis.com",
     private val io: CoroutineDispatcher = Dispatchers.IO,
 ) : SyncFileStore {
@@ -90,13 +92,31 @@ class DriveAppDataStore(
         body: String? = null,
         contentType: String? = null,
         override: String? = null,
+    ): String {
+        val token = accessToken()
+        return try {
+            send(token, method, url, body, contentType, override)
+        } catch (_: DriveAuthException) {
+            forgetToken(token)
+            send(accessToken(), method, url, body, contentType, override)
+        }
+    }
+
+    @Suppress("LongParameterList")
+    private suspend fun send(
+        token: String,
+        method: String,
+        url: String,
+        body: String?,
+        contentType: String?,
+        override: String?,
     ): String = withContext(io) {
         val connection = URL(url).openConnection() as HttpURLConnection
         try {
             connection.requestMethod = method
             connection.connectTimeout = TIMEOUT_MS
             connection.readTimeout = TIMEOUT_MS
-            connection.setRequestProperty("Authorization", "Bearer ${accessToken()}")
+            connection.setRequestProperty("Authorization", "Bearer $token")
             override?.let { connection.setRequestProperty("X-HTTP-Method-Override", it) }
             if (body != null) {
                 connection.doOutput = true

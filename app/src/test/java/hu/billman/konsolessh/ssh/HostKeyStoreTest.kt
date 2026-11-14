@@ -55,4 +55,39 @@ class HostKeyStoreTest {
         const val WRITERS = 8
         const val PER_WRITER = 25
     }
+
+    @Test
+    fun `acceptances and removals keep their times for sync, in a separate file`() {
+        var now = 10L
+        val store = HostKeyStore(file) { now }
+        store.put("a", "ssh-ed25519", "AAAA")
+        now = 20L
+        store.put("b", "ssh-rsa", "BBBB")
+        now = 30L
+        store.remove("b", null, null)
+
+        assertEquals(
+            setOf(HostKeyStore.Change("a", "ssh-ed25519", "AAAA", 10L), HostKeyStore.Change("b", "ssh-rsa", null, 30L)),
+            HostKeyStore(file).changes().toSet(),
+        )
+        assertEquals("a ssh-ed25519 AAAA\n", file.readText())
+    }
+
+    @Test
+    fun `keys from before change times count as time zero`() {
+        file.writeText("a ssh-ed25519 AAAA\n")
+        assertEquals(listOf(HostKeyStore.Change("a", "ssh-ed25519", "AAAA", 0L)), HostKeyStore(file).changes())
+    }
+
+    @Test
+    fun `a merged state from sync replaces keys and times`() {
+        val merged = listOf(
+            HostKeyStore.Change("x", "ssh-ed25519", "XXXX", 5L),
+            HostKeyStore.Change("y", "ssh-rsa", null, 6L),
+        )
+        HostKeyStore(file).replaceFromSync(merged)
+        val reloaded = HostKeyStore(file)
+        assertEquals(listOf(HostKeyStore.Entry("x", "ssh-ed25519", "XXXX")), reloaded.entries())
+        assertEquals(merged.toSet(), reloaded.changes().toSet())
+    }
 }

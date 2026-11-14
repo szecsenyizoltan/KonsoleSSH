@@ -25,7 +25,7 @@ import java.io.File
  * next attempt. An unreadable 1.1.12+ payload fails the migration the same
  * way an unreadable store fails a read, and is kept.
  *
- * To be removed in 2.0.0 together with the security-crypto dependency.
+ * To be removed in 3.0.0 together with the security-crypto dependency.
  */
 internal class LegacyConnectionsMigration(
     private val context: Context,

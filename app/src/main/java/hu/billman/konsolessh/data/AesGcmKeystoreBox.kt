@@ -9,18 +9,17 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
 /**
- * Android Keystore-alapú AES-256-GCM impl a CryptoBox-ra.
+ * A [CryptoBox] with AES-256-GCM under an Android Keystore key.
  *
- * Kulcs: 256-bit AES, hardware-backed ha elérhető, TEE-ben maradó — a nyers
- * byte-ok soha nem olvashatóak az app processzéből. Létrehozás csak egyszer
- * (első hívás), utána a kulcs alias alapján kérődik vissza.
+ * The key is created once, on first use, and found by its alias afterwards.
+ * It stays in the Keystore (hardware-backed where available), so its bytes
+ * are never readable from the app's process.
  *
- * Payload formátum: `[IV (12)][ciphertext + GCM-tag (16 byte suffix)]`.
- * Az IV minden encrypt-nél újragenerálódik (a JCE Cipher-je csinálja), így
- * nonce-újrahasználati kockázat nincs.
+ * Payload: `[IV (12 bytes)][ciphertext + GCM tag (16 bytes)]`. The cipher
+ * generates a fresh IV for every encryption, so a nonce is never reused.
  *
- * Hibakezelés: minden JCE-kivétel tovább dobódik; a hívó repository-réteg
- * fogja fel (üres listát ad vissza, pánik nélkül).
+ * Every JCE exception propagates; the repository turns it into a
+ * [ConnectionStoreException].
  */
 class AesGcmKeystoreBox(
     private val keyAlias: String = DEFAULT_KEY_ALIAS,

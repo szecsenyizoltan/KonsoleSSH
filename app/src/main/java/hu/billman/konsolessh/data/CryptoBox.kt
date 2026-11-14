@@ -1,23 +1,18 @@
 package hu.billman.konsolessh.data
 
 /**
- * Vékony kriptó-absztrakció a repository-rétegnek.
+ * Encryption for the connection store, behind an interface so the
+ * repository tests can use a fake and need neither Robolectric nor a
+ * Keystore.
  *
- * A perzisztált formátum egy opaque bájtsor (a hívó Base64-ben vagy
- * más módon szöveggé alakíthatja). Az impl felelőssége:
- *   - kulcskezelés (Android Keystore, hardware-backed ha lehetséges)
- *   - IV/nonce-generálás minden encrypt-nél
- *   - autentikáció (AEAD-címke)
- *   - dekódolás-hibák jelzése kivétellel
- *
- * A tesztek [FakeCryptoBox]-t (identity / in-memory XOR) használnak,
- * így a repository-tesztek nem igényelnek Robolectric-et vagy
- * Keystore-emulációt.
+ * The payload is opaque bytes. An implementation owns the key, generates
+ * a fresh IV for every encryption, authenticates the data (AEAD) and
+ * reports a payload it cannot decrypt with an exception.
  */
 interface CryptoBox {
-    /** Titkosít egy payload-ot; a kimenet tartalmazza az IV-t és a címkét is. */
+    /** The output carries the IV and the authentication tag as well. */
     fun encrypt(plaintext: ByteArray): ByteArray
 
-    /** Dekódol egy korábban [encrypt]-tel készült payload-ot. Kivételt dob hibára. */
+    /** Reverses [encrypt]; throws if the payload was altered or the key is gone. */
     fun decrypt(payload: ByteArray): ByteArray
 }

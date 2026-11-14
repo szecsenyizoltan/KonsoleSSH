@@ -3,12 +3,12 @@ package hu.billman.konsolessh.data
 import hu.billman.konsolessh.model.ConnectionConfig
 
 /**
- * Perzisztens tároló az elmentett SSH-kapcsolatokhoz. Main-safe: minden
- * művelet suspend, az impl maga vált háttérszálra.
+ * The saved SSH connections. Main-safe: every call suspends, and the
+ * implementation moves the work off the main thread.
  *
- * Olvashatatlan tárnál (sérült adat, Keystore-hiba) [ConnectionStoreException]
- * jön, és az írások sem futnak le: egy üresnek látszó lista visszaírása
- * végleg felülírná a meglévő profilokat.
+ * An unreadable store (corrupt data, a Keystore failure) throws
+ * [ConnectionStoreException], and writes fail too: writing back a list
+ * that only looks empty would destroy the saved connections for good.
  */
 interface ConnectionRepository {
     suspend fun load(): List<ConnectionConfig>
@@ -17,5 +17,5 @@ interface ConnectionRepository {
     suspend fun delete(id: String)
 }
 
-/** A tár nem olvasható vagy nem írható; a meglévő adat érintetlen maradt. */
+/** The store could not be read or written; the stored data is unchanged. */
 class ConnectionStoreException(message: String, cause: Throwable? = null) : Exception(message, cause)

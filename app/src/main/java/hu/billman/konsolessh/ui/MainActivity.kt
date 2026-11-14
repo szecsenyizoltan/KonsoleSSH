@@ -1,7 +1,6 @@
 package hu.billman.konsolessh.ui
 
 import android.Manifest
-import android.app.Dialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
@@ -13,15 +12,26 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.inputmethod.InputMethodManager
-import android.widget.EditText
 import android.widget.TextView
 import androidx.activity.addCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
@@ -39,13 +49,12 @@ import hu.billman.konsolessh.databinding.ActivityMainBinding
 import hu.billman.konsolessh.service.SshForegroundService
 import hu.billman.konsolessh.session.ConnectionStatus
 import hu.billman.konsolessh.session.TabState
-import hu.billman.konsolessh.terminal.Modifier
 import hu.billman.konsolessh.terminal.TerminalView
 import hu.billman.konsolessh.ui.keybar.Keybar
 import hu.billman.konsolessh.ui.keybar.KeybarHost
 import hu.billman.konsolessh.ui.theme.KonsoleTheme
 import kotlinx.coroutines.launch
-import java.io.File
+import hu.billman.konsolessh.terminal.Modifier as Key
 
 /**
  * A főképernyő: fülsáv, termináloldalak, billentyűsor. Állapotot nem
@@ -64,9 +73,11 @@ class MainActivity : AppCompatActivity(), KeybarHost {
     private val tabViews = mutableMapOf<String, View>()
     private var syncingTabs = false
 
-    private var promptDialog: Dialog? = null
-    private var shownPromptId: Long? = null
-    private var reportDialog: Dialog? = null
+    private val toasts = ToastHostState()
+
+    /** The tab whose rename dialog is open. */
+    private var renaming by mutableStateOf<TabState?>(null)
+    private var pickingLanguage by mutableStateOf(false)
 
     private val pickFileForUpload = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) uploads.upload(currentTabId(), uri)
@@ -93,7 +104,8 @@ class MainActivity : AppCompatActivity(), KeybarHost {
                 Keybar(modifiers, host = this)
             }
         }
-        uploads = UploadController(this, viewModel, binding.root)
+        uploads = UploadController(this, viewModel)
+        binding.overlay.setContent { KonsoleTheme { Overlay() } }
 
         binding.btnNewTab.setOnClickListener { showTabPicker() }
         binding.btnZoomOut.setOnClickListener { zoom(-1f) }
@@ -103,30 +115,17 @@ class MainActivity : AppCompatActivity(), KeybarHost {
         observeViewModel()
     }
 
-    override fun onDestroy() {
-        // The prompt stays pending; the recreated activity shows it again.
-        promptDialog?.dismiss()
-        reportDialog?.dismiss()
-        uploads.dismiss()
-        super.onDestroy()
-    }
-
     private fun observeViewModel() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch { viewModel.sessionsState.collect { renderTabs(it.tabs) } }
                 launch { viewModel.selectTab.collect { applyPendingSelection() } }
-                launch { viewModel.problemReport.collect(::offerProblemReport) }
-                launch { viewModel.activePrompt.collect(::renderPrompt) }
-                launch { viewModel.connectErrors.collect { errors -> errors.forEach(::showConnectError) } }
                 // Started from the visible activity, as Android requires; the service stops itself.
                 launch {
                     viewModel.serviceNeeded.collect { needed ->
                         if (needed) SshForegroundService.start(this@MainActivity)
                     }
                 }
-                launch { viewModel.confirm.collect(::showConfirm) }
-                launch { viewModel.message.collect(::showMessage) }
                 launch {
                     viewModel.reportToShare.collect { report ->
                         report ?: return@collect
@@ -135,43 +134,111 @@ class MainActivity : AppCompatActivity(), KeybarHost {
                     }
                 }
                 launch { viewModel.exit.collect { exit -> if (exit) finishApp() } }
-                launch { viewModel.upload.collect(uploads::render) }
             }
         }
     }
 
-    private fun offerProblemReport(report: File?) {
-        if (report == null || reportDialog != null) return
-        reportDialog = ProblemReportUi.offer(this, report) {
-            reportDialog = null
-            viewModel.onProblemReportHandled()
+    /**
+     * Dialogs and toasts over the screen. A session's question stays pending
+     * in the ViewModel, so a recreated activity asks it again.
+     */
+    @Composable
+    private fun Overlay() {
+        val prompt by viewModel.activePrompt.collectAsStateWithLifecycle()
+        prompt?.let { active ->
+            key(active.prompt.id) {
+                PromptDialog(active.prompt) { answer -> viewModel.answerPrompt(active.tabId, active.prompt.id, answer) }
+            }
+        }
+
+        val report by viewModel.problemReport.collectAsStateWithLifecycle()
+        report?.let { file ->
+            ProblemReportDialog(
+                onShare = {
+                    ProblemReportUi.share(this, file)
+                    viewModel.onProblemReportHandled()
+                },
+                onDismiss = viewModel::onProblemReportHandled,
+            )
+        }
+
+        Confirmations()
+        Messages()
+
+        val upload by viewModel.upload.collectAsStateWithLifecycle()
+        UploadStatus(upload, toasts, onShown = viewModel::onUploadShown, onUndo = viewModel::undoUpload)
+
+        renaming?.let { tab ->
+            RenameTabDialog(tab.title, onRename = { viewModel.renameTab(tab.id, it) }, onDismiss = { renaming = null })
+        }
+        if (pickingLanguage) {
+            val current = AppCompatDelegate.getApplicationLocales()
+            LanguageDialog(
+                currentTag = if (current.isEmpty) "" else current[0]?.language.orEmpty(),
+                onPick = { tag ->
+                    val locales = if (tag.isEmpty()) {
+                        LocaleListCompat.getEmptyLocaleList()
+                    } else {
+                        LocaleListCompat.forLanguageTags(tag)
+                    }
+                    AppCompatDelegate.setApplicationLocales(locales)
+                },
+                onDismiss = { pickingLanguage = false },
+            )
+        }
+
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+            ToastHost(toasts, modifier = Modifier.padding(bottom = TOAST_BOTTOM))
         }
     }
 
-    private fun showMessage(message: MainViewModel.Message?) {
-        message ?: return
-        val text = when (message) {
-            is MainViewModel.Message.Error -> SshErrorMessages.text(this, message.error)
-            MainViewModel.Message.NoProblemReport -> getString(R.string.report_none)
-            is MainViewModel.Message.UploadUndone -> getString(R.string.upload_undone, message.name)
-            is MainViewModel.Message.UndoFailed -> getString(R.string.upload_undo_failed, message.reason)
+    @Composable
+    private fun Confirmations() {
+        val confirm by viewModel.confirm.collectAsStateWithLifecycle()
+        var shown by remember { mutableStateOf<MainViewModel.Confirm?>(null) }
+        LaunchedEffect(confirm) {
+            confirm?.let {
+                shown = it
+                viewModel.onConfirmShown()
+            }
         }
-        KonsoleToast.show(binding.root, text)
-        viewModel.onMessageShown()
+        shown?.let { question ->
+            val text = when (question) {
+                is MainViewModel.Confirm.CloseTab -> stringResource(R.string.close_tab_confirm, question.title)
+                is MainViewModel.Confirm.CloseApp -> stringResource(R.string.close_app_confirm, question.connected)
+            }
+            ConfirmCloseDialog(text, onConfirm = { viewModel.confirmed(question) }, onDismiss = { shown = null })
+        }
     }
 
-    private fun showConfirm(confirm: MainViewModel.Confirm?) {
-        confirm ?: return
-        val text = when (confirm) {
-            is MainViewModel.Confirm.CloseTab -> getString(R.string.close_tab_confirm, confirm.title)
-            is MainViewModel.Confirm.CloseApp -> getString(R.string.close_app_confirm, confirm.connected)
+    // A failed connect closes its tab after the toast unless the user acts first.
+    @Composable
+    private fun Messages() {
+        val message by viewModel.message.collectAsStateWithLifecycle()
+        val text = when (val m = message) {
+            null -> null
+            is MainViewModel.Message.Error -> SshErrorMessages.text(this, m.error)
+            MainViewModel.Message.NoProblemReport -> stringResource(R.string.report_none)
+            is MainViewModel.Message.UploadUndone -> stringResource(R.string.upload_undone, m.name)
+            is MainViewModel.Message.UndoFailed -> stringResource(R.string.upload_undo_failed, m.reason)
         }
-        AlertDialog.Builder(this, R.style.KonsoleDialog)
-            .setMessage(text)
-            .setPositiveButton(R.string.action_close) { _, _ -> viewModel.confirmed(confirm) }
-            .setNegativeButton(R.string.action_cancel, null)
-            .show()
-        viewModel.onConfirmShown()
+        LaunchedEffect(message) {
+            if (text != null) {
+                toasts.show(text)
+                viewModel.onMessageShown()
+            }
+        }
+        val errors by viewModel.connectErrors.collectAsStateWithLifecycle()
+        val closeTab = stringResource(R.string.close_tab)
+        LaunchedEffect(errors) {
+            errors.forEach { failed ->
+                viewModel.onErrorShown(failed.tabId)
+                val text = SshErrorMessages.text(this@MainActivity, failed.error)
+                toasts.showAutoAction(text, closeTab, ERROR_TOAST_MS) {
+                    viewModel.closeTab(failed.tabId)
+                }
+            }
+        }
     }
 
     // ── Dialog / sheet results ────────────────────────────────────────────────
@@ -200,29 +267,6 @@ class MainActivity : AppCompatActivity(), KeybarHost {
 
     private fun showTabPicker() {
         TabPickerSheet.newInstance(binding.viewPager.currentItem).show(supportFragmentManager, "tab_picker")
-    }
-
-    // ── Prompts and errors ────────────────────────────────────────────────────
-
-    private fun renderPrompt(active: MainViewModel.TabPrompt?) {
-        val prompt = active?.prompt
-        if (prompt?.id == shownPromptId) return
-        promptDialog?.dismiss()
-        shownPromptId = prompt?.id
-        promptDialog = active?.let {
-            PromptDialogs.show(this, it.prompt) { answer -> viewModel.answerPrompt(it.tabId, it.prompt.id, answer) }
-        }
-    }
-
-    // A failed connect closes its tab after the toast unless the user acts first.
-    private fun showConnectError(failed: MainViewModel.ConnectError) {
-        viewModel.onErrorShown(failed.tabId)
-        KonsoleToast.showAutoAction(
-            anchor = binding.root,
-            message = SshErrorMessages.text(this, failed.error),
-            actionLabel = getString(R.string.close_tab),
-            timeoutMs = ERROR_TOAST_MS,
-        ) { viewModel.closeTab(failed.tabId) }
     }
 
     // ── Tabs ──────────────────────────────────────────────────────────────────
@@ -277,7 +321,7 @@ class MainActivity : AppCompatActivity(), KeybarHost {
             view.setOnClickListener { binding.viewPager.setCurrentItem(pagerAdapter.positionOf(tab.id), true) }
             view.findViewById<TextView>(R.id.tabClose).setOnClickListener { viewModel.requestCloseTab(tab.id) }
             view.setOnLongClickListener {
-                showRenameDialog(tab)
+                renaming = tab
                 true
             }
             tabViews[tab.id] = view
@@ -302,27 +346,6 @@ class MainActivity : AppCompatActivity(), KeybarHost {
         statusColor(status)?.let(dot::setTextColor)
     }
 
-    private fun showRenameDialog(tab: TabState) {
-        val padding = resources.getDimensionPixelSize(R.dimen.dialog_padding)
-        val editText = EditText(this).apply {
-            setText(tab.title)
-            selectAll()
-            hint = getString(R.string.tab_name_hint)
-            setBackgroundColor(Color.WHITE)
-            setTextColor(Color.BLACK)
-            setHintTextColor(Color.GRAY)
-            setPadding(padding, padding / 2, padding, padding / 2)
-        }
-        AlertDialog.Builder(this, R.style.KonsoleDialog)
-            .setTitle(R.string.dialog_rename_tab_title)
-            .setView(editText)
-            .setPositiveButton(R.string.action_ok) { _, _ ->
-                viewModel.renameTab(tab.id, editText.text.toString())
-            }
-            .setNegativeButton(R.string.action_cancel, null)
-            .show()
-    }
-
     // ── KeybarHost ────────────────────────────────────────────────────────────
 
     override fun currentTerminal(): TerminalView? = pagerAdapter.pageAt(binding.viewPager.currentItem)?.terminalView
@@ -341,7 +364,7 @@ class MainActivity : AppCompatActivity(), KeybarHost {
         currentTerminal()?.scrollToBottom()
     }
 
-    override fun toggleModifier(modifier: Modifier) = viewModel.modifiers.toggle(modifier)
+    override fun toggleModifier(modifier: Key) = viewModel.modifiers.toggle(modifier)
 
     override fun pickUploadFile() = pickFileForUpload.launch(arrayOf("*/*"))
 
@@ -355,7 +378,7 @@ class MainActivity : AppCompatActivity(), KeybarHost {
         }
     }
 
-    override fun showMessage(message: String) = KonsoleToast.show(binding.root, message)
+    override fun showMessage(message: String) = toasts.show(message)
 
     private fun zoom(delta: Float) {
         val terminal = currentTerminal() ?: return
@@ -404,7 +427,7 @@ class MainActivity : AppCompatActivity(), KeybarHost {
             true
         }
         R.id.action_language -> {
-            showLanguagePicker()
+            pickingLanguage = true
             true
         }
         R.id.action_problem_report -> {
@@ -418,38 +441,10 @@ class MainActivity : AppCompatActivity(), KeybarHost {
         else -> super.onOptionsItemSelected(item)
     }
 
-    private fun showLanguagePicker() {
-        val tags = arrayOf("", "en", "hu", "de", "es", "fr", "sk", "ro")
-        val labels = arrayOf(
-            getString(R.string.language_system_default),
-            "English",
-            "Magyar",
-            "Deutsch",
-            "Español",
-            "Français",
-            "Slovenčina",
-            "Română",
-        )
-        val current = AppCompatDelegate.getApplicationLocales()
-        val currentTag = if (current.isEmpty) "" else current[0]?.language.orEmpty()
-        AlertDialog.Builder(this, R.style.KonsoleDialog)
-            .setTitle(R.string.action_language)
-            .setSingleChoiceItems(labels, tags.indexOf(currentTag).coerceAtLeast(0)) { dialog, which ->
-                val locales = if (tags[which].isEmpty()) {
-                    LocaleListCompat.getEmptyLocaleList()
-                } else {
-                    LocaleListCompat.forLanguageTags(tags[which])
-                }
-                AppCompatDelegate.setApplicationLocales(locales)
-                dialog.dismiss()
-            }
-            .setNegativeButton(R.string.action_cancel, null)
-            .show()
-    }
-
     private companion object {
         const val DIALOG_TAG = "connection_dialog"
         const val ERROR_TOAST_MS = 5000L
+        val TOAST_BOTTOM = 100.dp
         val SYSTEM_KEYS = setOf(
             KeyEvent.KEYCODE_BACK,
             KeyEvent.KEYCODE_HOME,

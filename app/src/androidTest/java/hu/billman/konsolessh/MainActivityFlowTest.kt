@@ -2,6 +2,7 @@ package hu.billman.konsolessh
 
 import android.Manifest
 import android.os.Build
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -13,7 +14,6 @@ import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.Espresso.pressBackUnconditionally
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.assertion.ViewAssertions.matches
-import androidx.test.espresso.matcher.RootMatchers.isDialog
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
@@ -95,12 +95,12 @@ class MainActivityFlowTest {
         FakeTerminalSession.askHostKey = true
         ActivityScenario.launch(MainActivity::class.java).use { scenario ->
             openFakeTab()
-            onView(withText(R.string.hostkey_unknown_title)).inRoot(isDialog()).check(matches(isDisplayed()))
+            compose.onNodeWithText(app.getString(R.string.hostkey_unknown_title)).assertIsDisplayed()
 
             scenario.recreate()
 
-            onView(withText(R.string.hostkey_unknown_title)).inRoot(isDialog()).check(matches(isDisplayed()))
-            onView(withText(R.string.hostkey_accept)).inRoot(isDialog()).perform(click())
+            compose.onNodeWithText(app.getString(R.string.hostkey_unknown_title)).assertIsDisplayed()
+            compose.onNodeWithText(app.getString(R.string.hostkey_accept)).performClick()
             await("connected") { tabStatus() == ConnectionStatus.CONNECTED }
             onView(withText(app.getString(R.string.status_connected_suffix, connection.name)))
                 .check(matches(isDisplayed()))
@@ -145,11 +145,11 @@ class MainActivityFlowTest {
                 val viewModel = ViewModelProvider(activity, factory)[MainViewModel::class.java]
                 viewModel.startUpload(tabId, UPLOAD_NAME, 2) { ByteArrayInputStream(ByteArray(2)) }
             }
-            onView(withId(R.id.progressBar)).inRoot(isDialog()).check(matches(isDisplayed()))
+            compose.onNodeWithText(app.getString(R.string.upload_title, UPLOAD_NAME)).assertIsDisplayed()
 
             scenario.recreate()
 
-            onView(withId(R.id.progressBar)).inRoot(isDialog()).check(matches(isDisplayed()))
+            compose.onNodeWithText(app.getString(R.string.upload_title, UPLOAD_NAME)).assertIsDisplayed()
             gate.complete(Unit)
             await("upload finished") { UPLOAD_NAME in FakeTerminalSession.uploaded }
         }

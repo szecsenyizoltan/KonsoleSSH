@@ -1,6 +1,5 @@
 package hu.billman.konsolessh.ui
 
-import android.app.Dialog
 import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -9,6 +8,7 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.graphics.drawable.toDrawable
@@ -20,7 +20,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import hu.billman.konsolessh.session.PendingPrompt
 import hu.billman.konsolessh.ui.theme.KonsoleTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -32,8 +31,8 @@ import java.io.InputStream
 /**
  * Hosts the Compose [NewConnectionForm] in a dialog window while the screens
  * that open it are still Fragment-based. The form's state and rules live in
- * [NewConnectionViewModel]; this class only reads key files, shows host key
- * questions and returns the saved id through the Fragment Result API
+ * [NewConnectionViewModel]; this class only reads key files and returns the
+ * saved id through the Fragment Result API
  * ([RESULT_KEY]), so the result arrives after a rotation too.
  */
 class NewConnectionDialog : DialogFragment() {
@@ -72,9 +71,6 @@ class NewConnectionDialog : DialogFragment() {
 
     private val viewModel: NewConnectionViewModel by viewModels { KonsoleViewModelFactory.from(requireContext()) }
 
-    private var promptDialog: Dialog? = null
-    private var shownPromptId: Long? = null
-
     private val pickKeyFile = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri ?: return@registerForActivityResult
         if (uri.path.orEmpty().lowercase().endsWith(".pub")) viewModel.publicKeyPicked()
@@ -112,6 +108,12 @@ class NewConnectionDialog : DialogFragment() {
                     val form by viewModel.form.collectAsStateWithLifecycle()
                     val message by viewModel.message.collectAsStateWithLifecycle()
                     val keyDialog by viewModel.keyDialog.collectAsStateWithLifecycle()
+                    val prompt by viewModel.prompt.collectAsStateWithLifecycle()
+                    prompt?.let { question ->
+                        key(question.id) {
+                            PromptDialog(question) { answer -> viewModel.answerPrompt(question.id, answer) }
+                        }
+                    }
                     NewConnectionForm(
                         form = form,
                         message = message,
@@ -145,7 +147,6 @@ class NewConnectionDialog : DialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { viewModel.prompt.collect(::renderPrompt) }
                 launch {
                     viewModel.savedId.collect { id ->
                         id ?: return@collect
@@ -167,20 +168,5 @@ class NewConnectionDialog : DialogFragment() {
             @Suppress("DEPRECATION")
             setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
         }
-    }
-
-    private fun renderPrompt(prompt: PendingPrompt?) {
-        if (prompt?.id == shownPromptId) return
-        promptDialog?.dismiss()
-        shownPromptId = prompt?.id
-        promptDialog = prompt?.let {
-            PromptDialogs.show(requireContext(), it) { answer -> viewModel.answerPrompt(it.id, answer) }
-        }
-    }
-
-    override fun onDestroy() {
-        promptDialog?.dismiss()
-        promptDialog = null
-        super.onDestroy()
     }
 }

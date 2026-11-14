@@ -12,7 +12,6 @@
 
     <!-- Text -->
     <color name="text_primary">#E6EDF3</color>
-    <color name="text_secondary">#8B949E</color>
 
     <!-- Accent / Ubuntu orange-ish -->
     <color name="accent">#E95420</color>

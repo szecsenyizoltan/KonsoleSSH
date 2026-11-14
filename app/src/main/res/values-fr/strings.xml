@@ -95,6 +95,7 @@
     <string name="content_desc_add_connection">Ajouter une connexion</string>
     <string name="content_desc_edit">Modifier</string>
     <string name="content_desc_delete">Supprimer</string>
+    <string name="content_desc_back">Retour</string>
     <string name="content_desc_exit">Quitter</string>
 
     <!-- Status bar / terminal messages -->

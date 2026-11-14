@@ -95,6 +95,7 @@
     <string name="content_desc_add_connection">Pridať nové pripojenie</string>
     <string name="content_desc_edit">Upraviť</string>
     <string name="content_desc_delete">Odstrániť</string>
+    <string name="content_desc_back">Späť</string>
     <string name="content_desc_exit">Ukončiť</string>
 
     <!-- Status bar / terminal messages -->

@@ -95,6 +95,7 @@
     <string name="content_desc_add_connection">Adaugă o conexiune nouă</string>
     <string name="content_desc_edit">Editează</string>
     <string name="content_desc_delete">Șterge</string>
+    <string name="content_desc_back">Înapoi</string>
     <string name="content_desc_exit">Ieșire</string>
 
     <!-- Status bar / terminal messages -->

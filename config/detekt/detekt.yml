@@ -28,6 +28,9 @@ style:
     excludeCommentStatements: true
   WildcardImport:
     active: true
+  UnusedPrivateMember:
+    active: true
+    ignoreAnnotated: ['Preview']   # Compose previews are used by the IDE, not by code
 
 naming:
   FunctionNaming:

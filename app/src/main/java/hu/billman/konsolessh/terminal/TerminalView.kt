@@ -34,17 +34,15 @@ import kotlin.math.min
 /**
  * Canvas-based terminal emulator widget.
  *
- * A terminál teljes logikai állapotát (cellarács, scrollback, kurzor, ANSI-state,
- * SGR-stílus, módok) a [TerminalBuffer] tartja. Ez az osztály felelős:
- *   - renderelésért (Canvas + Paint)
- *   - input-kezelésért (touch, key, IME)
- *   - view-szintű görgetésért (scrollRowOff/scrollColOff)
- *   - szöveg-szelekcióért + clipboard
- *   - kurzor-villogásért
+ * The [TerminalBuffer] holds the terminal's whole logical state (cell grid,
+ * scrollback, cursor, ANSI state, SGR style, modes). This class draws it
+ * and handles input (touch, keys, IME), view scrolling, text selection with
+ * the clipboard, and the blinking cursor.
  *
- * A Buffer ChangeListener-e automatikusan újrarajzolást kér, így a View nem
- * felejti el a rajzot újra kérni. Az [append] bármely szálról hívható: a
- * bájtok feldolgozása a hívó szálán fut, a rajzolás a buffer zárja alatt olvas.
+ * The buffer's ChangeListener requests every redraw, so none can be
+ * forgotten. [append] may be called from any thread: the bytes are
+ * processed on the caller's thread, and drawing reads under the buffer's
+ * lock.
  */
 class TerminalView @JvmOverloads constructor(
     context: Context,
@@ -54,7 +52,7 @@ class TerminalView @JvmOverloads constructor(
     var onKeyInput: ((ByteArray) -> Unit)? = null
     var onTerminalResize: ((cols: Int, rows: Int) -> Unit)? = null
 
-    /** A terminál válasza egy lekérdezésre (pl. kurzorpozíció); háttérszálról is jöhet. */
+    /** The terminal's answer to a query (e.g. the cursor position); may come from a background thread. */
     var onTerminalResponse: ((ByteArray) -> Unit)? = null
     var horizontalScrollEnabled = true
     val fontSize: Float get() = fontSizeSp
@@ -83,25 +81,25 @@ class TerminalView @JvmOverloads constructor(
         private const val LOOK_ITALIC = 4L
         private const val LOOK_STRIKE = 8L
 
-        /** Szintetikus dőlés: a beépített NerdFontnak nincs dőlt változata. */
+        /** Synthetic slant: the bundled Nerd Font has no italic variant. */
         private const val ITALIC_SKEW = -0.2f
 
-        /** Halvány (SGR 2) szín: az előtér és a háttér közepe. */
+        /** The faint (SGR 2) colour: halfway between foreground and background. */
         private fun halfway(fg: Int, bg: Int): Int {
             fun mix(shift: Int) = (((fg ushr shift) and 0xFF) + ((bg ushr shift) and 0xFF)) / 2
             return (0xFF shl 24) or (mix(16) shl 16) or (mix(8) shl 8) or mix(0)
         }
 
-        /** Eddig a kódpontig (Latin-1 + Latin Extended-A/B) próbál futamban rajzolni. */
+        /** Up to this code point (Latin-1, Latin Extended-A/B), text is drawn in runs where possible. */
         private const val FIXED_ADVANCE_LIMIT = 0x250
         private const val ADVANCE_TOLERANCE = 0.05f
     }
 
-    // ── Logikai állapot: minden a Bufferben ──────────────────────────────────
+    // ── Logical state: all of it in the buffer ────────────────────────────────
 
     internal val buffer = TerminalBuffer(initialCols = MIN_COLS, initialRows = 24)
 
-    // ── View-méretek ─────────────────────────────────────────────────────────
+    // ── View metrics ─────────────────────────────────────────────────────────
 
     private var viewW = 0
     private var viewH = 0
@@ -127,16 +125,16 @@ class TerminalView @JvmOverloads constructor(
     private var cellBase = 0f
     private val cellRect = RectF()
 
-    // ── View-scroll ──────────────────────────────────────────────────────────
+    // ── View scrolling ───────────────────────────────────────────────────────
 
     private var scrollRowOff = 0
 
-    /** Új kimenet érkezett: a következő rajzolás az aljára görget. */
+    /** New output arrived: the next draw scrolls to the bottom. */
     @Volatile private var followOutput = false
     private var scrollColOff = 0
     private var touchScrollFrac = 0f
 
-    // ── Szöveg-szelekció ─────────────────────────────────────────────────────
+    // ── Text selection ───────────────────────────────────────────────────────
 
     private var selActive = false
     private var selStartLine = 0
@@ -150,7 +148,7 @@ class TerminalView @JvmOverloads constructor(
     private val longPressHandler = Handler(Looper.getMainLooper())
     private val longPressRunnable = Runnable { startSelectionAt(lpX, lpY) }
 
-    // ── Kurzor-villogás ──────────────────────────────────────────────────────
+    // ── Cursor blinking ──────────────────────────────────────────────────────
 
     private var cursorOn = true
     private val blinkHandler = Handler(Looper.getMainLooper())
@@ -183,8 +181,8 @@ class TerminalView @JvmOverloads constructor(
         isFocusable = true
         isFocusableInTouchMode = true
         applyFontMetrics()
-        // A Buffer minden state-változás után értesít, akár háttérszálról is;
-        // a postInvalidateOnAnimation szálbiztos, és képkockánként egyszer rajzol.
+        // The buffer reports every change, possibly from a background thread;
+        // postInvalidateOnAnimation is thread-safe and draws once per frame.
         buffer.setChangeListener { postInvalidateOnAnimation() }
         buffer.setResponseListener { bytes -> onTerminalResponse?.invoke(bytes) }
     }
@@ -212,9 +210,9 @@ class TerminalView @JvmOverloads constructor(
     }
 
     /**
-     * Annak a logikai sornak az indexe, amely a 0. vizuális sorra kerül.
-     * Bottom-gravity: ha nincs scrollback és a néző nem görgetett, a tartalom
-     * a képernyő aljához igazodik; különben a scrollback-et elgurítjuk.
+     * The index of the logical line shown on visual row 0. Content sticks to
+     * the bottom of the view while there is no scrollback and the user has
+     * not scrolled; otherwise the scrollback is scrolled through.
      */
     private fun computeFirstLine(): Int {
         val scrollbackSize = buffer.scrollbackSize
@@ -226,7 +224,7 @@ class TerminalView @JvmOverloads constructor(
         }
     }
 
-    // ── Méretezés ────────────────────────────────────────────────────────────
+    // ── Sizing ───────────────────────────────────────────────────────────────
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
@@ -253,7 +251,7 @@ class TerminalView @JvmOverloads constructor(
         onTerminalResize?.invoke(buffer.cols, buffer.rows)
     }
 
-    // ── Rajzolás ─────────────────────────────────────────────────────────────
+    // ── Drawing ──────────────────────────────────────────────────────────────
 
     override fun onDraw(canvas: Canvas) {
         canvas.drawColor(DEFAULT_BG)
@@ -264,7 +262,7 @@ class TerminalView @JvmOverloads constructor(
         buffer.withLock { drawCells(canvas) }
     }
 
-    /** Egy rajzolás állandó adatai; a kijelölés határai egyszer számolódnak. */
+    /** What stays fixed during one draw; the selection bounds are computed once. */
     private class Frame(
         val scrollbackSize: Int,
         val cursorRow: Int,
@@ -305,8 +303,8 @@ class TerminalView @JvmOverloads constructor(
     }
 
     /**
-     * A cella megjelenése egy Long-ban: előtér (RGB, mindig átlátszatlan),
-     * háttér (ARGB, a kijelölés áttetsző), félkövér, aláhúzás.
+     * A cell's look packed into one Long: foreground (RGB, always opaque),
+     * background (ARGB, translucent for the selection), bold, underline.
      */
     private fun lookAt(row: TermLine, lineIdx: Int, c: Int, cursorCol: Int, selection: IntArray?): Long {
         val cell = row[c]
@@ -357,7 +355,7 @@ class TerminalView @JvmOverloads constructor(
         paint.textSkewX = 0f
     }
 
-    /** Egy hívással rajzolja a futamot, ha minden karakterének pontosan cellányi a szélessége. */
+    /** Draws the run in one call if each of its characters is exactly one cell wide. */
     private fun drawFixedAdvanceRun(
         canvas: Canvas,
         row: TermLine,
@@ -390,17 +388,17 @@ class TerminalView @JvmOverloads constructor(
         return cache[ch.code] == 1.toByte()
     }
 
-    // ── Publikus API ─────────────────────────────────────────────────────────
+    // ── Public API ───────────────────────────────────────────────────────────
 
     /**
-     * Bármely szálról hívható; nagy kimenetet háttérszálról érdemes.
-     * [respond] false: visszajátszott kimenet, a benne lévő lekérdezésekre nem
-     * megy válasz (lásd [TerminalBuffer.write]).
+     * Callable from any thread; large output is best fed from a background
+     * thread. [respond] false marks replayed output, whose queries get no
+     * answer (see [TerminalBuffer.write]).
      */
     fun append(bytes: ByteArray, length: Int, respond: Boolean = true) {
         followOutput = true
         buffer.write(bytes, length, respond)
-        // újrarajzolás: a buffer ChangeListener-e intézi
+        // the buffer's ChangeListener requests the redraw
     }
 
     fun clear() {
@@ -408,7 +406,7 @@ class TerminalView @JvmOverloads constructor(
         // invalidate: ChangeListener
     }
 
-    /** Mindent töröl, a görgetési előzményt is (újrarajzolt statikus tartalomhoz). */
+    /** Clears everything, the scrollback too, for static content that is redrawn. */
     fun resetContent() {
         buffer.reset()
         scrollRowOff = 0
@@ -448,12 +446,12 @@ class TerminalView @JvmOverloads constructor(
         invalidate()
     }
 
-    /** Csak fókusz kérése — nem nyitja meg a soft-keyboardot. */
+    /** Requests focus only; does not open the soft keyboard. */
     fun focusInput() {
         post { requestFocus() }
     }
 
-    /** Fókusz + soft-keyboard nyitás (explicit felhasználói szándék). */
+    /** Requests focus and opens the soft keyboard, for an explicit user action. */
     fun focusAndShowKeyboard() {
         requestFocus()
         val imm = context.getSystemService<InputMethodManager>() ?: return
@@ -468,7 +466,7 @@ class TerminalView @JvmOverloads constructor(
         byteArrayOf(27, '['.code.toByte(), dir.code.toByte())
     }
 
-    // ── Szöveg-szelekció ─────────────────────────────────────────────────────
+    // ── Text selection ───────────────────────────────────────────────────────
 
     private fun touchToLineCol(x: Float, y: Float): Pair<Int, Int> {
         val visualRow = (y / cellH).toInt().coerceIn(0, buffer.rows - 1)
@@ -538,8 +536,8 @@ class TerminalView @JvmOverloads constructor(
         if (text.isNotEmpty()) {
             val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager ?: return
             val clip = ClipData.newPlainText("terminal", text)
-            // Terminálból gyakran token vagy jelszó kerül a vágólapra: a rendszer
-            // ilyenkor nem mutat előnézetet. API 33 alatt a dokumentált kulcsnév kell.
+            // Text copied from a terminal is often a token or a password, so the
+            // system is told not to preview it. Below API 33 the documented key name is needed.
             val sensitiveKey = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 ClipDescription.EXTRA_IS_SENSITIVE
             } else {
@@ -730,9 +728,9 @@ class TerminalView @JvmOverloads constructor(
 
     private fun keyCodeToBytes(keyCode: Int, event: KeyEvent): ByteArray? = when (keyCode) {
         KeyEvent.KEYCODE_ENTER -> byteArrayOf(13)
-        // Android KEYCODE_DEL neve félrevezető: ez valójában a Backspace billentyű.
+        // Android's KEYCODE_DEL is misnamed: it is the Backspace key.
         KeyEvent.KEYCODE_DEL -> byteArrayOf(127)
-        // A tényleges "Delete" (forward delete) billentyű: xterm Del-szekvencia.
+        // The actual Delete (forward delete) key: the xterm Del sequence.
         KeyEvent.KEYCODE_FORWARD_DEL -> KeySequences.escape("[3~")
         KeyEvent.KEYCODE_TAB -> byteArrayOf(KeySequences.TAB)
         KeyEvent.KEYCODE_ESCAPE -> byteArrayOf(KeySequences.ESC)

@@ -1,6 +1,6 @@
 package hu.billman.konsolessh.terminal
 
-/** xterm billentyű-szekvenciák; a billentyűsor és a hardveres billentyűzet közösen használja. */
+/** xterm key sequences, shared by the key bar and the hardware keyboard. */
 object KeySequences {
     const val ESC: Byte = 27
     const val TAB: Byte = 9

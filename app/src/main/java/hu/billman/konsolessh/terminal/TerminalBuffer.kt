@@ -1,29 +1,32 @@
 package hu.billman.konsolessh.terminal
 
 /**
- * Platformfüggetlen terminálmodell: cellarács, scrollback, kurzor, ANSI-state.
+ * The platform-independent terminal model: cell grid, scrollback, cursor
+ * and ANSI state.
  *
- * Az osztály NEM ismeri a Canvas-t, View-t és Context-et — ezért unit-tesztelhető
- * pure JVM-en. A renderelő oldal (TerminalView) a [lineAt], [screenLines], [snapshot]
- * metódusokon keresztül olvas, és a [setChangeListener]-en keresztül kap invalidáció-
- * jelzést minden állapotmódosítás után.
+ * It knows nothing of Canvas, View or Context, so it is unit-tested on the
+ * plain JVM. The renderer (TerminalView) reads it through [lineAt],
+ * [screenLines] and [snapshot], and [setChangeListener] tells it to redraw
+ * after every change.
  *
- * Támogatott: Unicode wcwidth szerinti cellaszélességgel (széles CJK / emoji két
- * cellán, kombináló jel az előző cellához tapad), CR/LF/BS/TAB, CSI kurzor-mozgás
- * és törlések, SGR (16 + 256 + truecolor), DECCKM (?1), cursor hide (?25),
- * alt-screen (?47 / ?1049), bracketed paste (?2004), scroll region (CSI r),
- * save/restore cursor (ESC 7/8, CSI s/u), reverse index (ESC M), G0/G1
- * karakterkészlet DEC vonalrajzolással (ESC ( 0, SO/SI), állapot- és
- * eszközlekérdezések (CSI 5n / 6n, DA1, DA2) válasza a [ResponseListener]-en,
- * OSC/DCS payload csendes konszumálása.
+ * Supported: cell widths by Unicode wcwidth (wide CJK and emoji take two
+ * cells, combining marks join the previous cell), CR/LF/BS/TAB, CSI cursor
+ * movement and erasing, SGR (16, 256 and true colour), DECCKM (?1), cursor
+ * hiding (?25), the alternate screen (?47 / ?1049), bracketed paste
+ * (?2004), the scroll region (CSI r), cursor save and restore (ESC 7/8,
+ * CSI s/u), reverse index (ESC M), the G0/G1 character sets with DEC line
+ * drawing (ESC ( 0, SO/SI), and answers to status and device queries
+ * (CSI 5n / 6n, DA1, DA2) through the [ResponseListener]. OSC and DCS
+ * payloads are consumed silently.
  *
- * Scrollback-plafon: [maxScrollback] sor (default 3000 — a korábbi TerminalView
- * értéke). Tartomány-túlfolyáskor a legrégebbi sor elvesz.
+ * The scrollback holds at most [maxScrollback] lines; beyond that the
+ * oldest line is dropped.
  *
- * Szálkezelés: a [write] bármely szálról hívható, és [WRITE_SLICE] méretű
- * szeletenként veszi fel a zárat, így a renderelő a [withLock] blokkban
- * nagy kimenet közben is csak rövid ideig vár. Több mezőt együtt olvasó hívó
- * (rajzolás, kijelölés) a [withLock]-ban olvasson, hogy konzisztens képet lásson.
+ * Threading: [write] may be called from any thread and takes the lock per
+ * slice of [WRITE_SLICE] bytes, so the renderer waits only briefly in
+ * [withLock] even during large output. A caller that reads several fields
+ * together (drawing, selection) reads them inside [withLock] to see a
+ * consistent state.
  */
 class TerminalBuffer(
     initialCols: Int = 80,
@@ -98,10 +101,10 @@ class TerminalBuffer(
     private var ansiState: AnsiState = AnsiState.NORMAL
     private val csiParams: StringBuilder = StringBuilder()
 
-    /** Köztes bájtok (pl. a kurzoralak `CSI 2 SP q` szóköze); ilyen szekvenciát nem hajtunk végre. */
+    /** Intermediate bytes (e.g. the space in the cursor-shape `CSI 2 SP q`); such sequences are not executed. */
     private val csiIntermediates: StringBuilder = StringBuilder()
 
-    /** Az utoljára kiírt grafikus karakter és szélessége, a REP (`CSI n b`) ismétléshez. */
+    /** The last printed graphic character and its width, for REP (`CSI n b`). */
     private var lastGraphic: String? = null
     private var lastGraphicWidth = 1
 
@@ -111,16 +114,16 @@ class TerminalBuffer(
         csiIntermediates.clear()
     }
 
-    // ── Karakterkészletek (G0/G1) ────────────────────────────────────────────
+    // ── Character sets (G0/G1) ───────────────────────────────────────────────
 
-    /** G0 és G1: true = DEC Special Graphics (vonalrajzolás). */
+    /** G0 and G1: true means DEC Special Graphics (line drawing). */
     private val decGraphics = BooleanArray(2)
     private var shiftedOut = false
 
-    /** Melyik G-készletet jelöli ki a folyamatban lévő ESC ( / ESC ) (-1: G2/G3, elnyelve). */
+    /** The G set an ESC ( or ESC ) in progress designates (-1: G2/G3, swallowed). */
     private var charsetTarget = 0
 
-    // ── Válaszok a lekérdezésekre ────────────────────────────────────────────
+    // ── Answers to queries ───────────────────────────────────────────────────
 
     fun interface ResponseListener { fun onResponse(bytes: ByteArray) }
     private var responseListener: ResponseListener? = null
@@ -128,12 +131,12 @@ class TerminalBuffer(
 
     private val pendingResponse = StringBuilder()
 
-    /** Az előző írás végén félbemaradt UTF-8 szekvencia; a következő írás elejére kerül. */
+    /** A UTF-8 sequence cut off at the end of the last write; it goes before the next one. */
     private var utf8Carry: ByteArray = ByteArray(0)
 
     private val lock = Any()
 
-    /** A [block] alatt a puffer nem változik; a renderelő ebben olvas. */
+    /** The buffer does not change during [block]; the renderer reads inside it. */
     fun <T> withLock(block: () -> T): T = synchronized(lock, block)
 
     // ── Change notification ──────────────────────────────────────────────────
@@ -144,21 +147,22 @@ class TerminalBuffer(
 
     // ── Derived read-only state ──────────────────────────────────────────────
 
-    /** scrollback + rows — a scrollable logikai sor-univerzum mérete. */
+    /** Scrollback plus rows: the number of logical lines one can scroll through. */
     val totalLines: Int get() = scrollback.size + _rows
 
     // ── Ingestion ────────────────────────────────────────────────────────────
 
     /**
-     * PTY-bájtok etetése: UTF-8 dekódolás, ANSI FSM, cellarács-frissítés,
-     * scrollback-karbantartás. Szeletenként meghívja a ChangeListener-t
-     * (a záron kívül), ha be van állítva. A darabok határán kettévágott UTF-8
-     * karakter a következő hívással egészül ki.
+     * Feeds PTY bytes through UTF-8 decoding and the ANSI state machine into
+     * the cell grid and scrollback. Calls the ChangeListener, if set, after
+     * each slice, outside the lock. A UTF-8 character split between two
+     * calls is completed by the second.
      */
     /**
-     * [respond] false: a bemenetben lévő lekérdezésekre nem megy válasz. Ez a
-     * már egyszer feldolgozott kimenet visszajátszásához kell (pl. forgatás
-     * után), különben a régi lekérdezések válasza bemenetként érne a shellhez.
+     * With [respond] false, queries in the input get no answer. This is for
+     * replaying output that was processed once already (e.g. after a
+     * rotation); otherwise answers to old queries would reach the shell as
+     * input.
      */
     fun write(bytes: ByteArray, length: Int = bytes.size, respond: Boolean = true) {
         var offset = 0
@@ -181,7 +185,7 @@ class TerminalBuffer(
         return bytes
     }
 
-    /** Konvencia: teszt-egyszerűsítő UTF-8 string-bemenet. */
+    /** Convenience for tests: writes a string as UTF-8. */
     fun writeString(text: String) {
         write(text.toByteArray(Charsets.UTF_8))
     }
@@ -244,7 +248,7 @@ class TerminalBuffer(
                             }
                             ansiState = AnsiState.CHARSET
                         }
-                        // ESC \ = ST terminator — már konszumálva, NORMAL-ban maradunk
+                        // ESC \ is the ST terminator, already consumed; stay in NORMAL
                     }
                 }
                 AnsiState.CHARSET -> {
@@ -268,7 +272,7 @@ class TerminalBuffer(
                         '\u0007' -> ansiState = AnsiState.NORMAL   // BEL terminates OSC
                         '\u001B' -> ansiState = AnsiState.ESCAPE   // ESC \ (ST) — consume \
                     }
-                    // egyéb payload-bájt csendben elnyelve
+                    // any other payload byte is swallowed
                 }
             }
         }
@@ -280,9 +284,10 @@ class TerminalBuffer(
     }
 
     /**
-     * Egy karakter a kurzorhoz. [width] 0: az előző cellához fűződik
-     * (kombináló jel); 2: a cella mellé egy üres folytatócella ([WIDE_TAIL])
-     * kerül, és ha a sor végén már nem fér el, új sorba tördel.
+     * Puts one character at the cursor. With [width] 0 it joins the previous
+     * cell (a combining mark); with 2 an empty continuation cell
+     * ([WIDE_TAIL]) follows it, and if it no longer fits at the end of the
+     * line, it wraps to the next.
      */
     private fun printText(ch: String, width: Int) {
         if (width == 0) {
@@ -596,13 +601,13 @@ class TerminalBuffer(
     // ── Lifecycle ────────────────────────────────────────────────────────────
 
     /**
-     * Átméretezi a screen-rácsot [newCols] × [newRows]-re. Ha a képernyő
-     * alacsonyabb lesz, a kurzor feletti sorok tolódnak ki (a fő képernyőn a
-     * görgetési előzménybe), így a kurzor sora megmarad. Az alt-screen mögötti
-     * fő képernyő is átméreteződik, nem vész el. A scroll region teljes
-     * képernyőre visszaáll.
+     * Resizes the screen grid to [newCols] × [newRows]. When the screen gets
+     * shorter, the lines above the cursor move out (into the scrollback, on
+     * the main screen), so the cursor's line stays. The main screen behind
+     * the alternate screen is resized too, not lost. The scroll region is
+     * reset to the full screen.
      *
-     * A ChangeListener-t meghívja, így a renderer-t tájékoztatja a rácsról.
+     * Calls the ChangeListener, so the renderer learns of the new grid.
      */
     fun resize(newCols: Int, newRows: Int) {
         if (newCols <= 0 || newRows <= 0) return
@@ -633,7 +638,7 @@ class TerminalBuffer(
         return true
     }
 
-    /** ESC c: teljes reset (állapot, scrollback, módok, SGR-stílus). */
+    /** ESC c: a full reset of state, scrollback, modes and SGR style. */
     fun reset() = synchronized(lock) {
         screen = newScreen(_cols, _rows)
         utf8Carry = ByteArray(0)
@@ -652,8 +657,8 @@ class TerminalBuffer(
     }
 
     /**
-     * A TerminalView.clear() megfelelője: csak a main screen-t üríti, scrollback
-     * nem változik, a kurzor hazaugrik.
+     * Backs TerminalView.clear(): empties only the main screen, keeps the
+     * scrollback and moves the cursor home.
      */
     fun clearScreen() {
         synchronized(lock) {
@@ -667,8 +672,9 @@ class TerminalBuffer(
     // ── Read-only access for renderer / selection ────────────────────────────
 
     /**
-     * A [index] logikai sor (0..scrollbackSize-1: scrollback; utána: élő képernyő).
-     * A visszaadott tömböt a hívó **nem mutálhatja**.
+     * The logical line at [index]: 0 until scrollbackSize is the scrollback,
+     * the live screen follows. The caller **must not mutate** the returned
+     * array.
      */
     fun lineAt(index: Int): TermLine? = synchronized(lock) {
         if (index < 0 || index >= totalLines) return null
@@ -681,10 +687,10 @@ class TerminalBuffer(
         return line[col]
     }
 
-    /** Az élő képernyő sorai ([rows] darab, egyenként [cols] cellával). */
+    /** The live screen's [rows] lines, of [cols] cells each. */
     fun screenLines(): List<TermLine> = synchronized(lock) { screen.toList() }
 
-    /** Immutable meta-állapot a renderernek. */
+    /** Immutable state for the renderer. */
     fun snapshot(): TerminalSnapshot = synchronized(lock) { snapshotLocked() }
 
     private fun snapshotLocked() = TerminalSnapshot(
@@ -705,26 +711,26 @@ class TerminalBuffer(
     }
 
     companion object {
-        /** Az eredeti TerminalView.MAX_SCROLLBACK érték, bit-azonos viselkedéshez. */
+        /** The value TerminalView.MAX_SCROLLBACK had, kept so behaviour did not change. */
         const val DEFAULT_MAX_SCROLLBACK = 3000
 
-        /** A széles karakter második cellája: üres, a rajzoló és a kijelölés kihagyja. */
+        /** A wide character's second cell: empty, skipped by drawing and selection. */
         const val WIDE_TAIL = ""
 
-        /** DA1: VT220, ANSI-színekkel (mint sok xterm-kompatibilis terminál). */
+        /** DA1: a VT220 with ANSI colour, like many xterm-compatible terminals. */
         private const val PRIMARY_DA = "\u001B[?62;22c"
 
-        /** DA2: típus 1 (VT220), verzió 0. */
+        /** DA2: type 1 (VT220), version 0. */
         private const val SECONDARY_DA = "\u001B[>1;0;0c"
 
         private const val TAB_WIDTH = 8
 
-        /** Ennyi bájtot dolgoz fel egy zárfelvétel alatt a [write]. */
+        /** How many bytes [write] processes per acquisition of the lock. */
         const val WRITE_SLICE = 4096
 
         /**
-         * A tömb végén álló, még nem teljes UTF-8 szekvencia hossza (0..3).
-         * Hibás bájtsornál 0: azt a dekóder cserekarakterre fordítja.
+         * The length (0..3) of an incomplete UTF-8 sequence at the end of the
+         * array. 0 for malformed bytes, which the decoder replaces.
          */
         internal fun incompleteUtf8Tail(data: ByteArray): Int {
             for (back in 1..minOf(3, data.size)) {

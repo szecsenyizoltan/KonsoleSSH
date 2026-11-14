@@ -1,11 +1,11 @@
 package hu.billman.konsolessh.terminal
 
 /**
- * Az ANSI/xterm színpaletta (16 + 256 szín), egyszer előre kiszámolva; a
- * [TerminalBuffer] SGR-kezelése ebből képez [TermColor]-t.
+ * The ANSI/xterm palette (16 + 256 colours), computed once; the
+ * [TerminalBuffer]'s SGR handling takes its [TermColor]s from here.
  *
- * Pure JVM, [android.graphics.Color]-ra nem hivatkozik — a [TermColor] ARGB-
- * Int-je bit-azonos az `android.graphics.Color.rgb`-vel.
+ * Plain JVM, without [android.graphics.Color]; a [TermColor]'s ARGB Int has
+ * the same bits as `android.graphics.Color.rgb` would give.
  */
 object SgrPalette {
 
@@ -56,9 +56,9 @@ object SgrPalette {
     /** xterm cube-komponens: 0 → 0, 1..5 → 55 + n*40 */
     private fun cubeComp(n: Int): Int = if (n == 0) 0 else 55 + n * 40
 
-    /** SGR 30-37, 40-47, 90-97, 100-107 körbe tartozó 16-szín. */
+    /** The 16 colours of SGR 30-37, 40-47, 90-97 and 100-107. */
     fun ansi16(index: Int): TermColor = ANSI_16[index.coerceIn(0, 15)]
 
-    /** SGR 38;5;N és 48;5;N párokhoz a 256-paletta. */
+    /** The 256-colour palette for SGR 38;5;N and 48;5;N. */
     fun xterm256(index: Int): TermColor = XTERM_256[index.coerceIn(0, 255)]
 }

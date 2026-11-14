@@ -1,8 +1,8 @@
 package hu.billman.konsolessh.terminal
 
 /**
- * A Linux- és tmux-puska tartalma ANSI-színezett terminálszövegként.
- * Tartalom, nem felület: a megjelenítő oldal csak kiírja.
+ * The Linux and tmux cheat sheets, as ANSI-coloured terminal text. Content,
+ * not UI: the page that shows them only writes them out.
  */
 @Suppress("LongMethod")
 object CheatSheets {

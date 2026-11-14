@@ -1,16 +1,16 @@
 package hu.billman.konsolessh.terminal
 
 /**
- * Platformfüggetlen terminál-adattípusok a TerminalBuffer-hez.
+ * Platform-independent data types of the TerminalBuffer.
  *
- * A Buffer pure-JVM logika (nincs android.graphics.* hívás), ezért a színek
- * ARGB-kódolású Int-ek, nem Android Color objektumok. A renderelő oldal
- * (TerminalView) közvetlenül át tudja adni a `TermColor.argb`-t a Paint-nek.
+ * The buffer is plain JVM code with no android.graphics calls, so colours
+ * are ARGB Ints rather than Android Color objects. The renderer
+ * (TerminalView) hands `TermColor.argb` straight to its Paint.
  */
 
 /**
- * ARGB formátumú szín. Bit-mintázata megegyezik az android.graphics.Color-éval,
- * így a renderer ezt a `paint.color` értékére dobhatja transzformáció nélkül.
+ * An ARGB colour with the same bits as android.graphics.Color, so the
+ * renderer can assign it to `paint.color` unchanged.
  */
 @JvmInline
 value class TermColor(val argb: Int) {
@@ -19,8 +19,8 @@ value class TermColor(val argb: Int) {
         val DEFAULT_BG = TermColor(0xFF000000.toInt())
 
         /**
-         * RGB komponensekből szerkeszt ARGB színt (alpha = 255).
-         * Az android.graphics.Color.rgb(r,g,b) ugyanezt a bit-mintát adja.
+         * An opaque colour from its RGB components; the same bits as
+         * android.graphics.Color.rgb(r, g, b).
          */
         fun rgb(r: Int, g: Int, b: Int): TermColor {
             val rr = r and 0xFF
@@ -32,8 +32,9 @@ value class TermColor(val argb: Int) {
 }
 
 /**
- * A rácscella mutable — a Buffer in-place frissít, ami nagy scrollback mellett
- * érdemi allokáció-megtakarítás. Az osztályon kívülről olvasóként kezelendő.
+ * A grid cell. Mutable, because the buffer updates cells in place, which
+ * saves a lot of allocation with a large scrollback. Outside the buffer it
+ * is to be treated as read-only.
  */
 data class TermCell(
     var ch: String = " ",
@@ -48,26 +49,26 @@ data class TermCell(
 ) {
     companion object {
         /**
-         * Minden hívás új, üres cellát ad vissza (a konstans lehetne shared singleton,
-         * de a Buffer in-place írja a cellákat, ezért külön példány kell).
+         * A new blank cell on every call; a shared constant would not do,
+         * since the buffer writes cells in place.
          */
         fun blank() = TermCell()
     }
 }
 
-/** Egy logikai sor (scrollback vagy élő képernyő). */
+/** One logical line, in the scrollback or on the live screen. */
 typealias TermLine = Array<TermCell>
 
-/** Terminál-méret cellaszámban. */
+/** The terminal size in cells. */
 data class TermSize(val cols: Int, val rows: Int)
 
-/** Kurzor-pozíció 0-alapon (a CSI 1-alapú címzést a Buffer fordítja le). */
+/** The cursor position, 0-based; the buffer converts CSI's 1-based addresses. */
 data class CursorPos(val row: Int, val col: Int)
 
 /**
- * Immutable snapshot a renderernek. A rendering minden keretben lekér egy friss
- * példányt (olcsó: csak elemi értékek), így a View nem tart referenciát a Buffer
- * belső állapotára.
+ * An immutable snapshot for the renderer. Each frame takes a fresh one,
+ * which is cheap since it holds only plain values, so the view keeps no
+ * reference to the buffer's internal state.
  */
 data class TerminalSnapshot(
     val size: TermSize,

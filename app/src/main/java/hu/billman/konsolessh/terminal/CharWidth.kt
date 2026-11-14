@@ -1,12 +1,12 @@
 package hu.billman.konsolessh.terminal
 
 /**
- * Egy kódpont cellaszélessége, a wcwidth() szerint (amit a szerveroldali
- * programok — shell, vim, tmux — a kurzor számolásához használnak). Ha a
- * terminál mást gondol, mint a távoli program, a sor elcsúszik.
+ * A code point's width in cells, as wcwidth() gives it, which is what
+ * programs on the server (shell, vim, tmux) use to place the cursor. If
+ * the terminal disagrees with the remote program, the line shifts.
  *
- * 0: kombináló jel / nulla szélességű, az előző cellához tapad;
- * 2: kelet-ázsiai széles és emoji-megjelenítésű karakter; minden más 1.
+ * 0: a combining or zero-width mark, attached to the previous cell;
+ * 2: East Asian wide characters and emoji presentation; everything else 1.
  */
 object CharWidth {
 

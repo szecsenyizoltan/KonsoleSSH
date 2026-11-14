@@ -7,12 +7,12 @@ import kotlinx.coroutines.flow.update
 
 enum class Modifier { CTRL, SHIFT, ALT, ALTGR }
 
-/** A billentyűsor ragadós módosítói; egy leütés után visszaállnak. */
+/** The key bar's sticky modifiers; they reset after one keystroke. */
 data class ModifierState(val active: Set<Modifier> = emptySet()) {
 
     operator fun contains(modifier: Modifier): Boolean = modifier in active
 
-    /** A leütést a módosítóknak megfelelő bájtsorrá alakítja (Ctrl+betű, Alt = ESC-prefix). */
+    /** Turns a keystroke into the bytes its modifiers call for (Ctrl+letter, Alt as an ESC prefix). */
     fun applyTo(bytes: ByteArray): ByteArray {
         if (active.isEmpty()) return bytes
         var result = bytes
@@ -51,7 +51,7 @@ class KeyModifiers {
         ModifierState(if (modifier in it) it.active - modifier else it.active + modifier)
     }
 
-    /** Alkalmazza és visszaállítja a módosítókat. */
+    /** Applies the modifiers, then resets them. */
     fun consume(bytes: ByteArray): ByteArray {
         val current = _state.value
         if (current.active.isNotEmpty()) _state.value = ModifierState()

@@ -25,5 +25,8 @@ object KonsoleViewModelFactory {
         }
         initializer { ConnectionsViewModel(container.connectionRepository) }
         initializer { NewConnectionViewModel(container.connectionRepository, container.keyProvisioner) }
+        initializer {
+            SyncViewModel(container.syncManager, container.settingsRepository, container.connectionRepository)
+        }
     }
 }

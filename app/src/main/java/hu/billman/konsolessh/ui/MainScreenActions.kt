@@ -11,6 +11,7 @@ data class MainScreenActions(
     val onZoom: (Float) -> Unit,
     val onCloseCurrentTab: () -> Unit,
     val onManageConnections: () -> Unit,
+    val onSync: () -> Unit,
     val onLanguage: () -> Unit,
     val onProblemReport: () -> Unit,
     val onPrivacyPolicy: () -> Unit,

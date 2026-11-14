@@ -22,6 +22,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -67,6 +70,7 @@ import hu.billman.konsolessh.terminal.Modifier as Key
 class MainActivity : AppCompatActivity(), KeybarHost {
 
     private val viewModel: MainViewModel by viewModels { KonsoleViewModelFactory.from(this) }
+    private val syncViewModel: SyncViewModel by viewModels { KonsoleViewModelFactory.from(this) }
     private lateinit var uploads: UploadController
     private val toasts = ToastHostState()
 
@@ -170,6 +174,7 @@ class MainActivity : AppCompatActivity(), KeybarHost {
                 onZoom = ::zoom,
                 onCloseCurrentTab = { currentTabId()?.let(viewModel::requestCloseTab) },
                 onManageConnections = { startActivity(Intent(this, ConnectionEditActivity::class.java)) },
+                onSync = { startActivity(Intent(this, SyncActivity::class.java)) },
                 onLanguage = { pickingLanguage = true },
                 onProblemReport = viewModel::shareLatestProblemReport,
                 onPrivacyPolicy = ::openPrivacyPolicy,
@@ -254,6 +259,7 @@ class MainActivity : AppCompatActivity(), KeybarHost {
 
         Confirmations()
         Messages()
+        RestoreOffer()
 
         val upload by viewModel.upload.collectAsStateWithLifecycle()
         UploadStatus(upload, toasts, onShown = viewModel::onUploadShown, onUndo = viewModel::undoUpload)
@@ -280,6 +286,27 @@ class MainActivity : AppCompatActivity(), KeybarHost {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
             ToastHost(toasts, modifier = Modifier.padding(bottom = TOAST_BOTTOM))
         }
+    }
+
+    /** On a first start with nothing saved, offer to restore from Google Drive. */
+    @Composable
+    private fun RestoreOffer() {
+        val offer by syncViewModel.offerRestore.collectAsStateWithLifecycle()
+        if (!offer) return
+        AlertDialog(
+            onDismissRequest = syncViewModel::dismissOffer,
+            title = { Text(stringResource(R.string.sync_offer_title)) },
+            text = { Text(stringResource(R.string.sync_offer_text)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    syncViewModel.dismissOffer()
+                    startActivity(Intent(this, SyncActivity::class.java))
+                }) { Text(stringResource(R.string.sync_restore)) }
+            },
+            dismissButton = {
+                TextButton(onClick = syncViewModel::dismissOffer) { Text(stringResource(R.string.sync_offer_later)) }
+            },
+        )
     }
 
     @Composable

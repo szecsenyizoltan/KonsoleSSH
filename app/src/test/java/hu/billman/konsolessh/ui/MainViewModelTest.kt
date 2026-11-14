@@ -42,6 +42,8 @@ class MainViewModelTest {
     private val settings = object : SettingsRepository {
         override val fontSizeSp = flowOf(0f)
         override suspend fun setFontSizeSp(value: Float) = Unit
+        override val syncOfferDismissed = flowOf(false)
+        override suspend fun dismissSyncOffer() = Unit
     }
     private var latestReport: File? = null
     private val reports = object : ProblemReports {

@@ -188,4 +188,35 @@
         <item quantity="few">%1$d conexiuni SSH active</item>
         <item quantity="other">%1$d de conexiuni SSH active</item>
     </plurals>
+    <!-- Google Drive sync -->
+    <string name="menu_sync">Sincronizare Google Drive</string>
+    <string name="sync_intro">Conexiunile salvate, cu parolele și cheile lor, și cheile de host acceptate se pot sincroniza între dispozitivele tale printr-un dosar ascuns din propriul tău Google Drive. Sunt criptate cu o frază de acces pe care o știi doar tu, așa că Google nu le poate citi.</string>
+    <string name="sync_connect">Conectează Google Drive</string>
+    <string name="sync_checking">Se caută o copie de rezervă în Google Drive…</string>
+    <string name="sync_found">S-a găsit o copie de rezervă în Google Drive. Introdu fraza ei de sincronizare pentru a o restaura pe acest dispozitiv.</string>
+    <string name="sync_new">Încă nu există nicio copie. Alege o frază de sincronizare: vei avea nevoie de ea pe celelalte dispozitive. Dacă o pierzi, copia din Drive nu mai poate fi deschisă.</string>
+    <string name="sync_passphrase">Frază de sincronizare</string>
+    <string name="sync_passphrase_repeat">Repetă fraza</string>
+    <string name="sync_restore">Restaurează</string>
+    <string name="sync_start">Pornește sincronizarea</string>
+    <string name="sync_working">Criptare și sincronizare…</string>
+    <string name="sync_last">Ultima sincronizare: %1$s</string>
+    <string name="sync_never">Nesincronizat încă</string>
+    <string name="sync_syncing">Se sincronizează…</string>
+    <string name="sync_now">Sincronizează acum</string>
+    <string name="sync_turn_off">Dezactivează pe acest dispozitiv</string>
+    <string name="sync_turn_off_note">Conexiunile rămân pe acest dispozitiv și în Drive.</string>
+    <string name="sync_grant">Acordă acces</string>
+    <string name="sync_err_consent">Google are nevoie de permisiunea ta pentru a folosi Drive.</string>
+    <string name="sync_err_not_configured">Accesul la Google Drive nu este configurat pentru această versiune a aplicației.</string>
+    <string name="sync_err_network">Google Drive nu poate fi accesat. Verifică conexiunea și încearcă din nou.</string>
+    <string name="sync_err_wrong_passphrase">Această frază nu deschide copia.</string>
+    <string name="sync_err_passphrase_changed">Fraza copiei a fost schimbată pe alt dispozitiv. Dezactivează aici sincronizarea și activeaz-o din nou cu fraza nouă.</string>
+    <string name="sync_err_newer">Copia a fost scrisă de o versiune mai nouă a KonsoleSSH. Actualizează aplicația.</string>
+    <string name="sync_err_store">Conexiunile salvate pe acest dispozitiv nu pot fi citite.</string>
+    <string name="sync_err_mismatch">Cele două fraze diferă.</string>
+    <string name="sync_err_short">Folosește cel puțin 8 caractere.</string>
+    <string name="sync_offer_title">Restaurezi din Google Drive?</string>
+    <string name="sync_offer_text">Dacă ai folosit KonsoleSSH cu sincronizare Google Drive pe alt dispozitiv, conexiunile tale pot fi restaurate aici.</string>
+    <string name="sync_offer_later">Nu acum</string>
 </resources>

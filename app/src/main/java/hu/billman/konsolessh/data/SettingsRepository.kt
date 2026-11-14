@@ -7,6 +7,7 @@ import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.SharedPreferencesMigration
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.floatPreferencesKey
@@ -25,19 +26,33 @@ interface SettingsRepository {
     val fontSizeSp: Flow<Float>
 
     suspend fun setFontSizeSp(value: Float)
+
+    /** The user declined the first-start offer to restore from Google Drive. */
+    val syncOfferDismissed: Flow<Boolean>
+
+    suspend fun dismissSyncOffer()
 }
 
 class DataStoreSettingsRepository(private val store: DataStore<Preferences>) : SettingsRepository {
 
-    override val fontSizeSp: Flow<Float> = store.data
-        // An unreadable settings file must not take the terminal down: fall back to defaults.
-        .catch { e ->
-            if (e !is IOException) throw e
-            Log.w(TAG, "settings unreadable", e)
-            emit(emptyPreferences())
+    // An unreadable settings file must not take the app down: fall back to defaults.
+    private val prefs: Flow<Preferences> = store.data.catch { e ->
+        if (e !is IOException) throw e
+        Log.w(TAG, "settings unreadable", e)
+        emit(emptyPreferences())
+    }
+
+    override val fontSizeSp: Flow<Float> = prefs.map { it[FONT_SIZE] ?: 0f }.distinctUntilChanged()
+
+    override val syncOfferDismissed: Flow<Boolean> = prefs.map { it[SYNC_OFFER_DISMISSED] ?: false }.distinctUntilChanged()
+
+    override suspend fun dismissSyncOffer() {
+        try {
+            store.edit { it[SYNC_OFFER_DISMISSED] = true }
+        } catch (e: IOException) {
+            Log.w(TAG, "sync offer choice not saved", e)
         }
-        .map { it[FONT_SIZE] ?: 0f }
-        .distinctUntilChanged()
+    }
 
     override suspend fun setFontSizeSp(value: Float) {
         // Losing a font size is better than crashing on a full or broken disk.
@@ -55,6 +70,7 @@ class DataStoreSettingsRepository(private val store: DataStore<Preferences>) : S
         /** Versions up to 1.1.30 kept the settings in SharedPreferences under this name. */
         internal const val LEGACY_PREFS_NAME = "settings"
         private val FONT_SIZE = floatPreferencesKey("font_size")
+        private val SYNC_OFFER_DISMISSED = booleanPreferencesKey("sync_offer_dismissed")
 
         /**
          * The app's settings store. Only one may exist per process. On first use the

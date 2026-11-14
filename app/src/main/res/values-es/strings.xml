@@ -188,4 +188,35 @@
         <item quantity="many">%1$d conexiones SSH activas</item>
         <item quantity="other">%1$d conexiones SSH activas</item>
     </plurals>
+    <!-- Google Drive sync -->
+    <string name="menu_sync">Sincronización con Google Drive</string>
+    <string name="sync_intro">Tus conexiones guardadas, con sus contraseñas y claves, y las host keys aceptadas pueden sincronizarse entre tus dispositivos a través de una carpeta oculta de tu propio Google Drive. Se cifran con una frase de contraseña que solo tú conoces, así que Google no puede leerlas.</string>
+    <string name="sync_connect">Conectar Google Drive</string>
+    <string name="sync_checking">Buscando una copia en tu Google Drive…</string>
+    <string name="sync_found">Se encontró una copia en tu Google Drive. Introduce su frase de sincronización para restaurarla en este dispositivo.</string>
+    <string name="sync_new">Todavía no hay copia. Elige una frase de sincronización: la necesitarás en tus otros dispositivos. Si la pierdes, la copia de Drive no se podrá abrir.</string>
+    <string name="sync_passphrase">Frase de sincronización</string>
+    <string name="sync_passphrase_repeat">Repite la frase</string>
+    <string name="sync_restore">Restaurar</string>
+    <string name="sync_start">Iniciar sincronización</string>
+    <string name="sync_working">Cifrando y sincronizando…</string>
+    <string name="sync_last">Última sincronización: %1$s</string>
+    <string name="sync_never">Aún no sincronizado</string>
+    <string name="sync_syncing">Sincronizando…</string>
+    <string name="sync_now">Sincronizar ahora</string>
+    <string name="sync_turn_off">Desactivar en este dispositivo</string>
+    <string name="sync_turn_off_note">Tus conexiones se quedan en este dispositivo y en Drive.</string>
+    <string name="sync_grant">Conceder acceso</string>
+    <string name="sync_err_consent">Google necesita tu permiso para usar Drive.</string>
+    <string name="sync_err_not_configured">El acceso a Google Drive no está configurado en esta compilación de la app.</string>
+    <string name="sync_err_network">No se pudo acceder a Google Drive. Comprueba la conexión y vuelve a intentarlo.</string>
+    <string name="sync_err_wrong_passphrase">Esta frase no abre la copia.</string>
+    <string name="sync_err_passphrase_changed">La frase de la copia se cambió en otro dispositivo. Desactiva aquí la sincronización y vuelve a activarla con la frase nueva.</string>
+    <string name="sync_err_newer">La copia la escribió una versión más reciente de KonsoleSSH. Actualiza la app.</string>
+    <string name="sync_err_store">No se pueden leer las conexiones guardadas en este dispositivo.</string>
+    <string name="sync_err_mismatch">Las dos frases no coinciden.</string>
+    <string name="sync_err_short">Usa al menos 8 caracteres.</string>
+    <string name="sync_offer_title">¿Restaurar desde Google Drive?</string>
+    <string name="sync_offer_text">Si usaste KonsoleSSH con la sincronización de Google Drive en otro dispositivo, puedes restaurar aquí tus conexiones.</string>
+    <string name="sync_offer_later">Ahora no</string>
 </resources>

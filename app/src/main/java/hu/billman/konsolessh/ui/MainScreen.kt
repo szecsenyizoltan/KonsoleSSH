@@ -123,6 +123,7 @@ private fun TopBar(actions: MainScreenActions) {
                 listOf(
                     R.string.close_tab to actions.onCloseCurrentTab,
                     R.string.manage_connections to actions.onManageConnections,
+                    R.string.menu_sync to actions.onSync,
                     R.string.action_language to actions.onLanguage,
                     R.string.menu_problem_report to actions.onProblemReport,
                     R.string.menu_privacy_policy to actions.onPrivacyPolicy,

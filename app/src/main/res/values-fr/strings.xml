@@ -188,4 +188,35 @@
         <item quantity="many">%1$d connexions SSH actives</item>
         <item quantity="other">%1$d connexions SSH actives</item>
     </plurals>
+    <!-- Google Drive sync -->
+    <string name="menu_sync">Synchronisation Google Drive</string>
+    <string name="sync_intro">Vos connexions enregistrées, avec leurs mots de passe et clés, et les host keys acceptées peuvent se synchroniser entre vos appareils via un dossier caché de votre propre Google Drive. Elles sont chiffrées avec une phrase secrète que vous seul connaissez : Google ne peut pas les lire.</string>
+    <string name="sync_connect">Connecter Google Drive</string>
+    <string name="sync_checking">Recherche d\'une sauvegarde dans votre Google Drive…</string>
+    <string name="sync_found">Une sauvegarde a été trouvée dans votre Google Drive. Saisissez sa phrase de synchronisation pour la restaurer sur cet appareil.</string>
+    <string name="sync_new">Il n\'y a pas encore de sauvegarde. Choisissez une phrase de synchronisation : vous en aurez besoin sur vos autres appareils. Si vous la perdez, la copie dans Drive ne pourra plus être ouverte.</string>
+    <string name="sync_passphrase">Phrase de synchronisation</string>
+    <string name="sync_passphrase_repeat">Répétez la phrase</string>
+    <string name="sync_restore">Restaurer</string>
+    <string name="sync_start">Démarrer la synchronisation</string>
+    <string name="sync_working">Chiffrement et synchronisation…</string>
+    <string name="sync_last">Dernière synchronisation : %1$s</string>
+    <string name="sync_never">Pas encore synchronisé</string>
+    <string name="sync_syncing">Synchronisation…</string>
+    <string name="sync_now">Synchroniser maintenant</string>
+    <string name="sync_turn_off">Désactiver sur cet appareil</string>
+    <string name="sync_turn_off_note">Vos connexions restent sur cet appareil et dans Drive.</string>
+    <string name="sync_grant">Autoriser l\'accès</string>
+    <string name="sync_err_consent">Google a besoin de votre autorisation pour utiliser Drive.</string>
+    <string name="sync_err_not_configured">L\'accès à Google Drive n\'est pas configuré pour cette version de l\'app.</string>
+    <string name="sync_err_network">Google Drive est injoignable. Vérifiez la connexion et réessayez.</string>
+    <string name="sync_err_wrong_passphrase">Cette phrase n\'ouvre pas la sauvegarde.</string>
+    <string name="sync_err_passphrase_changed">La phrase de la sauvegarde a été changée sur un autre appareil. Désactivez la synchronisation ici, puis réactivez-la avec la nouvelle phrase.</string>
+    <string name="sync_err_newer">La sauvegarde a été écrite par une version plus récente de KonsoleSSH. Mettez l\'app à jour.</string>
+    <string name="sync_err_store">Les connexions enregistrées sur cet appareil sont illisibles.</string>
+    <string name="sync_err_mismatch">Les deux phrases sont différentes.</string>
+    <string name="sync_err_short">Utilisez au moins 8 caractères.</string>
+    <string name="sync_offer_title">Restaurer depuis Google Drive ?</string>
+    <string name="sync_offer_text">Si vous avez utilisé KonsoleSSH avec la synchronisation Google Drive sur un autre appareil, vos connexions peuvent être restaurées ici.</string>
+    <string name="sync_offer_later">Pas maintenant</string>
 </resources>

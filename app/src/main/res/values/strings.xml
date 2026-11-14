@@ -204,4 +204,35 @@
         <item quantity="one">%1$d active SSH connection</item>
         <item quantity="other">%1$d active SSH connections</item>
     </plurals>
+    <!-- Google Drive sync -->
+    <string name="menu_sync">Google Drive sync</string>
+    <string name="sync_intro">Your saved connections, with their passwords and keys, and the accepted host keys can sync between your devices through a hidden folder in your own Google Drive. They are encrypted with a passphrase only you know, so Google cannot read them.</string>
+    <string name="sync_connect">Connect Google Drive</string>
+    <string name="sync_checking">Looking for a backup in your Google Drive…</string>
+    <string name="sync_found">A backup was found in your Google Drive. Enter its sync passphrase to restore it on this device.</string>
+    <string name="sync_new">There is no backup yet. Choose a sync passphrase: you will need it on your other devices. If you lose it, the copy in Drive cannot be opened.</string>
+    <string name="sync_passphrase">Sync passphrase</string>
+    <string name="sync_passphrase_repeat">Passphrase again</string>
+    <string name="sync_restore">Restore</string>
+    <string name="sync_start">Start sync</string>
+    <string name="sync_working">Encrypting and syncing…</string>
+    <string name="sync_last">Last sync: %1$s</string>
+    <string name="sync_never">Not synced yet</string>
+    <string name="sync_syncing">Syncing…</string>
+    <string name="sync_now">Sync now</string>
+    <string name="sync_turn_off">Turn off on this device</string>
+    <string name="sync_turn_off_note">Your connections stay on this device and in Drive.</string>
+    <string name="sync_grant">Grant access</string>
+    <string name="sync_err_consent">Google needs your permission to use Drive.</string>
+    <string name="sync_err_not_configured">Google Drive access is not set up for this build of the app.</string>
+    <string name="sync_err_network">Google Drive could not be reached. Check the connection and try again.</string>
+    <string name="sync_err_wrong_passphrase">This passphrase does not open the backup.</string>
+    <string name="sync_err_passphrase_changed">The backup\'s passphrase was changed on another device. Turn sync off here and on again with the new passphrase.</string>
+    <string name="sync_err_newer">The backup was written by a newer version of KonsoleSSH. Update the app.</string>
+    <string name="sync_err_store">The saved connections on this device cannot be read.</string>
+    <string name="sync_err_mismatch">The two passphrases differ.</string>
+    <string name="sync_err_short">Use at least 8 characters.</string>
+    <string name="sync_offer_title">Restore from Google Drive?</string>
+    <string name="sync_offer_text">If you used KonsoleSSH with Google Drive sync on another device, your connections can be restored here.</string>
+    <string name="sync_offer_later">Not now</string>
 </resources>

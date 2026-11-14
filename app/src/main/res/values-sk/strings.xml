@@ -191,4 +191,35 @@
         <item quantity="many">%1$d aktívnych SSH pripojení</item>
         <item quantity="other">%1$d aktívnych SSH pripojení</item>
     </plurals>
+    <!-- Google Drive sync -->
+    <string name="menu_sync">Synchronizácia cez Google Drive</string>
+    <string name="sync_intro">Uložené pripojenia s heslami a kľúčmi a prijaté host kľúče sa môžu synchronizovať medzi vašimi zariadeniami cez skrytý priečinok vo vašom vlastnom Google Drive. Sú šifrované heslom, ktoré poznáte len vy, takže ich Google nemôže čítať.</string>
+    <string name="sync_connect">Pripojiť Google Drive</string>
+    <string name="sync_checking">Hľadá sa záloha vo vašom Google Drive…</string>
+    <string name="sync_found">Vo vašom Google Drive sa našla záloha. Zadajte jej synchronizačné heslo a obnovte ju v tomto zariadení.</string>
+    <string name="sync_new">Zatiaľ neexistuje žiadna záloha. Zvoľte synchronizačné heslo: budete ho potrebovať aj v ďalších zariadeniach. Ak ho stratíte, kópiu v Drive nebude možné otvoriť.</string>
+    <string name="sync_passphrase">Synchronizačné heslo</string>
+    <string name="sync_passphrase_repeat">Heslo ešte raz</string>
+    <string name="sync_restore">Obnoviť</string>
+    <string name="sync_start">Spustiť synchronizáciu</string>
+    <string name="sync_working">Šifrovanie a synchronizácia…</string>
+    <string name="sync_last">Posledná synchronizácia: %1$s</string>
+    <string name="sync_never">Zatiaľ nesynchronizované</string>
+    <string name="sync_syncing">Synchronizuje sa…</string>
+    <string name="sync_now">Synchronizovať teraz</string>
+    <string name="sync_turn_off">Vypnúť v tomto zariadení</string>
+    <string name="sync_turn_off_note">Vaše pripojenia zostanú v tomto zariadení aj v Drive.</string>
+    <string name="sync_grant">Povoliť prístup</string>
+    <string name="sync_err_consent">Google potrebuje vaše povolenie na použitie Drive.</string>
+    <string name="sync_err_not_configured">Prístup ku Google Drive nie je v tejto zostave aplikácie nastavený.</string>
+    <string name="sync_err_network">Google Drive je nedostupný. Skontrolujte pripojenie a skúste to znova.</string>
+    <string name="sync_err_wrong_passphrase">Toto heslo zálohu neotvorí.</string>
+    <string name="sync_err_passphrase_changed">Heslo zálohy sa zmenilo v inom zariadení. Vypnite tu synchronizáciu a znova ju zapnite s novým heslom.</string>
+    <string name="sync_err_newer">Zálohu zapísala novšia verzia KonsoleSSH. Aktualizujte aplikáciu.</string>
+    <string name="sync_err_store">Uložené pripojenia v tomto zariadení sa nedajú prečítať.</string>
+    <string name="sync_err_mismatch">Heslá sa líšia.</string>
+    <string name="sync_err_short">Použite aspoň 8 znakov.</string>
+    <string name="sync_offer_title">Obnoviť z Google Drive?</string>
+    <string name="sync_offer_text">Ak ste KonsoleSSH používali so synchronizáciou cez Google Drive v inom zariadení, vaše pripojenia sa dajú obnoviť aj tu.</string>
+    <string name="sync_offer_later">Teraz nie</string>
 </resources>

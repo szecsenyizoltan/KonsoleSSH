@@ -185,4 +185,35 @@
         <item quantity="one">%1$d aktive SSH-Verbindung</item>
         <item quantity="other">%1$d aktive SSH-Verbindungen</item>
     </plurals>
+    <!-- Google Drive sync -->
+    <string name="menu_sync">Google-Drive-Synchronisierung</string>
+    <string name="sync_intro">Deine gespeicherten Verbindungen mit Passwörtern und Schlüsseln sowie die akzeptierten Host-Keys lassen sich über einen versteckten Ordner in deinem eigenen Google Drive zwischen deinen Geräten synchronisieren. Sie sind mit einer Passphrase verschlüsselt, die nur du kennst, daher kann Google sie nicht lesen.</string>
+    <string name="sync_connect">Google Drive verbinden</string>
+    <string name="sync_checking">Suche nach einer Sicherung in deinem Google Drive…</string>
+    <string name="sync_found">In deinem Google Drive wurde eine Sicherung gefunden. Gib ihre Sync-Passphrase ein, um sie auf diesem Gerät wiederherzustellen.</string>
+    <string name="sync_new">Es gibt noch keine Sicherung. Wähle eine Sync-Passphrase: Du brauchst sie auf deinen anderen Geräten. Geht sie verloren, lässt sich die Kopie in Drive nicht mehr öffnen.</string>
+    <string name="sync_passphrase">Sync-Passphrase</string>
+    <string name="sync_passphrase_repeat">Passphrase wiederholen</string>
+    <string name="sync_restore">Wiederherstellen</string>
+    <string name="sync_start">Synchronisierung starten</string>
+    <string name="sync_working">Verschlüsseln und synchronisieren…</string>
+    <string name="sync_last">Letzte Synchronisierung: %1$s</string>
+    <string name="sync_never">Noch nicht synchronisiert</string>
+    <string name="sync_syncing">Synchronisiere…</string>
+    <string name="sync_now">Jetzt synchronisieren</string>
+    <string name="sync_turn_off">Auf diesem Gerät ausschalten</string>
+    <string name="sync_turn_off_note">Deine Verbindungen bleiben auf diesem Gerät und in Drive erhalten.</string>
+    <string name="sync_grant">Zugriff erlauben</string>
+    <string name="sync_err_consent">Google braucht deine Erlaubnis, um Drive zu verwenden.</string>
+    <string name="sync_err_not_configured">Der Google-Drive-Zugriff ist für diesen Build der App nicht eingerichtet.</string>
+    <string name="sync_err_network">Google Drive ist nicht erreichbar. Prüfe die Verbindung und versuche es erneut.</string>
+    <string name="sync_err_wrong_passphrase">Diese Passphrase öffnet die Sicherung nicht.</string>
+    <string name="sync_err_passphrase_changed">Die Passphrase der Sicherung wurde auf einem anderen Gerät geändert. Schalte die Synchronisierung hier aus und mit der neuen Passphrase wieder ein.</string>
+    <string name="sync_err_newer">Die Sicherung wurde von einer neueren Version von KonsoleSSH geschrieben. Aktualisiere die App.</string>
+    <string name="sync_err_store">Die gespeicherten Verbindungen auf diesem Gerät können nicht gelesen werden.</string>
+    <string name="sync_err_mismatch">Die beiden Passphrasen unterscheiden sich.</string>
+    <string name="sync_err_short">Verwende mindestens 8 Zeichen.</string>
+    <string name="sync_offer_title">Aus Google Drive wiederherstellen?</string>
+    <string name="sync_offer_text">Wenn du KonsoleSSH auf einem anderen Gerät mit Google-Drive-Synchronisierung verwendet hast, lassen sich deine Verbindungen hier wiederherstellen.</string>
+    <string name="sync_offer_later">Nicht jetzt</string>
 </resources>

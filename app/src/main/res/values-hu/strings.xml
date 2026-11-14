@@ -185,4 +185,35 @@
         <item quantity="one">%1$d aktív SSH kapcsolat</item>
         <item quantity="other">%1$d aktív SSH kapcsolat</item>
     </plurals>
+    <!-- Google Drive sync -->
+    <string name="menu_sync">Google Drive szinkron</string>
+    <string name="sync_intro">A mentett kapcsolatok a jelszavaikkal és kulcsaikkal, valamint az elfogadott host keyek szinkronizálhatók az eszközeid között a saját Google Drive-od egy rejtett mappáján keresztül. Egy csak általad ismert jelszóval vannak titkosítva, így a Google nem tudja olvasni őket.</string>
+    <string name="sync_connect">Google Drive csatlakoztatása</string>
+    <string name="sync_checking">Mentés keresése a Google Drive-on…</string>
+    <string name="sync_found">Találtunk mentést a Google Drive-on. Add meg a szinkronjelszavát, hogy ezen az eszközön visszaállítsd.</string>
+    <string name="sync_new">Még nincs mentés. Válassz szinkronjelszót: a többi eszközödön is szükség lesz rá. Ha elveszíted, a Drive-on lévő példány nem nyitható meg.</string>
+    <string name="sync_passphrase">Szinkronjelszó</string>
+    <string name="sync_passphrase_repeat">Jelszó még egyszer</string>
+    <string name="sync_restore">Visszaállítás</string>
+    <string name="sync_start">Szinkron indítása</string>
+    <string name="sync_working">Titkosítás és szinkronizálás…</string>
+    <string name="sync_last">Utolsó szinkron: %1$s</string>
+    <string name="sync_never">Még nem volt szinkron</string>
+    <string name="sync_syncing">Szinkronizálás…</string>
+    <string name="sync_now">Szinkronizálás most</string>
+    <string name="sync_turn_off">Kikapcsolás ezen az eszközön</string>
+    <string name="sync_turn_off_note">A kapcsolataid megmaradnak ezen az eszközön és a Drive-on is.</string>
+    <string name="sync_grant">Hozzáférés megadása</string>
+    <string name="sync_err_consent">A Google-nek engedély kell a Drive használatához.</string>
+    <string name="sync_err_not_configured">Az alkalmazás ezen buildjében nincs beállítva a Google Drive-hozzáférés.</string>
+    <string name="sync_err_network">A Google Drive nem érhető el. Ellenőrizd a kapcsolatot, és próbáld újra.</string>
+    <string name="sync_err_wrong_passphrase">Ez a jelszó nem nyitja meg a mentést.</string>
+    <string name="sync_err_passphrase_changed">A mentés jelszavát egy másik eszközön megváltoztatták. Kapcsold ki itt a szinkront, majd kapcsold be újra az új jelszóval.</string>
+    <string name="sync_err_newer">A mentést a KonsoleSSH egy újabb verziója írta. Frissítsd az alkalmazást.</string>
+    <string name="sync_err_store">Az eszközön mentett kapcsolatok nem olvashatók.</string>
+    <string name="sync_err_mismatch">A két jelszó eltér.</string>
+    <string name="sync_err_short">Legalább 8 karakter legyen.</string>
+    <string name="sync_offer_title">Visszaállítás a Google Drive-ról?</string>
+    <string name="sync_offer_text">Ha egy másik eszközön Google Drive szinkronnal használtad a KonsoleSSH-t, a kapcsolataid itt visszaállíthatók.</string>
+    <string name="sync_offer_later">Most nem</string>
 </resources>

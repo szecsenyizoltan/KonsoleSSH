@@ -19,28 +19,6 @@ import java.nio.file.Files
 /** Two devices syncing through one shared, in-memory Drive file. */
 class SyncManagerTest {
 
-    private class MemoryDrive : SyncFileStore {
-        var content: String? = null
-        var writes = 0
-
-        override suspend fun read() = content
-
-        override suspend fun write(content: String) {
-            this.content = content
-            writes++
-        }
-    }
-
-    private class MemoryKeys : SyncKeyStorage {
-        var key: SyncKey? = null
-
-        override suspend fun load() = key
-
-        override suspend fun save(key: SyncKey?) {
-            this.key = key
-        }
-    }
-
     private inner class Device {
         val repo = FakeConnectionRepository(clock = { now })
         val hostKeys = HostKeyStore(File(Files.createTempDirectory("sync").toFile(), "known_hosts"), clock = { now })

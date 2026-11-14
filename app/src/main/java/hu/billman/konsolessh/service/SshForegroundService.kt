@@ -24,11 +24,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 
 /**
- * Életben tartja a folyamatot, amíg van kapcsolódó vagy kapcsolódott fül, és az
- * aktív kapcsolatok számát mutatja az értesítésben. Ha egy sem maradt, leáll
- * magától; a felület indítja újra, amikor ismét kapcsolódik valami. A
- * munkameneteket nem ő birtokolja: azok a
- * [hu.billman.konsolessh.session.SessionManager]-ben élnek.
+ * Keeps the process alive while a tab is connecting or connected, and shows
+ * the number of active connections in its notification. When none is left
+ * it stops itself; the UI starts it again when something connects. It does
+ * not own the sessions: they live in the
+ * [hu.billman.konsolessh.session.SessionManager].
  */
 class SshForegroundService : Service() {
 

@@ -21,21 +21,21 @@ import kotlinx.coroutines.SupervisorJob
 import java.io.File
 
 /**
- * Manuális dependency-gráf (composition root). Egyetlen példány él az
- * Application alatt; az osztályok konstruktoron kapják a függőségeiket, a
- * konténert csak az Android által példányosított komponensek (Activity,
- * Service, ViewModel-factory) érik el, egy ponton.
+ * The hand-written dependency graph (composition root). One instance lives
+ * in the Application. Classes get their dependencies through their
+ * constructors; only the components Android instantiates (activities, the
+ * service, the ViewModel factory) reach the container, each at one point.
  */
 class AppContainer(
     context: Context,
-    /** Instrumentált tesztekhez: hálózat nélküli munkamenetek. */
+    /** For instrumented tests: sessions without a network. */
     sessionFactoryOverride: TerminalSessionFactory? = null,
     problemReportsOverride: ProblemReports? = null,
 ) {
 
     private val appContext: Context = context.applicationContext
 
-    /** A munkamenetek az alkalmazással élnek, nem egy Activity-vel. */
+    /** The sessions live as long as the application, not as long as an activity. */
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     // Lazy, so the Keystore is not touched before first use (tests, Robolectric).
@@ -60,7 +60,7 @@ class AppContainer(
     private val androidProblemReports by lazy { AndroidProblemReports(appContext) }
     val problemReports: ProblemReports = problemReportsOverride ?: androidProblemReports
 
-    /** Ide írja a nem kezelt kivételt a [hu.billman.konsolessh.diagnostics.CrashRecorder]. */
+    /** Where the [hu.billman.konsolessh.diagnostics.CrashRecorder] writes an uncaught exception. */
     val crashFile: File get() = androidProblemReports.crashFile
 
     private val terminalMessages: TerminalMessages by lazy { AndroidTerminalMessages(appContext) }

@@ -3,12 +3,10 @@ package hu.billman.konsolessh
 import hu.billman.konsolessh.diagnostics.CrashRecorder
 
 /**
- * Application-alosztály az [AppContainer] (manuális dependency-gráf)
- * konstrukciójához.
+ * Creates the [AppContainer], the hand-written dependency graph.
  *
- * A Hilt-bevezetés helyett szándékosan egy "Now in Android"-szerű vékony
- * manuális container-pattern — ennyi komplexitású projektnél a hordozott
- * annotation-processing egyáltalán nem indokolt.
+ * Manual DI instead of Hilt is deliberate: for an app of this size, an
+ * annotation processor and its build cost buy nothing.
  */
 open class KonsoleApplication : android.app.Application() {
 
@@ -21,6 +19,6 @@ open class KonsoleApplication : android.app.Application() {
         CrashRecorder.install(container.crashFile)
     }
 
-    /** Az instrumentált tesztek itt cserélnek függőséget (hamis munkamenetek). */
+    /** Instrumented tests replace dependencies here, e.g. with fake sessions. */
     protected open fun createContainer(): AppContainer = AppContainer(this)
 }

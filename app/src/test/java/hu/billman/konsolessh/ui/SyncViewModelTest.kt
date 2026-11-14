@@ -4,6 +4,9 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import androidx.test.core.app.ApplicationProvider
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.common.api.CommonStatusCodes
+import com.google.android.gms.common.api.Status
 import hu.billman.konsolessh.data.FakeConnectionRepository
 import hu.billman.konsolessh.data.SettingsRepository
 import hu.billman.konsolessh.model.ConnectionConfig
@@ -120,6 +123,22 @@ class SyncViewModelTest {
         drive.failure = null
         vm.onConsentResult(granted = true)
         vm.awaitStep(Step.CREATE)
+    }
+
+    @Test
+    fun `a consent screen that fails, rather than being closed, means sync is not set up`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val intent = PendingIntent.getActivity(context, 0, Intent(), PendingIntent.FLAG_IMMUTABLE)
+        drive.failure = DriveAuthorizer.ConsentNeededException(intent)
+        val vm = vm()
+
+        vm.connect()
+        vm.onConsentResult(granted = false, failure = ApiException(Status(CommonStatusCodes.CANCELED)))
+        assertEquals(Problem.CONSENT, vm.state.value.problem)
+
+        vm.connect()
+        vm.onConsentResult(granted = false, failure = ApiException(Status(CommonStatusCodes.DEVELOPER_ERROR)))
+        assertEquals(Problem.NOT_CONFIGURED, vm.state.value.problem)
     }
 
     @Test

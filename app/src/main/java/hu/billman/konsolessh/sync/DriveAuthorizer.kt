@@ -2,9 +2,11 @@ package hu.billman.konsolessh.sync
 
 import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import com.google.android.gms.auth.api.identity.AuthorizationRequest
 import com.google.android.gms.auth.api.identity.ClearTokenRequest
 import com.google.android.gms.auth.api.identity.Identity
+import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.Scope
 import com.google.android.gms.tasks.Task
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -41,9 +43,17 @@ class DriveAuthorizer(context: Context) {
         client.clearToken(ClearTokenRequest.builder().setToken(token).build()).await()
     }
 
-    /** The result of the consent screen, as the activity received it. */
-    fun tokenFrom(data: android.content.Intent?): String? =
-        runCatching { client.getAuthorizationResultFromIntent(data).accessToken }.getOrNull()
+    /**
+     * Why the consent screen ended without access, from the result the
+     * activity received; null if it did not fail. A client that is not
+     * registered for this app and signing key fails here, not earlier.
+     */
+    fun failureFrom(data: Intent?): ApiException? = try {
+        client.getAuthorizationResultFromIntent(data)
+        null
+    } catch (e: ApiException) {
+        e
+    }
 }
 
 private suspend fun <T> Task<T>.await(): T = suspendCancellableCoroutine { cont ->

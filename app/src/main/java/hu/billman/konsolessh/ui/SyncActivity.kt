@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import hu.billman.konsolessh.AppContainer
 import hu.billman.konsolessh.ui.theme.KonsoleTheme
 
 /**
@@ -37,7 +38,12 @@ class SyncActivity : AppCompatActivity() {
                 // Google's own consent screen; the action that needed it runs again once granted.
                 val consentLauncher = rememberLauncherForActivityResult(
                     ActivityResultContracts.StartIntentSenderForResult(),
-                ) { result -> viewModel.onConsentResult(result.resultCode == Activity.RESULT_OK) }
+                ) { result ->
+                    val granted = result.resultCode == Activity.RESULT_OK
+                    val authorizer = AppContainer.from(this).driveAuthorizer
+                    val failure = if (granted) null else authorizer.failureFrom(result.data)
+                    viewModel.onConsentResult(granted, failure)
+                }
                 LaunchedEffect(consent) {
                     consent?.let {
                         viewModel.onConsentShown()

@@ -127,10 +127,19 @@ class SyncViewModel(
         _consent.value = null
     }
 
-    fun onConsentResult(granted: Boolean) {
+    /**
+     * Google's consent screen closed. Granted, the action that needed it runs
+     * again. Closed by the user, the consent problem stays; failed for any
+     * other reason, such as an OAuth client missing for this signing key,
+     * sync is not set up for this build.
+     */
+    fun onConsentResult(granted: Boolean, failure: ApiException? = null) {
         val retry = afterConsent
         afterConsent = null
-        if (granted) retry?.invoke()
+        when {
+            granted -> retry?.invoke()
+            failure != null && failure.statusCode != CommonStatusCodes.CANCELED -> problem.value = Problem.NOT_CONFIGURED
+        }
     }
 
     private fun run(joining: Boolean, onFailure: () -> Unit = {}, block: suspend () -> Unit) {

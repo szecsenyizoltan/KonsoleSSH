@@ -1,370 +1,136 @@
 # KonsoleSSH
 
-SSH-Terminal mit mehreren Tabs für Android — inspiriert von KDE Konsole.
+SSH-Terminal mit mehreren Tabs für Android, nach dem Vorbild von KDE Konsole.
 
 > **Sprache:** Deutsch · [English](README.md) · [Magyar](README.hu.md) · [Español](README.es.md) · [Français](README.fr.md) · [Slovenčina](README.sk.md) · [Română](README.ro.md)
 
 ## Screenshots
 
-| Startbildschirm | Neue SSH-Verbindung |
+| Startseite | Neue SSH-Verbindung |
 | --- | --- |
-| ![Start](play_screenshot/Screenshot_20260422_094020.png) | ![Neue Verbindung](play_screenshot/Screenshot_20260422_094447.png) |
+| ![Startseite](play_screenshot/Screenshot_20260422_094020.png) | ![Neue Verbindung](play_screenshot/Screenshot_20260422_094447.png) |
 
-| Tmux-Referenz | Linux-Referenz |
+| Tmux-Spickzettel | Linux-Spickzettel |
 | --- | --- |
-| ![Tmux-Referenz](play_screenshot/Screenshot_20260422_094521.png) | ![Linux-Referenz](play_screenshot/Screenshot_20260422_094530.png) |
+| ![Tmux-Spickzettel](play_screenshot/Screenshot_20260422_094521.png) | ![Linux-Spickzettel](play_screenshot/Screenshot_20260422_094530.png) |
 
 ## Funktionen
 
-### Tabs und Navigation
+**Tabs**
+- Beliebig viele SSH-Sitzungen nebeneinander, jede in einem eigenen Tab; Wechsel per Wischen oder über die Tableiste.
+- Statuspunkt auf jedem Tab: verbindet, verbunden, getrennt; ein getrennter Tab bietet eine Schaltfläche zum erneuten Verbinden.
+- Langes Drücken benennt einen Tab um; vor dem Schließen eines verbundenen Tabs fragt die App nach.
+- Zuerst kommt die Startseite; nach dem letzten Tab folgen ein Linux- und ein tmux-Spickzettel.
 
-- **Multi-Tab-Oberfläche** — TabLayout + ViewPager2, jeder Tab besitzt eine eigene SSH-Sitzung, identifiziert über ein UUID-basiertes `TabInfo`
-- **Drei feste Seiten** — Startseite (Position 0), Linux-Referenz und Tmux-Referenz (die beiden letzten Plätze); die SSH-Tabs liegen dazwischen
-- **Statuspunkt an jedem Tab** — grün (CONNECTED), gelb (CONNECTING), rot (DISCONNECTED), ausgeblendet (NONE)
-- **Langes Drücken auf einen Tab** → Umbenennen-Dialog
-- **Tab-✕-Schaltfläche** — fordert bei aktiver Sitzung eine Bestätigung an; schließt bei getrennter Verbindung sofort
-- **Scrollen der Tab-Leiste** — sobald die Tabs überlaufen, erscheinen dezent pulsierende ◀/▶-Hinweisschaltflächen (ObjectAnimator ±8dp, 900 ms reverse infinite)
-- **Tab-Indikator-Höhe auf 0 dp** bei einem einzelnen Tab (weniger optisches Rauschen)
+**Verbindungen**
+- Gespeicherte Verbindungen als Baum: Namen mit gemeinsamem Präfix bis zum Unterstrich (`acme_prod_web`, `acme_prod_db`) werden gruppiert.
+- Anmeldung per Passwort oder privatem Schlüssel, einschließlich keyboard-interactive. Ein nicht gespeichertes Passwort wird beim Verbinden abgefragt.
+- Jump-Hosts, auch verkettet: ein Jump-Host kann selbst einen Jump-Host haben, bis zu 5 Stufen. Bei einer privaten Adresse schlägt das Formular einen vor.
+- Verbindungstest sowie Erzeugen eines RSA-Schlüssels und Hochladen des öffentlichen Teils in die `authorized_keys` des Servers.
+- Host-Key-Prüfung nach dem Prinzip „Trust on first use“: beim ersten Verbinden wird der SHA256-Fingerabdruck angezeigt, ein geänderter Schlüssel wird nur nach ausdrücklichem Ersetzen akzeptiert.
 
-### Tab-Auswahl / gespeicherte Verbindungen (`+`-Menü)
+**Terminal**
+- xterm-kompatible Emulation: 16, 256 und True Color, alternativer Bildschirm, Scrollbereich, Bracketed Paste, Anwendungs-Cursortasten, DEC-Liniengrafik, breite CJK- und Emoji-Zeichen. Abgeglichen mit tmux anhand aufgezeichneter bash-, vim-, less-, htop- und mc-Sitzungen.
+- 3000 Zeilen Scrollback; Textauswahl mit Kopieren und Einfügen; Zoom mit den Schaltflächen in der Tableiste, bleibt nach einem Neustart erhalten.
+- Hardware-Tastaturen funktionieren, einschließlich Funktionstasten, Pos1/Ende, Bild auf/ab und Umschalt+Bild auf/ab für den Scrollback.
 
-- **BottomSheetDialogFragment** — volle Höhe (STATE_EXPANDED, MATCH_PARENT)
-- **Aktive Tabs + Baum der gespeicherten Verbindungen**, übereinander angeordnet
-- **Baumgruppierung nach Unterstrich-Präfix** — `acme_prod_web`, `acme_prod_db` → Gruppe `acme_` → `prod_`; ein einzelnes Blatt wird nie gruppiert
-- **Tiefenabhängiges Padding** — `16dp + depth × 20dp`
-- **Der Aufklapp-Zustand überlebt das erneute Öffnen des Dialogs** (über ein Companion-Object gehalten)
-- **Icons** — Gruppe: 📁 / 📂 (geschlossen/offen), Blatt: ⚡
-- **Blatt-Zeilen** — `user@host:port` als Unterzeile, Bearbeiten + Löschen rechts
-- **Gruppen-Zeilen** — Anzahl der Blätter als Unterzeile, ▶/▼-Pfeil rechts
-- **Zuletzt verwendeter Benutzername** wird bei neuen Verbindungen vorausgefüllt
+**Tastenleiste**
+- Einrastende Strg-, Umschalt-, Alt- und AltGr-Tasten: ein Modifikator wirkt auf die nächste Taste und löst sich dann.
+- Esc, Tab, eine Funktionstastenzeile (F1–F12), eine Pfeiltastenzeile und eine Strg-Zeile (Strg+A…Z; Strg+C kopiert eine Auswahl, sonst unterbricht es).
+- Lädt eine Datei per SFTP ins entfernte Home-Verzeichnis hoch, mit Fortschrittsanzeige und für einige Sekunden rückgängig zu machen.
 
-### Neue Verbindung / Bearbeiten-Dialog
-
-- **Bearbeitungsmodus** — vollständiges `ConnectionConfig` wird per Gson serialisiert durch das Bundle gereicht und in die Felder zurückgeschrieben
-- **Auth-Umschalter** als RadioGroup: Passwort ↔ privater Schlüssel, das jeweils irrelevante Layout wird automatisch ausgeblendet
-- **Privater Schlüssel mit Dateiauswahl** (schreibgeschützte Vorschau), separates Passphrase-Feld
-- **`.pub`-Warnung** — Toast, falls versucht wird, den öffentlichen Teil des Schlüssels zu laden
-- **Schlüssel-Statuszeile** — PEM geladen / fehlgeschlagen / keiner
-- **Jump-Host-Spinner** — listet gespeicherte Verbindungen (ohne die eigene)
-- **Automatischer Jump-Vorschlag** — erkennt Private-IP-Präfixe (`10.`, `172.`, `192.`) und klappt den Jump-Abschnitt auf
-- **Validierung** — Host und Benutzername erforderlich; Port 1–65535, Standard 22
-
-### Verbindungs-Authentifizierung
-
-- **JSch (mwiede-Fork)** — Passwort, publickey oder beides kombiniert (`buildPreferredAuths`)
-- **Interaktive Passwortabfrage** — wenn keines gespeichert ist, erscheint ein `KonsoleDialog`-gestylter AlertDialog (weißer Text, transparenter Hintergrund)
-- **Keyboard-interactive Auth** — serverseitige Prompts laufen durch denselben Dialog
-- **30 s Prompt-Timeout** (CountDownLatch) — der aufrufende Thread wird sauber freigegeben, falls der Nutzer nicht antwortet
-- **Main-Thread-Schutz** — der Dialog erscheint stets auf dem UI-Thread (Handler post)
-- **Jump-Host-Kette** — im mwiede-Fork `setPortForwardingL(0, target_host, target_port)` auf einem zufälligen Port + zweite Session auf Loopback
-- **Jump-Fortschrittsmeldungen** werden ins Terminal geschrieben — `Jump: host:port → Connecting`, anschließend `Jump OK → Connecting: target:port`
-- **„Jump-Host nicht gefunden"-Fehler** — wenn die referenzierte Jump-Verbindungs-ID nicht mehr existiert
-
-### Terminal-Emulator (Canvas-basiert)
-
-**Rendering**
-
-- Eigenes `TerminalView`, pro Zelle `canvas.drawText`, Basis mindestens 80×24
-- Zellenfelder: Zeichen (String, Surrogate-Pair-fähig), Vorder-/Hintergrundfarbe, fett, unterstrichen, Reverse
-- **NerdFont mitgeliefert** (`assets/fonts/NerdFont.ttf`); fällt bei Asset-Fehler auf `Typeface.MONOSPACE` zurück
-- Schriftgrößenbereich 6 sp…40 sp; beim ersten Layout wird auf 80 Spalten automatisch skaliert
-- **Zoom +/−-Schaltflächen** in der Toolbar (`SharedPreferences("settings", "font_size")`), über Neustarts hinweg persistent
-- **Pro App** gespeicherte Schriftgröße (nicht pro Verbindung)
-- Unterstreichung per `drawLine` auf Höhe cellH-1
-- Cursor-Invertierung zur Zeichenzeit (fg↔bg)
-- **Cursor-Blinken** 600 ms on / 300 ms off
-
-**ANSI/VT-Zustandsautomat**
-
-- Zustände NORMAL / ESCAPE / CSI / OSC / DCS / CHARSET
-- SGR: 16 Basisfarben + 8 Bright + 256er-Cube + Truecolor (`38;2;r;g;b`), bold/underline/reverse + Resets
-- Cursor: A/B/C/D, H/f, G, E/F, s/u, ESC 7/8 (DEC-Legacy)
-- Erase: J, K, X, L/M (Zeilen einfügen/löschen), P/@ (Zeichen)
-- **Scroll-Region** — r, S/T (nach oben/unten scrollen)
-- **Alt-Screen** — 47 / 1049 Umschalter (vi, top, less, mc sichern und stellen den Bildschirm wieder her)
-- **DECCKM App-Cursor-Modus** — `ESC[A/B/C/D` ↔ `ESC O A/B/C/D`
-- **Bracketed-Paste-Modus** (2004) — eingefügter Text wird in `ESC[200~ … ESC[201~` eingepackt
-
-**Textauswahl**
-
-- **Langes Drücken 400 ms** → startet die Auswahl, schwebender `ActionMode` (Kopieren/Einfügen)
-- Live-Tracking des Endpunkts während des Ziehens, `invalidateContentRect`
-- Normalisierung der Richtung (vorwärts/rückwärts)
-- `buildSelectedText` — trimmt jede Zeile und verbindet sie mit `\n`
-- Tippen während der Auswahl → hebt die Auswahl auf
-- **ViewPager-Swipe-Blockade** (`requestDisallowInterceptTouchEvent`) während Auswahl/Scroll
-
-**Scrollen und Berührung**
-
-- Vertikales Scrollen: `scrollRowOff` 0…`scrollback.size`
-- **Scrollback**-Ring mit 3000 Zeilen
-- Horizontales Scrollen ist optional (auf der Startseite deaktiviert)
-- **8-px-Bewegungsschwelle** — unterscheidet Tippen von Scrollen
-- Automatische Bottom-Gravity bei neuer Ausgabe (`scrollRowOff = 0`)
-- Tippen → `focusAndShowKeyboard()`
-- **Shift+PageUp/Down** auf einer Hardware-Tastatur scrollt im Scrollback
-
-**IME-Integration**
-
-- Eigene `TerminalInputConnection` (BaseInputConnection)
-- Sentinel-Trick: Der Puffer beginnt stets mit einem Leerzeichen-Sentinel, die Nutzereingabe nutzt `removePrefix`
-- Funktioniert mit Swipe-/Glide-IMEs
-- `deleteSurroundingText` → manueller DEL-Byte-Strom (0x7F)
-- `inputType=TYPE_NULL` — keine Autovervollständigung oder Vorschläge im Terminal
-
-### Hardware-Tastatur
-
-- Enter→13, Tab→9, Esc→27, DEL→127
-- Home/End → `ESC[H` / `ESC[F`
-- PageUp/PageDown → `ESC[5~` / `ESC[6~`
-- **F1–F12** → `ESC O P/Q/R/S`, `ESC[15~`, `ESC[17~`, …
-- Pfeiltasten → Codes gemäß App-Cursor-Modus
-- Shift+PageUp/Down werden auf den Scrollback umgeleitet (nicht als Eingabe gesendet)
-
-### Bildschirm-Tastenleiste
-
-**Hauptreihe** (40 dp)
-
-- **⌨** — schaltet die System-IME um. Echte IME-Sichtbarkeit wird über `WindowInsetsCompat` ausgelesen, sodass eine per Zurück-Geste geschlossene Tastatur sauber wieder geöffnet wird.
-- **Fn** — schaltet die F1–F12-Reihe um
-- **CTRL / SHIFT / ALT / ALTGR** — klebrige Modifikatoren, werden aktiv mit `keybar_mod_active` hervorgehoben; **automatisches Zurücksetzen** nach jedem gesendeten Tastendruck
-- **CTRL** öffnet zusätzlich eine dedizierte Ctrl-Kombi-Reihe (A/B/C/D/V/Z)
-- **ESC, TAB** — direktes Byte
-- **↑** — schaltet eine Pfeiltastenreihe um (← ↑ ↓ →)
-- **📁** — `ActivityResultContracts.OpenDocument()` → SFTP-Upload
-- Dazwischen optische `KeyBarDivider`-Trenner
-
-**Fn-Reihe** (36 dp) — F1–F12-Escape-Sequenzen, jeder Druck **blitzt** für 300 ms in der Akzentfarbe auf
-
-**Ctrl-Reihe** — dynamisch erzeugt (`LayoutInflater` + `item_keybar_button`)
-
-- `Ctrl+C`: kopiert die Auswahl mit Toast in die App-interne Zwischenablage, sonst wird ETX (0x03) gesendet
-- `Ctrl+V`: fügt aus der App-internen Zwischenablage ein → `pasteText` + Toast
-- A/B/D/Z: Code = char - 'A' + 1 (1…26)
-
-**Pfeiltastenreihe** (36 dp) — ← ↑ ↓ → respektiert den App-Cursor-Modus
-
-**Scroll-Hinweise in jeder Reihe** — ◀/▶ nur dann animiert, wenn tatsächlich gescrollt werden kann; `canScrollHorizontally(±1)` wird nach jedem Event geprüft; Animator-Cancel + Reset in onDestroy
-
-### Spezielle Tastenkombinationen (`applyModifiers`)
-
-- Ctrl+Buchstabe → 1…26 (Standard-Steuercodes)
-- **Ctrl+Space → 0x00 (NUL)**
-- **Ctrl+[ → 27 (ESC)**
-- Shift + Kleinbuchstabe → Großbuchstabe (Fallback für Soft-Input)
-- Alt / AltGr → `ESC` + Originalbyte (Meta-Prefix)
-
-### Zwischenablage
-
-**App-interne Zwischenablage** (`TerminalClipboard`)
-
-- Singleton `var text: String?`
-- Ctrl+C mit Auswahl → **App-interne** Zwischenablage (nicht die System-Zwischenablage) + dezenter Toast
-- Ctrl+V → App-intern → `pasteText`
-
-**System-Zwischenablage**
-
-- ActionMode **Kopieren** → `ClipboardManager.setPrimaryClip`
-- ActionMode **Einfügen** → `coerceToText` → `pasteText`
-- Beim Einfügen `\n` → `\r`, umschlossen, falls der Bracketed-Paste-Modus aktiv ist
-
-### SFTP-Datei-Upload
-
-- 📁 → `OpenDocument`-Picker
-- Dateiname aus `OpenableColumns.DISPLAY_NAME`, Fallback `uri.lastPathSegment`
-- Größenabfrage → Umschalten zwischen determinate und indeterminate Fortschrittsbalken
-- **Fortschrittsdialog** — Dateiname, `X.X MB / Y.Y MB` oder `Z.Z MB`, wenn die Gesamtgröße unbekannt ist, `setCancelable(false)`
-- Bei Erfolg `KonsoleToast.showWithAction` — „Hochgeladen: ~/filename" + **Rückgängig**-Schaltfläche → `deleteRemoteFile`
-- Bei Fehler lokalisierte Meldung über das friendlyError-Mapping
-
-### Status und Rückmeldung
-
-- **Statusleiste** (20 dp) oberhalb des Terminals: `Keine Verbindung`, `Verbinde: host…`, `Verbunden: host`, `Getrennt: host`
-- **Reconnect-Schaltfläche** in der Mitte des Terminals, ↺-Icon, nur sichtbar bei DISCONNECTED
-- **KonsoleToast** — eigener Toast, 100 dp unterer Rand, 4000 ms Standard / 3000 ms mit Aktion, Ausblend-Animation (Scale+Alpha, 250 ms)
-
-### Fehlermeldungen (friendlyError-Mapping)
-
-Rohe JSch-Exceptions werden in lesbaren, lokalisierten Text übersetzt:
-
-- `connection refused` → „Der Server hat die Verbindung abgelehnt"
-- `timed out` / `timeout` → „Zeitüberschreitung"
-- `no route to host` → „Keine Route zum Host"
-- `network unreachable` → „Netzwerk nicht erreichbar"
-- `unknown host` → „Unbekannter Host"
-- `auth fail` / `authentication` → „Authentifizierung fehlgeschlagen"
-- `connection closed` / `closed by foreign host` → „Verbindung geschlossen"
-- `broken pipe` → „Verbindung unterbrochen"
-- `port forwarding`, `channel` → jeweils eigene Meldungen
-- Andernfalls: die Exception-Meldung, per Regex von Stack-Class-Präfixen bereinigt
-
-### Hintergrund und Lebenszyklus
-
-- **`SshForegroundService`** — `START_STICKY`, beendet Sitzungen in `onTaskRemoved` bewusst **nicht**
-- **Ausgabepuffer** — 256 KB Ring pro Sitzung, `ByteArrayOutputStream` mit Overflow-Trim
-- **Replay bei Reconnect** — nachdem das Fragment gebunden hat, wird der Puffer ins Terminal nachgespielt, sodass frühere Ausgabe sichtbar bleibt
-- **Zwei NotificationChannels** — `ssh_idle` (inaktiv) und `ssh_active` (aktiv), unterschiedliches Badge-Verhalten
-- **Benachrichtigungs-Badge** zeigt die Anzahl aktiver Sitzungen
-- Benachrichtigung mit niedriger Priorität (`PRIORITY_LOW`, `setSilent`)
-- `onRebind` aktiviert (`onUnbind → true`)
-- `TerminalFragment.onDestroy` trennt die Verbindung **nicht** (der Service besitzt die Sitzung)
-- `onAttach`/`onDetach` führen Buch über die Listener (speicherleckfrei)
-
-### Zustandsautomat des Verbindungsindikators
-
-- `NONE → CONNECTING`: neuer `connect()`-Aufruf
-- `CONNECTING → CONNECTED`: Shell-Channel geöffnet (`onConnected`)
-- `CONNECTING → DISCONNECTED`: `onError` (Auth, Timeout, Refused)
-- `CONNECTED → DISCONNECTED`: Read-Loop endet oder explizites `disconnectSession`
-- `DISCONNECTED → CONNECTING`: Reconnect-Schaltfläche
-
-### Sicherheit
-
-- **AES-256-GCM über Android Keystore** — Verbindungsprofile werden mit einem nicht exportierbaren Keystore-Schlüssel verschlüsselt (zufälliger IV, 128-Bit-Tag); ältere EncryptedSharedPreferences-Daten werden automatisch migriert
-- **Legacy-Migration** beim ersten Start — alte Klartext-Profile werden in den verschlüsselten Speicher überführt, anschließend wird der Legacy-Speicher geleert
-- **Kein Klartext, kein stilles Überschreiben** — schlägt die Verschlüsselung fehl, wird nichts geschrieben; ein unlesbarer Speicher wird gemeldet und nie überschrieben
-- **Host-Key-Prüfung (TOFU)** — beim ersten Verbinden wird der SHA256-Fingerabdruck des Serverschlüssels bestätigt und danach bei jeder Verbindung geprüft; ein geänderter Schlüssel wird nur nach ausdrücklichem Ersetzen akzeptiert
-- Zugangsdaten verlassen das Gerät nie
-
-### Startseite / Referenzen
-
-- **Willkommens-Banner** — „KonsoleSSH" in drei Orange-Nuancen mit ANSI-Farben + 9 Zeilen Beschreibung (`[38;5;244m` gedimmt)
-- Feste Schriftgröße 16 sp auf der Startseite
-- Horizontales Scrollen auf der Startseite deaktiviert
-- **Linux-Referenz** — `top`, `df`, `du`, `dd`, `tail`, `head`, `grep`, `egrep`, `awk`, `sed`, `tr`, `ip`, `mc` + `⚠`-Warnsymbol bei destruktiven Befehlen (`dd`, `sed -i`)
-- **Tmux-Referenz** — Sessions/Windows/Panes/Layouts/Prefix/Resize/Scroll/Paste
-- **Sprachabhängiger Inhalt** — HU und EN sind separat verfasst, nicht nur Label-Übersetzung
-- `scrollToTop()` beim Öffnen
-- Terminal-Resize auf einem Cheat-Tab rendert vollständig neu (`clear()` + neues Banner)
-
-### Edge-to-Edge und Ausrichtung
-
-- `ViewCompat.setOnApplyWindowInsetsListener` auf jeder Activity
-- `Type.systemBars() | Type.displayCutout()` + `Type.ime()` gemeinsam behandelt — im Querformat bleibt der Inhalt über der Navigationsleiste, beim Einblenden der IME wird er hochgezogen
-- `screenOrientation=fullSensor` — automatische Drehung Hoch- und Querformat
-- `configChanges` so konfiguriert, dass die Activity bei Rotation nicht neu erzeugt wird
-- `windowSoftInputMode=adjustResize`
-- `onSizeChanged` → Schriftgröße neu berechnen, termRows/termCols neu kalibrieren
-
-### Lokalisierung
-
-- 7 Sprachen: **Englisch** (Standard), **Ungarisch**, **Deutsch**, **Spanisch**, **Französisch**, **Slowakisch**, **Rumänisch**
-- `supportsRtl="true"` — vorbereitet für künftige RTL-Sprachen
-- Folgt der Systemsprache
-- Der Inhalt der Referenzen ist ebenfalls lokalisiert (HU/EN)
-
-### Komfort-Details
-
-- Nach dem Schließen des ActionMode kehrt der Fokus automatisch ins Terminal zurück
-- Nach Loslassen einer Modifikator-Schaltfläche kehrt der Fokus ins Terminal zurück
-- Klebrige Modifikator-Schaltflächen wechseln während sie aktiv sind die Farbe (klarer visueller Zustand)
-- Jeder Tastenleisten-Tipp blitzt 300 ms auf
-- DEL (0x7F) wird als eigener Code gesendet — keine Backspace-Alternative
-- Surrogate-Pair / Emoji werden pro Zelle als ein einziges logisches Zeichen gespeichert
-- Terminal-Resize → `resize(tabId, cols, rows)` ans PTY (`vim`, `htop` übernehmen die neue Größe)
-- Input-Connection `resetToSentinel` nach jedem Commit — IME-Zustand bleibt stets sauber
-- Beim Trennen erscheint „Verbindung geschlossen" im Terminal
-- Ctrl+C / Ctrl+V zeigen einen dezenten Toast: „Kopiert" / „Eingefügt"
-- Schaltflächen nutzen den `selectableItemBackgroundBorderless`-Ripple
-- `KonsoleDialog`-Stil: weißer Text, grauer Hint, transparenter Hintergrund
-- Schließen/Löschen/Beenden einer aktiven Verbindung fordert stets eine Bestätigung an
-
-### Konstanten
-
-- Connect-Timeout: 15 s, Shell-Connect: 10 s, Passwort-Prompt: 30 s
-- Ausgabepuffer: 256 KB pro Sitzung
-- Scrollback: 3000 Zeilen
-- Schrift: 6 sp – 40 sp
-- Langes Drücken: 400 ms
-- Touch-Bewegungsschwelle: 8 px
-- Scroll-Hinweis-Pulsieren: Periode 900 ms, ±8 dp
-- Toast: 4000 ms Standard, 3000 ms mit Aktion, Ausblend-Anim. 250 ms
-- KonsoleToast unterer Rand: 100 dp
-- Cursor-Blinken: 600 ms on / 300 ms off
+**Sonstiges**
+- Sitzungen laufen im Hintergrund weiter, hinter einer Benachrichtigung, die die aktiven Verbindungen zählt.
+- Nach einem Absturz oder ANR bietet die App einen Fehlerbericht zum Teilen an; nichts wird automatisch gesendet.
+- Sieben Sprachen: Englisch, Ungarisch, Deutsch, Spanisch, Französisch, Slowakisch, Rumänisch; auch in der App wählbar.
 
 ## Architektur
 
-Sitzungen gehören `SshForegroundService`, nicht den Fragments:
-
-- Verbindungen überleben die Neuanlage der Activity (Rotation, Zurück-Taste, Task-Entfernung)
-- `TerminalFragment` bindet/löst sich in `onStart`/`onStop` und spielt den Ausgabepuffer beim Wiederverbinden ab
-- `OutputBuffer` bewahrt je Sitzung die letzten 256 KB Ausgabe
+- **Oberfläche:** Jetpack Compose mit Material 3, eine Activity pro Bildschirm (Hauptbildschirm, gespeicherte Verbindungen).
+  Das Terminal selbst ist eine auf Canvas zeichnende View (`TerminalView`), in Compose eingebettet.
+- **Zustand:** ein einziger `SessionManager`, der so lange lebt wie die App, besitzt die Tabs, ihre Sitzungen,
+  die Ausgabe und offene Rückfragen. Die Oberfläche beobachtet seinen Zustand über ViewModels und sendet Befehle;
+  eine Passwort- oder Host-Key-Frage ist Zustand und übersteht daher eine Drehung.
+- **Hintergrund:** `SshForegroundService` hält nur den Prozess am Leben und zeigt die Benachrichtigung;
+  er läuft, solange ein Tab verbindet oder verbunden ist, und beendet sich danach selbst.
+- **Speicherung:** Verbindungen in einer mit AES-256-GCM verschlüsselten DataStore-Datei (Android-Keystore-Schlüssel,
+  von der Sicherung ausgenommen); Einstellungen in DataStore Preferences; Host-Keys in einer `known_hosts`-Datei
+  im OpenSSH-Stil. Ein unlesbarer Speicher wird gemeldet, nie überschrieben.
+- **Terminalmodell:** `TerminalBuffer` ist reines Kotlin ohne Android-Abhängigkeiten und wird daher auf der JVM getestet.
+- **Abhängigkeiten** werden in `AppContainer` von Hand verdrahtet, ohne DI-Framework.
 
 ## Projektstruktur
 
 ```
 app/src/main/java/hu/billman/konsolessh/
-model/ConnectionConfig.kt              — SSH-Verbindungsdaten (Host, Port, Benutzer, Auth, Jump)
-data/ConnectionRepository.kt           — gespeicherte Verbindungen; suspend, main-safe; unlesbarer Speicher → Ausnahme
-data/CryptoBoxConnectionRepository.kt  — AES-256-GCM-Speicher (Android Keystore), Migration alter Daten
-data/SettingsRepository.kt             — kleine Einstellungen (Schriftgröße)
-ssh/SshSession.kt                      — JSch-Sitzung: Jump-Kette, Shell, SFTP-Upload/-Löschen
-ssh/JumpChain.kt                       — mehrstufige Jump-Hosts: Auflösung und Tunnel
-ssh/TofuHostKeyRepository.kt           — Host-Key-Prüfung (Trust on First Use)
-ssh/SshKeyProvisioner.kt               — Verbindungstest und Upload des öffentlichen Schlüssels
-ssh/SshError.kt                        — typisierte SSH-Fehler und ihr Klassifizierer
-session/SessionManager.kt              — einzige Quelle der Wahrheit: Tabs, Status, Ausgabe, Rückfragen
-session/PromptBroker.kt                — Passwort- und Host-Key-Rückfragen als Zustand
-service/SshForegroundService.kt        — hält den Prozess am Leben, Benachrichtigung
-diagnostics/AndroidProblemReports.kt   — Fehlerberichte nach ANR oder Absturz (nur auf Wunsch geteilt)
-terminal/TerminalView.kt               — Canvas-basierter Terminal-Emulator (VT100/xterm-256color)
-terminal/TerminalBuffer.kt             — Terminalmodell: VT/xterm-Parser, Zellraster, breite Zeichen, Scrollback
-terminal/KeyModifiers.kt               — Logik für feststehende Strg/Umschalt/Alt/AltGr
-ui/MainActivity.kt                     — Hauptbildschirm: Tab-Leiste, Seiten, Rückfragen, Fehler
-ui/MainViewModel.kt                    — Zustand und Befehle des Hauptbildschirms
-ui/SshTerminalFragment.kt              — ein SSH-Tab (erhält nur die Tab-ID)
-ui/StaticTerminalFragment.kt           — Willkommensseite, Linux- und tmux-Spickzettel
-ui/NewConnectionDialog.kt              — Verbindung anlegen / bearbeiten / testen
-ui/keybar/KeybarController.kt          — Bildschirm-Tastenleiste
-AppContainer.kt                        — manuelle Dependency Injection (Composition Root)
+  model/        ConnectionConfig: die gespeicherte Verbindung
+  data/         verschlüsselter Verbindungsspeicher, Einstellungen, Migration älterer Formate
+  ssh/          JSch-Sitzungen, Jump-Kette, Host-Key-Prüfung, Schlüssel-Upload, typisierte Fehler
+  session/      SessionManager, Ausgabepuffer, Passwort- und Host-Key-Fragen
+  terminal/     TerminalView und TerminalBuffer: Darstellung, Eingabe, Emulation
+  service/      der Vordergrunddienst
+  diagnostics/  Absturz- und ANR-Berichte
+  ui/           Compose-Bildschirme, ViewModels, Tastenleiste, Theme
+  AppContainer.kt  der Abhängigkeitsgraph
 ```
 
 ## Build
 
 ```
-Kotlin       2.2.10
-AGP          9.5.1
-Gradle       9.6.0
-Java target  17
-namespace    hu.billman.konsolessh
-minSdk       26   (Android 8.0)
-compileSdk   37
-targetSdk    37   (Android 17)
+Kotlin 2.4 · AGP 9.5 · Gradle 9.6 · Java 17
+minSdk 26 (Android 8.0) · targetSdk / compileSdk 37 (Android 17)
 ```
 
 ```bash
-# Debug-Build + Unit-Tests
-./gradlew :app:testDebugUnitTest
-
-# Signiertes Release-App-Bundle (Keystore erforderlich)
-./gradlew :app:bundleRelease
+./gradlew detekt :app:testDebugUnitTest :app:lintDebug   # Prüfungen und Unit-Tests
+./gradlew :app:connectedDebugAndroidTest                 # UI-Tests auf Gerät oder Emulator
+./gradlew :app:bundleRelease                             # signiertes App Bundle (braucht einen Keystore)
 ```
 
-Der **Release**-Build wird mit R8 minifiziert und die Ressourcen verkleinert. Reflection-lastiger Code
-(JSch, Gson-Modellklassen) wird über `app/proguard-rules.pro` erhalten. Es wird eine `mapping.txt`
-erzeugt, damit Play Console Stack-Traces deobfuszifizieren kann.
+Die Unit-Tests enthalten Integrationstests gegen echte OpenSSH-Server; sie brauchen ein installiertes
+`sshd` und werden ohne es übersprungen. Der Release-Build wird mit R8 minimiert.
+
+## Bedienung
+
+1. **Neue Verbindung:** `+` → *Neue Verbindung…*, dann Host, Port, Benutzername und Passwort oder Schlüssel.
+2. **Jump-Host:** im Formular *Jump-Host einrichten…* öffnen und eine gespeicherte Verbindung als Gateway wählen.
+3. **Tab umbenennen oder schließen:** lange drücken bzw. auf `✕` tippen.
+4. **Zoom:** die Lupen-Schaltflächen neben `+`.
+5. **Spickzettel:** über den letzten Tab hinaus wischen.
+6. **Datei hochladen:** 📁 in der Tastenleiste; die Datei landet im entfernten Home-Verzeichnis (`~`).
+7. **Beenden:** Menü (⋮) → *Beenden* oder `+` → *Beenden*.
+
+## Abhängigkeiten
+
+| Bibliothek | Zweck |
+| --- | --- |
+| JSch (mwiede-Fork) | SSH und SFTP |
+| Bouncy Castle | Ed25519-Host-Keys und curve25519-Schlüsselaustausch für JSch |
+| Jetpack Compose, Material 3 | Oberfläche |
+| AndroidX Lifecycle, Activity | ViewModels, lebenszyklusbewusster Zustand |
+| kotlinx.coroutines | asynchrone SSH-Ein-/Ausgabe |
+| kotlinx.serialization | Format des Verbindungsspeichers |
+| AndroidX DataStore | Verbindungsspeicher und Einstellungen |
+| AndroidX AppCompat | Sprachwahl in der App unter Android 8–12 |
+| androidx.security | nur zur Migration von Speichern aus der Zeit vor 1.1.12 |
+
+Die genauen Versionen stehen in `gradle/libs.versions.toml`.
 
 ## Berechtigungen
 
-| Berechtigung                          | Grund                                                    |
-| ------------------------------------- | -------------------------------------------------------- |
-| `INTERNET`                            | SSH-Verbindung                                           |
-| `ACCESS_NETWORK_STATE`                | Prüfung der Netzwerk-Erreichbarkeit                      |
-| `FOREGROUND_SERVICE`                  | Start des Hintergrunddienstes                            |
-| `FOREGROUND_SERVICE_SPECIAL_USE`     | Foreground Service für offene SSH-Sitzungen (API 34+) |
-| `POST_NOTIFICATIONS`                  | Persistente Sitzungs-Benachrichtigung (API 33+)          |
-| `ACCESS_LOCAL_NETWORK`                | SSH-Hosts im lokalen Netz unter Android 17+ (API 37+) |
+| Berechtigung | Grund |
+| --- | --- |
+| `INTERNET` | SSH-Verbindungen |
+| `ACCESS_NETWORK_STATE` | Erreichbarkeit prüfen |
+| `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_SPECIAL_USE` | offene Sitzungen im Hintergrund am Leben halten (API 34+) |
+| `POST_NOTIFICATIONS` | die Sitzungsbenachrichtigung (API 33+) |
+| `ACCESS_LOCAL_NETWORK` | Hosts im lokalen Netzwerk (Android 17+) |
 
-Es werden keine Daten erhoben, geteilt oder hochgeladen. Zugangsdaten bleiben auf dem Gerät im Keystore-gestützten verschlüsselten Speicher.
-
-## Voraussetzungen
-
-- Android 8.0 (API 26) oder neuer
-- Hoch- und Querformat werden unterstützt
+Es werden keine Daten erhoben oder irgendwohin gesendet. Zugangsdaten bleiben verschlüsselt auf dem Gerät.
 
 ## Lizenz
 
-Die Anwendung wird unter der **GPL-3.0-or-later**-Lizenz veröffentlicht — der vollständige Text befindet sich in der Datei [LICENSE](LICENSE). Es ist freie Software: Du kannst sie frei verwenden, studieren, modifizieren und weitergeben; abgeleitete Werke müssen allerdings unter derselben Lizenz bleiben.
+GPL-3.0-or-later; siehe [LICENSE](LICENSE).
 
 ## Versionsgeschichte
 

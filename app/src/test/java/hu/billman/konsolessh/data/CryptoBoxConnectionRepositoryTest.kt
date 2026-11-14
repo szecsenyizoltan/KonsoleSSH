@@ -35,6 +35,8 @@ class CryptoBoxConnectionRepositoryTest {
 
     private lateinit var context: Context
     private lateinit var file: File
+
+    private fun deletedFile() = File(file.parentFile, file.name + ".deleted")
     private val scopes = mutableListOf<CoroutineScope>()
 
     @Before
@@ -52,6 +54,7 @@ class CryptoBoxConnectionRepositoryTest {
 
     private fun clearAll() {
         file.delete()
+        deletedFile().delete()
         listOf(BOX, LEGACY_ENC, LEGACY_PLAIN).forEach { context.deleteSharedPreferences(it) }
     }
 
@@ -65,6 +68,8 @@ class CryptoBoxConnectionRepositoryTest {
      * one first, and waits for it, since DataStore releases the file only when
      * its scope has completed.
      */
+    private var now = 1_000L
+
     private fun newRepo(box: CryptoBox = FakeCryptoBox()): CryptoBoxConnectionRepository {
         closeScopes()
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO).also { scopes += it }
@@ -73,7 +78,9 @@ class CryptoBoxConnectionRepositoryTest {
             box,
             scope,
             storeFile = file,
+            deletedFile = deletedFile(),
             legacyStores = LegacyConnectionsMigration.Stores(box = BOX, encrypted = LEGACY_ENC, plain = LEGACY_PLAIN),
+            clock = { now },
         )
     }
 
@@ -143,7 +150,7 @@ class CryptoBoxConnectionRepositoryTest {
             jumpPassword = "jp",
         )
         newRepo().saveOne(full)
-        assertEquals(full, newRepo().get("full"))
+        assertEquals(full.copy(updatedAt = now), newRepo().get("full"))
     }
 
     @Test
@@ -278,6 +285,48 @@ class CryptoBoxConnectionRepositoryTest {
     fun `a fresh install does not open the EncryptedSharedPreferences store`() = runBlocking {
         assertTrue(newRepo().load().isEmpty())
         assertFalse(prefsFile(LEGACY_ENC).exists())
+    }
+
+    // ── Sync state ────────────────────────────────────────────────────────────
+
+    @Test
+    fun `a save stamps the change time`() = runBlocking {
+        val repo = newRepo()
+        repo.saveOne(cfg("a"))
+        now = 2_000L
+        repo.saveOne(cfg("a", "Renamed"))
+        assertEquals(2_000L, newRepo().get("a")?.updatedAt)
+    }
+
+    @Test
+    fun `a delete is recorded with its time and survives a restart`() = runBlocking {
+        val repo = newRepo()
+        repo.saveOne(cfg("a"))
+        now = 5_000L
+        repo.delete("a")
+        val state = newRepo().syncState()
+        assertTrue(state.connections.isEmpty())
+        assertEquals(mapOf("a" to 5_000L), state.deleted)
+    }
+
+    @Test
+    fun `replacing from sync keeps the given times`() = runBlocking {
+        val repo = newRepo()
+        val merged = ConnectionSyncState(
+            connections = listOf(cfg("b").copy(updatedAt = 42L)),
+            deleted = mapOf("a" to 7L),
+        )
+        repo.replaceFromSync(merged)
+        assertEquals(merged, newRepo().syncState())
+    }
+
+    @Test
+    fun `a store written before change times reads them as zero`() = runBlocking {
+        val box = FakeCryptoBox()
+        file.parentFile?.mkdirs()
+        val old = """[{"id":"a","name":"Old","host":"h","port":22,"username":"u"}]"""
+        file.writeBytes(box.encrypt(old.toByteArray()))
+        assertEquals(0L, newRepo(box).get("a")?.updatedAt)
     }
 
     private companion object {

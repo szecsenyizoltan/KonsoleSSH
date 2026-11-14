@@ -19,7 +19,10 @@ data class ConnectionConfig(
     val jumpHost: String = "", // manual entry (used when jumpConnectionId is blank)
     val jumpPort: Int = 22,
     val jumpUsername: String = "",
-    val jumpPassword: String = ""
+    val jumpPassword: String = "",
+    // When this connection last changed, in epoch milliseconds; 0 before 2.2.0.
+    // Sync between devices keeps the newer copy.
+    val updatedAt: Long = 0L,
 ) {
     @Serializable
     enum class AuthType {
@@ -34,5 +37,5 @@ data class ConnectionConfig(
     override fun toString(): String =
         "ConnectionConfig(id=$id, name=$name, host=$host, port=$port, username=$username, " +
             "authType=$authType, jumpConnectionId=$jumpConnectionId, jumpHost=$jumpHost, " +
-            "jumpPort=$jumpPort, jumpUsername=$jumpUsername, secrets=<hidden>)"
+            "jumpPort=$jumpPort, jumpUsername=$jumpUsername, updatedAt=$updatedAt, secrets=<hidden>)"
 }

@@ -15,6 +15,7 @@ import kotlinx.coroutines.job
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -29,6 +30,8 @@ class ConnectionRepositoryInstrumentedTest {
 
     private lateinit var context: Context
     private lateinit var file: File
+
+    private fun deletedFile() = File(file.parentFile, file.name + ".deleted")
     private val scopes = mutableListOf<CoroutineScope>()
 
     private fun closeScopes() = runBlocking {
@@ -49,6 +52,7 @@ class ConnectionRepositoryInstrumentedTest {
             AesGcmKeystoreBox(keyAlias = "konsole_instrumented_test_key"),
             scope,
             storeFile = file,
+            deletedFile = deletedFile(),
             // The migration deletes the stores it reads: never let it see the app's real ones.
             legacyStores = LegacyConnectionsMigration.Stores(
                 box = PREFS,
@@ -63,6 +67,7 @@ class ConnectionRepositoryInstrumentedTest {
         context = InstrumentationRegistry.getInstrumentation().targetContext
         file = File(context.filesDir, "datastore/connections_instrumented_test.pb")
         file.delete()
+        deletedFile().delete()
         context.deleteSharedPreferences(PREFS)
     }
 
@@ -70,6 +75,7 @@ class ConnectionRepositoryInstrumentedTest {
     fun tearDown() {
         closeScopes()
         file.delete()
+        deletedFile().delete()
         context.deleteSharedPreferences(PREFS)
     }
 
@@ -84,8 +90,10 @@ class ConnectionRepositoryInstrumentedTest {
         )
         repo().saveOne(cfg)
 
+        // The save stamps the change time; everything else must come back as written.
         val loaded = repo().load()
-        assertEquals(listOf(cfg), loaded)
+        assertEquals(listOf(cfg), loaded.map { it.copy(updatedAt = 0L) })
+        assertTrue(loaded.single().updatedAt > 0L)
     }
 
     @Test

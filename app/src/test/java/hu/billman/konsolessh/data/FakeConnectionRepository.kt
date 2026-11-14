@@ -33,6 +33,22 @@ class FakeConnectionRepository(
     override suspend fun delete(id: String) {
         check()
         storage.remove(id)
+        deleted[id] = 0L
+    }
+
+    val deleted = mutableMapOf<String, Long>()
+
+    override suspend fun syncState(): ConnectionSyncState {
+        check()
+        return ConnectionSyncState(storage.values.toList(), deleted.toMap())
+    }
+
+    override suspend fun replaceFromSync(state: ConnectionSyncState) {
+        check()
+        storage.clear()
+        state.connections.forEach { storage[it.id] = it }
+        deleted.clear()
+        deleted.putAll(state.deleted)
     }
 
     private fun check() {

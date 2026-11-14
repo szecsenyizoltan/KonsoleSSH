@@ -52,11 +52,12 @@ class ConnectionJsonTest {
     fun `writes every field, defaults included, in Gson's order`() {
         val written = ConnectionJson.encode(listOf(plain))
         val keys = Regex("\"(\\w+)\":").findAll(written).map { it.groupValues[1] }.toList()
+        // updatedAt (2.2.0) comes last; older versions skip it as an unknown key.
         assertEquals(
             listOf(
                 "id", "name", "host", "port", "username", "authType", "password", "privateKey",
                 "privateKeyPassphrase", "jumpConnectionId", "jumpHost", "jumpPort", "jumpUsername",
-                "jumpPassword",
+                "jumpPassword", "updatedAt",
             ),
             keys,
         )

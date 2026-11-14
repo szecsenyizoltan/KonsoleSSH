@@ -13,6 +13,8 @@ import org.junit.Test
  * plain text and control characters, CSI/SGR and modes, threading, wide
  * characters and character sets, and fuzzed input.
  */
+private const val ESC = "\u001B"
+
 class TerminalBufferTest {
 
     @Test
@@ -346,8 +348,6 @@ class TerminalBufferTest {
     }
 
     // ── CSI, SGR, modes, alternate screen ────────────────────────────────────────
-
-    private val ESC = "\u001B"
 
     @Test
     fun `SGR 31 sets red foreground on subsequent printed chars`() {

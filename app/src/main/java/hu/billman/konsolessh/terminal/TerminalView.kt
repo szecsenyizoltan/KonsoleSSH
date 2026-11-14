@@ -63,6 +63,9 @@ class TerminalView @JvmOverloads constructor(
         private val SELECTION_BG = Color.argb(160, 70, 130, 220)
         private const val MIN_COLS = 80
         private const val LONG_PRESS_MS = 400L
+
+        /** Kept at the start of the IME buffer, so a backspace always has something to delete. */
+        private const val SENTINEL = " "
         private const val CURSOR_ON_MS = 600L
         private const val CURSOR_OFF_MS = 300L
         private const val MIN_FONT_SP = 6f
@@ -789,8 +792,6 @@ class TerminalView @JvmOverloads constructor(
     }
 
     private inner class TerminalInputConnection : BaseInputConnection(this@TerminalView, true) {
-
-        private val SENTINEL = " "
 
         internal fun resetToSentinel() {
             val e = editable ?: return

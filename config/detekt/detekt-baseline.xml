@@ -7,13 +7,8 @@
     <ID>CyclomaticComplexMethod:TerminalBuffer.kt$TerminalBuffer$private fun processText(text: String)</ID>
     <ID>NestedBlockDepth:TerminalBuffer.kt$TerminalBuffer$private fun processText(text: String)</ID>
     <ID>NestedBlockDepth:TerminalView.kt$TerminalView$override fun onTouchEvent(ev: MotionEvent): Boolean</ID>
-    <ID>NoWildcardImports:ConnectionConfigTest.kt$import org.junit.Assert.*</ID>
     <ID>ReturnCount:TerminalBuffer.kt$TerminalBuffer$fun cellAt(lineIndex: Int, col: Int): TermCell?</ID>
     <ID>ReturnCount:TerminalView.kt$TerminalView$override fun dispatchKeyEvent(event: KeyEvent): Boolean</ID>
     <ID>ReturnCount:TerminalView.kt$TerminalView.&lt;no name provided&gt;$override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean</ID>
-    <ID>UseCheckOrError:SshSession.kt$SshSession$throw IllegalStateException("SSH session is not connected")</ID>
-    <ID>VariableNaming:TerminalBufferTest.kt$TerminalBufferTest$private val ESC = "\u001B"</ID>
-    <ID>VariableNaming:TerminalView.kt$TerminalView.TerminalInputConnection$private val SENTINEL = " "</ID>
-    <ID>WildcardImport:ConnectionConfigTest.kt$import org.junit.Assert.*</ID>
   </CurrentIssues>
 </SmellBaseline>

@@ -191,7 +191,7 @@ class SshSession(
     override suspend fun deleteRemote(path: String) = withSftp { it.rm(path) }
 
     private suspend fun withSftp(block: (ChannelSftp) -> Unit) = withContext(Dispatchers.IO) {
-        val session = jschSession ?: throw IllegalStateException("SSH session is not connected")
+        val session = jschSession ?: error("SSH session is not connected")
         val sftp = session.openChannel("sftp") as ChannelSftp
         sftp.connect(SHELL_CONNECT_TIMEOUT_MS)
         try {

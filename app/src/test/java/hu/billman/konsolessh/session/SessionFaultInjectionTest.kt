@@ -18,8 +18,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.fail
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.Timeout
 import java.io.File
+import java.util.concurrent.TimeUnit
 
 /**
  * Fault injection with real SSH: the [SessionManager] works with real
@@ -27,6 +30,14 @@ import java.io.File
  * answers the host key questions from the manager's state, as the UI does.
  */
 class SessionFaultInjectionTest {
+
+    // Real servers and sockets: a hang must fail this test with the stuck
+    // thread's stack, not hold the CI runner until someone cancels it.
+    @get:Rule
+    val timeout: Timeout = Timeout.builder()
+        .withTimeout(2, TimeUnit.MINUTES)
+        .withLookingForStuckThread(true)
+        .build()
 
     private lateinit var servers: SshTestServers
     private lateinit var proxy: FlakyProxy

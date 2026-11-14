@@ -11,7 +11,9 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.Timeout
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
@@ -25,6 +27,14 @@ import java.util.concurrent.TimeUnit
  * the server side: live TCP connections and the shell's process.
  */
 class SshIntegrationTest {
+
+    // Real servers and sockets: a hang must fail this test with the stuck
+    // thread's stack, not hold the CI runner until someone cancels it.
+    @get:Rule
+    val timeout: Timeout = Timeout.builder()
+        .withTimeout(2, TimeUnit.MINUTES)
+        .withLookingForStuckThread(true)
+        .build()
 
     private lateinit var servers: SshTestServers
     private lateinit var knownHosts: HostKeyStore

@@ -67,7 +67,7 @@ jobs:
           } > keystore.properties
 
       - name: Tests, then signed APK and AAB
-        run: ./gradlew --no-daemon :app:testDebugUnitTest :app:assembleRelease :app:bundleRelease
+        run: timeout 40m ./gradlew --no-daemon :app:testDebugUnitTest :app:assembleRelease :app:bundleRelease
 
       - name: Name the artifacts, compute the signer fingerprint
         run: |

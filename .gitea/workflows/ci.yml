@@ -2,7 +2,8 @@ name: CI
 
 # Every push and pull request: JVM unit tests and the SSH integration tests
 # against real sshd instances (with coverage), Android lint, detekt, and a
-# CVE scan of the locked dependencies.
+# CVE scan of the locked dependencies. The runner does not enforce
+# timeout-minutes, so the long steps run under timeout(1) themselves.
 #
 # The instrumented emulator tests run in their own job, and only where the
 # runner gives the job container a usable /dev/kvm; elsewhere the job warns
@@ -46,16 +47,16 @@ jobs:
       - name: Unit and integration tests, with coverage
         env:
           KONSOLE_REQUIRE_SSHD: '1'
-        run: ./gradlew --no-daemon :app:createDebugUnitTestCoverageReport
+        run: timeout 30m ./gradlew --no-daemon :app:createDebugUnitTestCoverageReport
 
       - name: Coverage summary
         run: python3 tools/coverage-summary.py
 
       - name: Android lint
-        run: ./gradlew --no-daemon :app:lintDebug
+        run: timeout 20m ./gradlew --no-daemon :app:lintDebug
 
       - name: detekt
-        run: ./gradlew --no-daemon detekt
+        run: timeout 15m ./gradlew --no-daemon detekt
 
       # The dependencies that ship in the APK must have no known
       # vulnerability. Build tools (lint) and test libraries are scanned too,
@@ -113,4 +114,4 @@ jobs:
           target: google_apis
           arch: x86_64
           disable-animations: true
-          script: ./gradlew --no-daemon :app:connectedDebugAndroidTest
+          script: timeout 40m ./gradlew --no-daemon :app:connectedDebugAndroidTest

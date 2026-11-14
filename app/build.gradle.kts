@@ -2,6 +2,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.time.Duration
 import java.util.Properties
 
 plugins {
@@ -92,6 +93,8 @@ android {
 // A failing test prints its full exception, so a CI log shows the cause
 // (for example the sshd log a server test failed with), not just its type.
 tasks.withType<Test>().configureEach {
+    // A hung test fails the build instead of running until the CI job is cancelled.
+    timeout.set(Duration.ofMinutes(20))
     testLogging {
         events(TestLogEvent.FAILED)
         exceptionFormat = TestExceptionFormat.FULL

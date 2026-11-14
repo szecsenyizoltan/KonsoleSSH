@@ -25,7 +25,6 @@
     <string name="dialog_edit_connection_title">Editar conexión</string>
     <string name="dialog_rename_tab_title">Renombrar pestaña</string>
     <string name="tab_name_hint">Nombre / comentario de la pestaña</string>
-    <string name="load_saved_connection">Cargar conexión guardada:</string>
     <string name="connection_name_hint">Nombre de la conexión (opcional)</string>
     <string name="host_hint">Servidor (IP o nombre) *</string>
     <string name="host_internal_hint">Servidor interno (IP o nombre) *</string>
@@ -96,6 +95,8 @@
     <string name="content_desc_edit">Editar</string>
     <string name="content_desc_delete">Eliminar</string>
     <string name="content_desc_back">Atrás</string>
+    <string name="content_desc_show_password">Mostrar contraseña</string>
+    <string name="content_desc_hide_password">Ocultar contraseña</string>
     <string name="content_desc_exit">Salir</string>
 
     <!-- Status bar / terminal messages -->

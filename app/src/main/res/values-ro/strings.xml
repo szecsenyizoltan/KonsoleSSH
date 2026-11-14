@@ -25,7 +25,6 @@
     <string name="dialog_edit_connection_title">Editare conexiune</string>
     <string name="dialog_rename_tab_title">Redenumire filă</string>
     <string name="tab_name_hint">Nume / comentariu pentru filă</string>
-    <string name="load_saved_connection">Încarcă o conexiune salvată:</string>
     <string name="connection_name_hint">Nume conexiune (opțional)</string>
     <string name="host_hint">Gazdă (IP sau nume) *</string>
     <string name="host_internal_hint">Gazdă internă (IP sau nume) *</string>
@@ -96,6 +95,8 @@
     <string name="content_desc_edit">Editează</string>
     <string name="content_desc_delete">Șterge</string>
     <string name="content_desc_back">Înapoi</string>
+    <string name="content_desc_show_password">Afișează parola</string>
+    <string name="content_desc_hide_password">Ascunde parola</string>
     <string name="content_desc_exit">Ieșire</string>
 
     <!-- Status bar / terminal messages -->

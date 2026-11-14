@@ -62,6 +62,10 @@ class NewConnectionViewModel(
         data object StoreWriteFailed : Message
         data object NeedsTest : Message
         data class KeyGenerationFailed(val error: SshError) : Message
+        data class KeyFileUnreadable(val reason: String) : Message
+
+        /** The picked file looks like a public key, which cannot log in. */
+        data object PublicKeyPicked : Message
     }
 
     /** Dialogs about a generated key; both show the public key line. */
@@ -182,6 +186,14 @@ class NewConnectionViewModel(
     fun setAuthType(value: AuthType) = _form.update { it.copy(authType = value) }
 
     fun setPrivateKey(value: String) = _form.update { it.copy(privateKey = value) }
+
+    fun keyFileUnreadable(reason: String) {
+        _message.value = Message.KeyFileUnreadable(reason)
+    }
+
+    fun publicKeyPicked() {
+        _message.value = Message.PublicKeyPicked
+    }
 
     fun selectJump(id: String?) = _form.update { it.copy(jumpId = id) }
 

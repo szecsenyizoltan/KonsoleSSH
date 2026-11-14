@@ -12,7 +12,6 @@
     <color name="keybar_key_bg">@android:color/transparent</color>
     <color name="keybar_key_text">#FFFFFF</color>
     <color name="keybar_mod_active">#E95420</color>
-    <color name="input_bg">#21262D</color>
     <color name="card_bg">#161B22</color>
 
     <!-- Text -->
@@ -24,7 +23,6 @@
 
     <!-- State -->
     <color name="error_color">#F85149</color>
-    <color name="success_color">#3FB950</color>
 
     <!-- Material required -->
     <color name="white">#FFFFFF</color>

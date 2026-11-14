@@ -25,7 +25,6 @@
     <string name="dialog_edit_connection_title">Verbindung bearbeiten</string>
     <string name="dialog_rename_tab_title">Tab umbenennen</string>
     <string name="tab_name_hint">Tab-Name / Kommentar</string>
-    <string name="load_saved_connection">Gespeicherte Verbindung laden:</string>
     <string name="connection_name_hint">Verbindungsname (optional)</string>
     <string name="host_hint">Host (IP oder Hostname) *</string>
     <string name="host_internal_hint">Interner Host (IP oder Hostname) *</string>
@@ -96,6 +95,8 @@
     <string name="content_desc_edit">Bearbeiten</string>
     <string name="content_desc_delete">Löschen</string>
     <string name="content_desc_back">Zurück</string>
+    <string name="content_desc_show_password">Passwort anzeigen</string>
+    <string name="content_desc_hide_password">Passwort ausblenden</string>
     <string name="content_desc_exit">Beenden</string>
 
     <!-- Status bar / terminal messages -->

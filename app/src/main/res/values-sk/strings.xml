@@ -25,7 +25,6 @@
     <string name="dialog_edit_connection_title">Upraviť pripojenie</string>
     <string name="dialog_rename_tab_title">Premenovať kartu</string>
     <string name="tab_name_hint">Názov / poznámka karty</string>
-    <string name="load_saved_connection">Načítať uložené pripojenie:</string>
     <string name="connection_name_hint">Názov pripojenia (voliteľné)</string>
     <string name="host_hint">Hostiteľ (IP alebo názov) *</string>
     <string name="host_internal_hint">Interný hostiteľ (IP alebo názov) *</string>
@@ -96,6 +95,8 @@
     <string name="content_desc_edit">Upraviť</string>
     <string name="content_desc_delete">Odstrániť</string>
     <string name="content_desc_back">Späť</string>
+    <string name="content_desc_show_password">Zobraziť heslo</string>
+    <string name="content_desc_hide_password">Skryť heslo</string>
     <string name="content_desc_exit">Ukončiť</string>
 
     <!-- Status bar / terminal messages -->

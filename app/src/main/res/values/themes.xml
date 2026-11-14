@@ -28,18 +28,7 @@
         <item name="android:textColorSecondary">@color/white</item>
     </style>
 
-    <!-- Input layout style -->
-    <style name="KonsoleInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-        <item name="boxStrokeColor">@color/accent</item>
-        <item name="hintTextColor">@color/text_secondary</item>
-        <item name="android:textColorHint">@color/text_secondary</item>
-        <item name="android:editTextColor">@color/text_primary</item>
-    </style>
 
-    <!-- Edit text inside KonsoleInputLayout -->
-    <style name="KonsoleInputEditText" parent="Widget.MaterialComponents.TextInputEditText.OutlinedBox">
-        <item name="android:textColor">@color/text_primary</item>
-    </style>
 
     <!-- Key toolbar button -->
     <style name="KeyBarButton" parent="Widget.AppCompat.Button.Borderless">

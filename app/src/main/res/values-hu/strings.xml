@@ -25,7 +25,6 @@
     <string name="dialog_edit_connection_title">Kapcsolat szerkesztése</string>
     <string name="dialog_rename_tab_title">Fül átnevezése</string>
     <string name="tab_name_hint">Fül neve / komment</string>
-    <string name="load_saved_connection">Mentett kapcsolat betöltése:</string>
     <string name="connection_name_hint">Kapcsolat neve (opcionális)</string>
     <string name="host_hint">Host (IP vagy hostname) *</string>
     <string name="host_internal_hint">Belső host (IP vagy hostname) *</string>
@@ -96,6 +95,8 @@
     <string name="content_desc_edit">Szerkesztés</string>
     <string name="content_desc_delete">Törlés</string>
     <string name="content_desc_back">Vissza</string>
+    <string name="content_desc_show_password">Jelszó megjelenítése</string>
+    <string name="content_desc_hide_password">Jelszó elrejtése</string>
     <string name="content_desc_exit">Kilépés</string>
 
     <!-- Status bar / terminal messages -->

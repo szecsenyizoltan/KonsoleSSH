@@ -25,7 +25,6 @@
     <string name="dialog_edit_connection_title">Modifier la connexion</string>
     <string name="dialog_rename_tab_title">Renommer l\'onglet</string>
     <string name="tab_name_hint">Nom / commentaire de l\'onglet</string>
-    <string name="load_saved_connection">Charger une connexion enregistrée :</string>
     <string name="connection_name_hint">Nom de la connexion (facultatif)</string>
     <string name="host_hint">Hôte (IP ou nom) *</string>
     <string name="host_internal_hint">Hôte interne (IP ou nom) *</string>
@@ -96,6 +95,8 @@
     <string name="content_desc_edit">Modifier</string>
     <string name="content_desc_delete">Supprimer</string>
     <string name="content_desc_back">Retour</string>
+    <string name="content_desc_show_password">Afficher le mot de passe</string>
+    <string name="content_desc_hide_password">Masquer le mot de passe</string>
     <string name="content_desc_exit">Quitter</string>
 
     <!-- Status bar / terminal messages -->

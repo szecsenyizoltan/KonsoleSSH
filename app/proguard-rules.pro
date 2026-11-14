@@ -16,3 +16,5 @@
 # compile-time-only javax annotations which are not on the Android classpath.
 -dontwarn javax.annotation.Nullable
 -dontwarn javax.annotation.concurrent.GuardedBy
+# The same holds for Error Prone's annotations; Material used to bring them in.
+-dontwarn com.google.errorprone.annotations.**

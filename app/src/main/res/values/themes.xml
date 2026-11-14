@@ -1,20 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.KonsoleSSH" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/accent</item>
-        <item name="colorPrimaryVariant">@color/toolbar_bg</item>
-        <item name="colorOnPrimary">@color/white</item>
-        <item name="colorSecondary">@color/accent</item>
-        <item name="colorOnSecondary">@color/white</item>
-        <item name="colorSurface">@color/card_bg</item>
-        <item name="colorOnSurface">@color/text_primary</item>
-        <item name="android:colorBackground">@color/terminal_bg</item>
+    <!-- The screens are drawn in Compose, with their own colours. The window
+         theme only paints the background before the first frame, and has to
+         be an AppCompat theme because the activities are AppCompatActivities. -->
+    <style name="Theme.KonsoleSSH" parent="Theme.AppCompat.NoActionBar">
         <item name="android:windowBackground">@color/terminal_bg</item>
-        <item name="colorOnBackground">@color/text_primary</item>
-        <item name="android:statusBarColor">@color/toolbar_bg</item>
-        <item name="android:navigationBarColor">@color/terminal_bg</item>
-        <item name="android:textColor">@color/text_primary</item>
     </style>
 
 </resources>

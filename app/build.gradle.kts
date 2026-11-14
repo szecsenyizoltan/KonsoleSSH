@@ -82,7 +82,6 @@ android {
 
     buildFeatures {
         compose = true
-        viewBinding = true
     }
 
     lint {
@@ -108,9 +107,6 @@ kotlin {
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
-    implementation(libs.material)
-    implementation(libs.androidx.viewpager2)
-    implementation(libs.androidx.fragment.ktx)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.jsch)
     // JSch Androidon a Bouncy Castle-implementációkat választja (Java-verzió
@@ -129,7 +125,6 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.security.crypto)
 
     // Unit tests (JVM + Robolectric for Android classes)

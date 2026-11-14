@@ -391,6 +391,27 @@ class TerminalBuffer(
 
     // ── CSI dispatch ─────────────────────────────────────────────────────────
 
+    /** CSI J: 0 erases to the end of the screen, 1 to its start, 2 and 3 all of it. */
+    private fun eraseInDisplay(mode: Int) {
+        when (mode) {
+            0 -> {
+                eraseLineEnd()
+                for (r in _cursorRow + 1 until _rows) screen[r] = blankLine()
+            }
+            1 -> {
+                for (r in 0 until _cursorRow) screen[r] = blankLine()
+                eraseLineStart()
+            }
+            2, 3 -> {
+                if (!_altScreenActive) {
+                    for (r in 0.._cursorRow) scrollback.addLast(screen[r])
+                    while (scrollback.size > maxScrollback) scrollback.removeFirst()
+                }
+                screen = Array(_rows) { blankLine() }
+            }
+        }
+    }
+
     private fun handleCSI(cmd: Char, params: String) {
         val isPrivate = params.startsWith("?")
         val cleaned = if (isPrivate) params.substring(1) else params
@@ -417,17 +438,7 @@ class TerminalBuffer(
                 _cursorRow = ((parts.getOrNull(0)?.toIntOrNull() ?: 1) - 1).coerceIn(0, _rows - 1)
                 _cursorCol = ((parts.getOrNull(1)?.toIntOrNull() ?: 1) - 1).coerceIn(0, _cols - 1)
             }
-            'J' -> when (n0) {
-                0 -> { eraseLineEnd(); for (r in _cursorRow + 1 until _rows) screen[r] = blankLine() }
-                1 -> { for (r in 0 until _cursorRow) screen[r] = blankLine(); eraseLineStart() }
-                2, 3 -> {
-                    if (!_altScreenActive) {
-                        for (r in 0.._cursorRow) scrollback.addLast(screen[r])
-                        while (scrollback.size > maxScrollback) scrollback.removeFirst()
-                    }
-                    screen = Array(_rows) { blankLine() }
-                }
-            }
+            'J' -> eraseInDisplay(n0)
             'K' -> when (n0) {
                 0 -> eraseLineEnd()
                 1 -> eraseLineStart()

@@ -11,8 +11,6 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Typeface
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import android.os.PersistableBundle
 import android.text.InputType
 import android.util.AttributeSet
@@ -145,18 +143,16 @@ class TerminalView @JvmOverloads constructor(
 
     private var lpX = 0f
     private var lpY = 0f
-    private val longPressHandler = Handler(Looper.getMainLooper())
     private val longPressRunnable = Runnable { startSelectionAt(lpX, lpY) }
 
     // ── Cursor blinking ──────────────────────────────────────────────────────
 
     private var cursorOn = true
-    private val blinkHandler = Handler(Looper.getMainLooper())
     private val blinkTask = object : Runnable {
         override fun run() {
             cursorOn = !cursorOn
             invalidate()
-            blinkHandler.postDelayed(this, if (cursorOn) CURSOR_ON_MS else CURSOR_OFF_MS)
+            postDelayed(this, if (cursorOn) CURSOR_ON_MS else CURSOR_OFF_MS)
         }
     }
 
@@ -628,13 +624,13 @@ class TerminalView @JvmOverloads constructor(
                 touchMoved = false; touchScrollFrac = 0f
                 ownsGesture = false
                 lpX = ev.x; lpY = ev.y
-                longPressHandler.postDelayed(longPressRunnable, LONG_PRESS_MS)
+                postDelayed(longPressRunnable, LONG_PRESS_MS)
             }
             MotionEvent.ACTION_MOVE -> {
                 val dx = ev.x - touchX; val dy = ev.y - touchY
                 if (!touchMoved && (abs(ev.x - touchX0) > 8f || abs(ev.y - touchY0) > 8f)) {
                     touchMoved = true
-                    longPressHandler.removeCallbacks(longPressRunnable)
+                    removeCallbacks(longPressRunnable)
                     if (!selActive) claimGestureIfOwn(ev.x - touchX0, ev.y - touchY0)
                 }
                 if (selActive) {
@@ -663,7 +659,7 @@ class TerminalView @JvmOverloads constructor(
                 }
             }
             MotionEvent.ACTION_UP -> {
-                longPressHandler.removeCallbacks(longPressRunnable)
+                removeCallbacks(longPressRunnable)
                 when {
                     selActive && !touchMoved -> selActionMode?.finish()
                     !touchMoved && !selActive -> focusAndShowKeyboard()
@@ -706,13 +702,13 @@ class TerminalView @JvmOverloads constructor(
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-        blinkHandler.post(blinkTask)
+        post(blinkTask)
     }
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
-        blinkHandler.removeCallbacksAndMessages(null)
-        longPressHandler.removeCallbacksAndMessages(null)
+        removeCallbacks(blinkTask)
+        removeCallbacks(longPressRunnable)
         selActionMode?.finish()
     }
 

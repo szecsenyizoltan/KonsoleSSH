@@ -15,9 +15,15 @@ import hu.billman.konsolessh.ssh.HostKeyStore
 import hu.billman.konsolessh.ssh.SshKeyProvisioner
 import hu.billman.konsolessh.ssh.SshSession
 import hu.billman.konsolessh.ssh.TerminalSessionFactory
+import hu.billman.konsolessh.sync.CryptoBoxSyncKeyStorage
+import hu.billman.konsolessh.sync.DriveAppDataStore
+import hu.billman.konsolessh.sync.DriveAuthorizer
+import hu.billman.konsolessh.sync.SyncManager
+import hu.billman.konsolessh.sync.SyncTriggeringRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import java.io.File
 
 /**
@@ -44,15 +50,42 @@ class AppContainer(
     // Disk work for small stores; outlives every screen, like the sessions.
     private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    val connectionRepository: ConnectionRepository by lazy {
+    // The store itself; sync writes through it, everything else through connectionRepository.
+    private val connectionStore: ConnectionRepository by lazy {
         CryptoBoxConnectionRepository.create(appContext, cryptoBox, ioScope)
+    }
+
+    val connectionRepository: ConnectionRepository by lazy {
+        SyncTriggeringRepository(connectionStore) { syncManager.requestSync() }
     }
 
     val settingsRepository: SettingsRepository by lazy { DataStoreSettingsRepository.create(appContext, ioScope) }
 
     // One instance, so parallel tabs do not overwrite each other's entries.
     val hostKeyStore: HostKeyStore by lazy {
-        HostKeyStore(File(appContext.filesDir, "known_hosts"))
+        HostKeyStore(File(appContext.filesDir, "known_hosts"), onChange = { syncManager.requestSync() })
+    }
+
+    val driveAuthorizer: DriveAuthorizer by lazy { DriveAuthorizer(appContext) }
+
+    val syncManager: SyncManager by lazy {
+        SyncManager(
+            connections = connectionStore,
+            hostKeys = hostKeyStore,
+            keys = CryptoBoxSyncKeyStorage(File(appContext.filesDir, "sync_key.bin"), cryptoBox),
+            remote = DriveAppDataStore(driveAuthorizer::accessToken, driveAuthorizer::forget),
+            scope = ioScope,
+        )
+    }
+
+    /** At start: if sync is on, one round, so this device catches up with the others. */
+    fun startSync() {
+        ioScope.launch {
+            runCatching {
+                syncManager.start()
+                syncManager.requestSync()
+            }
+        }
     }
 
     val keyProvisioner: SshKeyProvisioner by lazy { SshKeyProvisioner(hostKeyStore) }

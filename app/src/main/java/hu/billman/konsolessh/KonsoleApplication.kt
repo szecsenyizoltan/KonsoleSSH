@@ -17,6 +17,7 @@ open class KonsoleApplication : android.app.Application() {
         super.onCreate()
         container = createContainer()
         CrashRecorder.install(container.crashFile)
+        container.startSync()
     }
 
     /** Instrumented tests replace dependencies here, e.g. with fake sessions. */

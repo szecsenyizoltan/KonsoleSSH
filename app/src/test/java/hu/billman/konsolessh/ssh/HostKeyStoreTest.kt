@@ -59,7 +59,7 @@ class HostKeyStoreTest {
     @Test
     fun `acceptances and removals keep their times for sync, in a separate file`() {
         var now = 10L
-        val store = HostKeyStore(file) { now }
+        val store = HostKeyStore(file, clock = { now })
         store.put("a", "ssh-ed25519", "AAAA")
         now = 20L
         store.put("b", "ssh-rsa", "BBBB")

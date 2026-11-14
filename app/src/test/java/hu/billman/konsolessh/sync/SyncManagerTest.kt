@@ -43,7 +43,7 @@ class SyncManagerTest {
 
     private inner class Device {
         val repo = FakeConnectionRepository(clock = { now })
-        val hostKeys = HostKeyStore(File(Files.createTempDirectory("sync").toFile(), "known_hosts")) { now }
+        val hostKeys = HostKeyStore(File(Files.createTempDirectory("sync").toFile(), "known_hosts"), clock = { now })
         val keys = MemoryKeys()
         val sync = SyncManager(
             connections = repo,

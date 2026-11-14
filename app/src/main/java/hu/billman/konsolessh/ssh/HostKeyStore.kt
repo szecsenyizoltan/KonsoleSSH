@@ -16,6 +16,8 @@ import java.io.File
 class HostKeyStore(
     private val file: File,
     private val clock: () -> Long = System::currentTimeMillis,
+    /** Called after the user's own changes (not after [replaceFromSync]), to start a sync. */
+    private val onChange: () -> Unit = {},
 ) {
 
     data class Entry(val host: String, val type: String, val key: String)
@@ -38,6 +40,7 @@ class HostKeyStore(
         list.add(Entry(host, type, key))
         save(list)
         recordChanges(listOf(Change(host, type, key, clock())))
+        onChange()
     }
 
     /** A null type or key matches anything stored for the host. */
@@ -52,6 +55,7 @@ class HostKeyStore(
         save(list)
         val now = clock()
         recordChanges(gone.map { Change(it.host, it.type, null, now) })
+        onChange()
     }
 
     /** Every stored key and every removal, with their times; keys from before 2.2.0 have time 0. */

@@ -9,6 +9,7 @@ object KonsoleColors {
     val Surface = Color(0xFF161B22)
     val Input = Color(0xFF21262D)
     val StatusBar = Color(0xFF1C2128)
+    val StatusText = Color(0xFF7D8590)
     val KeyBar = Color(0xFF2A3A4E)
     val TextPrimary = Color(0xFFE6EDF3)
     val TextSecondary = Color(0xFF8B949E)

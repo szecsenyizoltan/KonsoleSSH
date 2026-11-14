@@ -95,6 +95,7 @@
     <string name="content_desc_edit">Editar</string>
     <string name="content_desc_delete">Eliminar</string>
     <string name="content_desc_back">Atrás</string>
+    <string name="content_desc_more">Más opciones</string>
     <string name="content_desc_show_password">Mostrar contraseña</string>
     <string name="content_desc_hide_password">Ocultar contraseña</string>
     <string name="content_desc_exit">Salir</string>

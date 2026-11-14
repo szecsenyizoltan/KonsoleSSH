@@ -95,6 +95,7 @@
     <string name="content_desc_edit">Modifier</string>
     <string name="content_desc_delete">Supprimer</string>
     <string name="content_desc_back">Retour</string>
+    <string name="content_desc_more">Plus d\'options</string>
     <string name="content_desc_show_password">Afficher le mot de passe</string>
     <string name="content_desc_hide_password">Masquer le mot de passe</string>
     <string name="content_desc_exit">Quitter</string>

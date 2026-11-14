@@ -2,21 +2,17 @@ package hu.billman.konsolessh
 
 import android.Manifest
 import android.os.Build
+import androidx.compose.ui.test.ComposeTimeoutException
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
-import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.Espresso.pressBackUnconditionally
-import androidx.test.espresso.action.ViewActions.click
-import androidx.test.espresso.assertion.ViewAssertions.matches
-import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
-import androidx.test.espresso.matcher.ViewMatchers.withId
-import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import hu.billman.konsolessh.model.ConnectionConfig
@@ -76,15 +72,20 @@ class MainActivityFlowTest {
     }
 
     private fun openFakeTab() {
-        onView(withId(R.id.btnNewTab)).perform(click())
+        compose.onNodeWithContentDescription(app.getString(R.string.content_desc_new_tab)).performClick()
         compose.onNodeWithText(connection.name).performClick()
     }
 
+    /**
+     * Waits for [condition]. Compose only draws frames when the test syncs with
+     * it, so the wait goes through the Compose rule: a page that has to be
+     * composed (and lay out its terminal to connect) gets its frames.
+     */
     private fun await(what: String, condition: () -> Boolean) {
-        val deadline = System.currentTimeMillis() + TIMEOUT_MS
-        while (!condition()) {
-            if (System.currentTimeMillis() > deadline) fail("timed out: $what")
-            Thread.sleep(POLL_MS)
+        try {
+            compose.waitUntil(TIMEOUT_MS, condition)
+        } catch (e: ComposeTimeoutException) {
+            fail("timed out: $what (${container.sessionManager.state.value.tabs})")
         }
     }
 
@@ -102,8 +103,7 @@ class MainActivityFlowTest {
             compose.onNodeWithText(app.getString(R.string.hostkey_unknown_title)).assertIsDisplayed()
             compose.onNodeWithText(app.getString(R.string.hostkey_accept)).performClick()
             await("connected") { tabStatus() == ConnectionStatus.CONNECTED }
-            onView(withText(app.getString(R.string.status_connected_suffix, connection.name)))
-                .check(matches(isDisplayed()))
+            compose.onNodeWithText(app.getString(R.string.status_connected_suffix, connection.name)).assertIsDisplayed()
         }
     }
 
@@ -118,7 +118,8 @@ class MainActivityFlowTest {
             fun screenText(): String {
                 var text = ""
                 scenario.onActivity { activity ->
-                    val buffer = checkNotNull(activity.currentTerminal()).buffer
+                    // Right after recreation the page may not be composed yet.
+                    val buffer = activity.currentTerminal()?.buffer ?: return@onActivity
                     text = (0 until buffer.totalLines).joinToString("\n") { line ->
                         buffer.lineAt(line).orEmpty().joinToString("") { it.ch }
                     }
@@ -171,7 +172,6 @@ class MainActivityFlowTest {
 
     private companion object {
         const val TIMEOUT_MS = 10_000L
-        const val POLL_MS = 50L
         const val SETTLE_MS = 500L
         const val RECREATIONS = 2
         const val UPLOAD_NAME = "upload-test.txt"

@@ -98,6 +98,7 @@
     <string name="content_desc_edit">Edit</string>
     <string name="content_desc_delete">Delete</string>
     <string name="content_desc_back">Back</string>
+    <string name="content_desc_more">More options</string>
     <string name="content_desc_show_password">Show password</string>
     <string name="content_desc_hide_password">Hide password</string>
     <string name="content_desc_exit">Exit</string>
@@ -181,8 +182,6 @@
     <string name="sym_folder" translatable="false">📁</string>
     <string name="sym_refresh" translatable="false">↺</string>
     <string name="sym_check" translatable="false">✓</string>
-    <string name="sym_cross" translatable="false">✕</string>
-    <string name="sym_dot" translatable="false">●</string>
     <string name="sym_plus" translatable="false">+</string>
 
     <!-- Hibajelentés -->

@@ -7,13 +7,11 @@ import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
-import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuItem
-import android.view.View
 import android.view.inputmethod.InputMethodManager
-import android.widget.TextView
+import androidx.activity.SystemBarStyle
 import androidx.activity.addCallback
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -21,6 +19,8 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -32,7 +32,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import androidx.core.os.LocaleListCompat
@@ -42,12 +41,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.viewpager2.widget.ViewPager2
-import com.google.android.material.tabs.TabLayout
 import hu.billman.konsolessh.R
-import hu.billman.konsolessh.databinding.ActivityMainBinding
 import hu.billman.konsolessh.service.SshForegroundService
-import hu.billman.konsolessh.session.ConnectionStatus
 import hu.billman.konsolessh.session.TabState
 import hu.billman.konsolessh.terminal.TerminalView
 import hu.billman.konsolessh.ui.keybar.Keybar
@@ -57,23 +52,25 @@ import kotlinx.coroutines.launch
 import hu.billman.konsolessh.terminal.Modifier as Key
 
 /**
- * A főképernyő: fülsáv, termináloldalak, billentyűsor. Állapotot nem
- * birtokol; a [MainViewModel] állapotát rajzolja ki, és parancsot ad neki.
+ * The main screen: tab strip, terminal pages, key bar, all in Compose. It
+ * owns no state of its own beyond what is on screen: it draws
+ * [MainViewModel]'s state and sends it the user's commands. An
+ * AppCompatActivity because the connection form and the tab picker are
+ * still DialogFragments, and because AppCompat applies the in-app language
+ * on Android 8-12.
  */
 class MainActivity : AppCompatActivity(), KeybarHost {
 
-    private lateinit var binding: ActivityMainBinding
-    private lateinit var pagerAdapter: TerminalPagerAdapter
-    private lateinit var uploads: UploadController
-
     private val viewModel: MainViewModel by viewModels { KonsoleViewModelFactory.from(this) }
-
-    /** A fülsáv utoljára kirajzolt (id, cím) listája; csak változáskor épül újra. */
-    private var renderedTabs: List<Pair<String, String>> = emptyList()
-    private val tabViews = mutableMapOf<String, View>()
-    private var syncingTabs = false
-
+    private lateinit var uploads: UploadController
     private val toasts = ToastHostState()
+
+    /** The pager, once composed; the key bar, zoom and hardware keys act on its current page. */
+    private var pager: PagerState? = null
+    private var pages: List<PageKey> = emptyList()
+
+    /** The terminal view of each page that is currently composed. */
+    private val terminals = mutableMapOf<PageKey, TerminalView>()
 
     /** The tab whose rename dialog is open. */
     private var renaming by mutableStateOf<TabState?>(null)
@@ -83,34 +80,23 @@ class MainActivity : AppCompatActivity(), KeybarHost {
         if (uri != null) uploads.upload(currentTabId(), uri)
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        binding.root.applySystemBarAndImePadding()
+    private val requestPermissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {}
 
-        setSupportActionBar(binding.toolbar)
-        supportActionBar?.setDisplayShowTitleEnabled(false)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        // The app is always dark, so the system bars get light icons whatever the system theme.
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
+        )
+        super.onCreate(savedInstanceState)
         requestRuntimePermissionsIfNeeded()
+        uploads = UploadController(this, viewModel)
 
         // With targetSdk 36+ onBackPressed is no longer called. Back moves the
         // app to the background so the sessions stay alive.
         onBackPressedDispatcher.addCallback(this) { moveTaskToBack(true) }
 
-        setupViewPager()
-        binding.keybar.setContent {
-            KonsoleTheme {
-                val modifiers by viewModel.modifiers.state.collectAsStateWithLifecycle()
-                Keybar(modifiers, host = this)
-            }
-        }
-        uploads = UploadController(this, viewModel)
-        binding.overlay.setContent { KonsoleTheme { Overlay() } }
-
-        binding.btnNewTab.setOnClickListener { showTabPicker() }
-        binding.btnZoomOut.setOnClickListener { zoom(-1f) }
-        binding.btnZoomIn.setOnClickListener { zoom(+1f) }
-
+        setContent { KonsoleTheme { Screen() } }
         listenForDialogResults()
         observeViewModel()
     }
@@ -118,8 +104,6 @@ class MainActivity : AppCompatActivity(), KeybarHost {
     private fun observeViewModel() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { viewModel.sessionsState.collect { renderTabs(it.tabs) } }
-                launch { viewModel.selectTab.collect { applyPendingSelection() } }
                 // Started from the visible activity, as Android requires; the service stops itself.
                 launch {
                     viewModel.serviceNeeded.collect { needed ->
@@ -136,6 +120,58 @@ class MainActivity : AppCompatActivity(), KeybarHost {
                 launch { viewModel.exit.collect { exit -> if (exit) finishApp() } }
             }
         }
+    }
+
+    @Composable
+    private fun Screen() {
+        val sessions by viewModel.sessionsState.collectAsStateWithLifecycle()
+        val tabs = sessions.tabs
+        val pageKeys = remember(tabs.map { it.id }) { PageKey.pages(tabs.map { it.id }) }
+        val pagerState = rememberPagerState { pageKeys.size }
+        pager = pagerState
+        pages = pageKeys
+
+        // A freshly opened tab is shown at once.
+        val selectTab by viewModel.selectTab.collectAsStateWithLifecycle()
+        LaunchedEffect(selectTab, pageKeys) {
+            val index = selectTab?.let { pageKeys.indexOf(PageKey.Tab(it)) } ?: return@LaunchedEffect
+            if (index >= 0) {
+                pagerState.scrollToPage(index)
+                viewModel.onTabSelected()
+            }
+        }
+
+        MainScreen(
+            tabs = tabs,
+            pages = pageKeys,
+            pager = pagerState,
+            actions = MainScreenActions(
+                onSelectPage = { index -> lifecycleScope.launch { pagerState.animateScrollToPage(index) } },
+                onCloseTab = viewModel::requestCloseTab,
+                onRenameTab = { renaming = it },
+                onNewTab = ::showTabPicker,
+                onZoom = ::zoom,
+                onCloseCurrentTab = { currentTabId()?.let(viewModel::requestCloseTab) },
+                onManageConnections = { startActivity(Intent(this, ConnectionEditActivity::class.java)) },
+                onLanguage = { pickingLanguage = true },
+                onProblemReport = viewModel::shareLatestProblemReport,
+                onExit = viewModel::requestCloseApp,
+            ),
+            page = { page ->
+                val register: (TerminalView?) -> Unit = { view ->
+                    if (view == null) terminals.remove(page) else terminals[page] = view
+                }
+                when (page) {
+                    is PageKey.Tab -> SshTerminalPage(page.id, viewModel, register)
+                    else -> StaticTerminalPage(page, register)
+                }
+            },
+            keybar = {
+                val modifiers by viewModel.modifiers.state.collectAsStateWithLifecycle()
+                Keybar(modifiers, host = this)
+            },
+        )
+        Overlay()
     }
 
     /**
@@ -252,8 +288,10 @@ class MainActivity : AppCompatActivity(), KeybarHost {
         supportFragmentManager.setFragmentResultListener(TabPickerSheet.RESULT_KEY, this) { _, result ->
             val connectionId = result.getString(TabPickerSheet.KEY_CONNECTION_ID)
             when (TabPickerSheet.Action.valueOf(result.getString(TabPickerSheet.KEY_ACTION).orEmpty())) {
-                TabPickerSheet.Action.SELECT_TAB ->
-                    binding.viewPager.setCurrentItem(result.getInt(TabPickerSheet.KEY_POSITION) + 1, true)
+                TabPickerSheet.Action.SELECT_TAB -> {
+                    val index = result.getInt(TabPickerSheet.KEY_POSITION) + 1
+                    lifecycleScope.launch { pager?.animateScrollToPage(index) }
+                }
                 TabPickerSheet.Action.OPEN_CONNECTION -> connectionId?.let(viewModel::openTab)
                 TabPickerSheet.Action.NEW_CONNECTION ->
                     NewConnectionDialog.newForCreate(openTab = true).show(supportFragmentManager, DIALOG_TAG)
@@ -266,91 +304,16 @@ class MainActivity : AppCompatActivity(), KeybarHost {
     }
 
     private fun showTabPicker() {
-        TabPickerSheet.newInstance(binding.viewPager.currentItem).show(supportFragmentManager, "tab_picker")
-    }
-
-    // ── Tabs ──────────────────────────────────────────────────────────────────
-
-    private fun setupViewPager() {
-        pagerAdapter = TerminalPagerAdapter(this)
-        binding.viewPager.adapter = pagerAdapter
-        binding.viewPager.offscreenPageLimit = 5 // keeps a few SSH tabs' views alive while swiping
-        val indicatorHeight = resources.getDimensionPixelSize(R.dimen.tab_indicator_height)
-
-        binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-            override fun onPageSelected(position: Int) {
-                syncingTabs = true
-                @Suppress("DEPRECATION")
-                if (pagerAdapter.isFixedPage(position)) {
-                    binding.tabLayout.setSelectedTabIndicatorHeight(0)
-                    binding.tabLayout.selectTab(null)
-                } else {
-                    binding.tabLayout.setSelectedTabIndicatorHeight(indicatorHeight)
-                    binding.tabLayout.getTabAt(position - 1)?.select()
-                }
-                syncingTabs = false
-            }
-        })
-        binding.tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-            override fun onTabSelected(tab: TabLayout.Tab) {
-                if (!syncingTabs) binding.viewPager.setCurrentItem(tab.position + 1, true)
-            }
-            override fun onTabUnselected(tab: TabLayout.Tab) = Unit
-            override fun onTabReselected(tab: TabLayout.Tab) = Unit
-        })
-    }
-
-    private fun renderTabs(tabs: List<TabState>) {
-        pagerAdapter.submit(tabs.map { it.id })
-        val shape = tabs.map { it.id to it.title }
-        if (shape != renderedTabs) {
-            renderedTabs = shape
-            rebuildTabStrip(tabs)
-        }
-        tabs.forEach { tab -> tabViews[tab.id]?.let { applyStatusDot(it, tab.status) } }
-        applyPendingSelection()
-    }
-
-    private fun rebuildTabStrip(tabs: List<TabState>) {
-        syncingTabs = true
-        tabViews.clear()
-        binding.tabLayout.removeAllTabs()
-        tabs.forEach { tab ->
-            val view = LayoutInflater.from(this).inflate(R.layout.tab_custom, binding.tabLayout, false)
-            view.findViewById<TextView>(R.id.tabTitle).text = tab.title
-            view.setOnClickListener { binding.viewPager.setCurrentItem(pagerAdapter.positionOf(tab.id), true) }
-            view.findViewById<TextView>(R.id.tabClose).setOnClickListener { viewModel.requestCloseTab(tab.id) }
-            view.setOnLongClickListener {
-                renaming = tab
-                true
-            }
-            tabViews[tab.id] = view
-            binding.tabLayout.addTab(binding.tabLayout.newTab().setCustomView(view), false)
-        }
-        val position = binding.viewPager.currentItem
-        if (!pagerAdapter.isFixedPage(position)) binding.tabLayout.getTabAt(position - 1)?.select()
-        syncingTabs = false
-    }
-
-    private fun applyPendingSelection() {
-        val tabId = viewModel.selectTab.value ?: return
-        val position = pagerAdapter.positionOf(tabId)
-        if (position < 0) return
-        binding.viewPager.setCurrentItem(position, false)
-        viewModel.onTabSelected()
-    }
-
-    private fun applyStatusDot(tabView: View, status: ConnectionStatus) {
-        val dot = tabView.findViewById<TextView>(R.id.tabStatusDot) ?: return
-        dot.visibility = if (status == ConnectionStatus.NONE) View.GONE else View.VISIBLE
-        statusColor(status)?.let(dot::setTextColor)
+        TabPickerSheet.newInstance(pager?.currentPage ?: 0).show(supportFragmentManager, "tab_picker")
     }
 
     // ── KeybarHost ────────────────────────────────────────────────────────────
 
-    override fun currentTerminal(): TerminalView? = pagerAdapter.pageAt(binding.viewPager.currentItem)?.terminalView
+    private fun currentPage(): PageKey? = pager?.let { pages.getOrNull(it.currentPage) }
 
-    private fun currentTabId(): String? = pagerAdapter.tabIdAt(binding.viewPager.currentItem)
+    override fun currentTerminal(): TerminalView? = currentPage()?.let(terminals::get)
+
+    private fun currentTabId(): String? = (currentPage() as? PageKey.Tab)?.id
 
     override fun sendKey(bytes: ByteArray) {
         val tabId = currentTabId() ?: return
@@ -370,9 +333,10 @@ class MainActivity : AppCompatActivity(), KeybarHost {
 
     override fun toggleKeyboard() {
         val imm = getSystemService<InputMethodManager>() ?: return
-        val imeVisible = ViewCompat.getRootWindowInsets(binding.root)?.isVisible(WindowInsetsCompat.Type.ime()) ?: false
+        val root = window.decorView
+        val imeVisible = ViewCompat.getRootWindowInsets(root)?.isVisible(WindowInsetsCompat.Type.ime()) ?: false
         if (imeVisible) {
-            imm.hideSoftInputFromWindow(binding.root.windowToken, 0)
+            imm.hideSoftInputFromWindow(root.windowToken, 0)
         } else {
             currentTerminal()?.focusAndShowKeyboard()
         }
@@ -393,16 +357,15 @@ class MainActivity : AppCompatActivity(), KeybarHost {
         finishAffinity()
     }
 
-    // Must be one request: a second concurrent requestPermissions is rejected.
     private fun requestRuntimePermissionsIfNeeded() {
         val missing = buildList {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) add(Manifest.permission.POST_NOTIFICATIONS)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.CINNAMON_BUN) add(Manifest.permission.ACCESS_LOCAL_NETWORK)
         }.filter { ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED }
-        if (missing.isNotEmpty()) ActivityCompat.requestPermissions(this, missing.toTypedArray(), 1)
+        if (missing.isNotEmpty()) requestPermissions.launch(missing.toTypedArray())
     }
 
-    // ── Hardware keys, menu ───────────────────────────────────────────────────
+    // ── Hardware keys ─────────────────────────────────────────────────────────
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (event.keyCode !in SYSTEM_KEYS) {
@@ -410,35 +373,6 @@ class MainActivity : AppCompatActivity(), KeybarHost {
             if (terminal != null && terminal.isAttachedToWindow && terminal.dispatchKeyEvent(event)) return true
         }
         return super.dispatchKeyEvent(event)
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.main_menu, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
-        R.id.action_manage_connections -> {
-            startActivity(Intent(this, ConnectionEditActivity::class.java))
-            true
-        }
-        R.id.action_close_tab -> {
-            currentTabId()?.let(viewModel::requestCloseTab)
-            true
-        }
-        R.id.action_language -> {
-            pickingLanguage = true
-            true
-        }
-        R.id.action_problem_report -> {
-            viewModel.shareLatestProblemReport()
-            true
-        }
-        R.id.action_exit -> {
-            viewModel.requestCloseApp()
-            true
-        }
-        else -> super.onOptionsItemSelected(item)
     }
 
     private companion object {
@@ -451,12 +385,5 @@ class MainActivity : AppCompatActivity(), KeybarHost {
             KeyEvent.KEYCODE_VOLUME_UP,
             KeyEvent.KEYCODE_VOLUME_DOWN,
         )
-
-        fun statusColor(status: ConnectionStatus): Int? = when (status) {
-            ConnectionStatus.NONE -> null
-            ConnectionStatus.CONNECTING -> Color.rgb(240, 180, 0)
-            ConnectionStatus.CONNECTED -> Color.rgb(63, 185, 80)
-            ConnectionStatus.DISCONNECTED -> Color.rgb(248, 81, 73)
-        }
     }
 }

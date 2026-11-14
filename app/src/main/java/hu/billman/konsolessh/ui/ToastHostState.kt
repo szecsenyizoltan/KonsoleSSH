@@ -148,6 +148,7 @@ private fun ToastView(toast: ToastHostState.Toast, onGone: () -> Unit) {
                 color = KonsoleColors.TextPrimary,
                 fontFamily = Monospace,
                 fontSize = 13.sp,
+                lineHeight = 17.sp,
                 modifier = Modifier.weight(1f, fill = false).padding(vertical = 10.dp),
             )
             if (toast.actionLabel != null) {

@@ -134,6 +134,14 @@ GPL-3.0-or-later; ver [LICENSE](LICENSE).
 
 ## Historial de versiones
 
+- **2.1.0** — al cerrar la última pestaña vuelve a aparecer la página de
+  bienvenida en lugar de una chuleta; una selección iniciada con una pulsación
+  larga se mantiene al levantar el dedo sin arrastrar; con una fuente del
+  sistema grande, el terminal sigue el escalado no lineal de Android 14; los
+  textos con cantidades usan el singular y el plural correctos en cada idioma;
+  la pantalla respeta el bloqueo de rotación del sistema; al escribir en un
+  campo ya rellenado se continúa al final; tocar el terminal está disponible
+  para los servicios de accesibilidad
 - **2.0.0** — un nuevo formato de almacenamiento y una interfaz reconstruida.
   Las conexiones guardadas pasan a un archivo DataStore cifrado y los ajustes a
   DataStore; la actualización los migra una vez y borra los archivos antiguos,

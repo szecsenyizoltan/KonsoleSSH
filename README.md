@@ -135,6 +135,13 @@ GPL-3.0-or-later; see [LICENSE](LICENSE).
 
 ## Release history
 
+- **2.1.0** — closing the last tab shows the welcome page again instead of a
+  cheat sheet; a selection started with a long press stays when the finger is
+  lifted without dragging; with a large system font the terminal follows
+  Android 14's non-linear scaling; counted texts use the right singular and
+  plural forms in every language; the screen follows the system rotation
+  lock; typing into a prefilled form field continues at its end; tapping the
+  terminal is available to accessibility services
 - **2.0.0** — a new storage format and a rebuilt interface. Saved connections
   move into an encrypted DataStore file and settings into DataStore; the
   upgrade migrates them once and removes the old files, so 1.x can no longer

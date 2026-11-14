@@ -134,6 +134,13 @@ GPL-3.0-or-later; lásd [LICENSE](LICENSE).
 
 ## Verziótörténet
 
+- **2.1.0** — az utolsó fül bezárása után ismét az üdvözlő oldal jelenik meg,
+  nem egy puska; a hosszú nyomással indított kijelölés megmarad, ha az ujj
+  húzás nélkül engedi fel; nagy rendszerbetűméretnél a terminál az Android 14
+  nemlineáris skálázását követi; a számot tartalmazó szövegek minden nyelven
+  helyes egyes és többes számot használnak; a képernyő követi a rendszer
+  forgatászárát; az előtöltött mezőkbe a szöveg végére lehet gépelni; a
+  terminálra koppintás akadálymentesítési szolgáltatásokból is elérhető
 - **2.0.0** — új tárolási formátum és újraépített felület. A mentett kapcsolatok
   titkosított DataStore-fájlba, a beállítások DataStore-ba kerülnek; a frissítés
   egyszer átköltözteti őket és törli a régi fájlokat, ezért utána az 1.x már nem

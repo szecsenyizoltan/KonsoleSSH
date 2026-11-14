@@ -134,6 +134,14 @@ GPL-3.0-or-later ; voir [LICENSE](LICENSE).
 
 ## Historique des versions
 
+- **2.1.0** — après la fermeture du dernier onglet, la page d'accueil réapparaît
+  au lieu d'un aide-mémoire ; une sélection commencée par un appui long reste
+  en place quand le doigt est levé sans glisser ; avec une grande police
+  système, le terminal suit la mise à l'échelle non linéaire d'Android 14 ; les
+  textes avec un nombre utilisent le singulier et le pluriel corrects dans
+  chaque langue ; l'écran respecte le verrouillage de la rotation ; la saisie
+  dans un champ prérempli continue à la fin ; le toucher du terminal est
+  accessible aux services d'accessibilité
 - **2.0.0** — un nouveau format de stockage et une interface reconstruite.
   Les connexions enregistrées passent dans un fichier DataStore chiffré et les
   réglages dans DataStore ; la mise à jour les migre une fois et supprime les

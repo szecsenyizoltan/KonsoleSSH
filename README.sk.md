@@ -134,6 +134,13 @@ GPL-3.0-or-later; pozri [LICENSE](LICENSE).
 
 ## História verzií
 
+- **2.1.0** — po zatvorení poslednej karty sa opäť zobrazí uvítacia stránka,
+  nie ťahák; výber začatý dlhým stlačením zostane aj po zdvihnutí prsta bez
+  ťahania; pri veľkom systémovom písme terminál nasleduje nelineárne škálovanie
+  Androidu 14; texty s počtom používajú v každom jazyku správny tvar jednotného
+  a množného čísla; obrazovka rešpektuje systémový zámok otáčania; písanie do
+  predvyplneného poľa pokračuje na jeho konci; ťuknutie na terminál je dostupné
+  aj pre služby dostupnosti
 - **2.0.0** — nový formát ukladania a prestavané rozhranie. Uložené pripojenia
   sa presúvajú do šifrovaného súboru DataStore a nastavenia do DataStore;
   aktualizácia ich raz zmigruje a odstráni staré súbory, takže verzia 1.x ich

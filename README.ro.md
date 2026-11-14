@@ -134,6 +134,13 @@ GPL-3.0-or-later; vezi [LICENSE](LICENSE).
 
 ## Istoricul versiunilor
 
+- **2.1.0** — după închiderea ultimei file apare din nou pagina de bun venit,
+  nu o fițuică; o selecție începută cu o apăsare lungă rămâne când degetul este
+  ridicat fără glisare; cu un font de sistem mare, terminalul urmează scalarea
+  neliniară din Android 14; textele cu numere folosesc forma corectă de singular
+  și plural în fiecare limbă; ecranul respectă blocarea rotirii din sistem;
+  scrierea într-un câmp precompletat continuă de la sfârșitul lui; atingerea
+  terminalului este disponibilă pentru serviciile de accesibilitate
 - **2.0.0** — un nou format de stocare și o interfață reconstruită.
   Conexiunile salvate trec într-un fișier DataStore criptat, iar setările în
   DataStore; actualizarea le migrează o dată și șterge fișierele vechi, astfel

@@ -134,6 +134,14 @@ GPL-3.0-or-later; siehe [LICENSE](LICENSE).
 
 ## Versionsgeschichte
 
+- **2.1.0** — nach dem Schließen des letzten Tabs erscheint wieder die
+  Startseite statt eines Spickzettels; eine per langem Druck begonnene Auswahl
+  bleibt erhalten, wenn der Finger ohne Ziehen losgelassen wird; bei großer
+  Systemschrift folgt das Terminal der nichtlinearen Skalierung von Android 14;
+  Texte mit Anzahl verwenden in jeder Sprache die richtige Einzahl und Mehrzahl;
+  der Bildschirm folgt der Rotationssperre des Systems; in vorausgefüllten
+  Formularfeldern wird am Ende weitergeschrieben; das Tippen auf das Terminal
+  ist für Bedienungshilfen erreichbar
 - **2.0.0** — ein neues Speicherformat und eine neu gebaute Oberfläche.
   Gespeicherte Verbindungen ziehen in eine verschlüsselte DataStore-Datei,
   Einstellungen in DataStore; das Update migriert sie einmal und entfernt die

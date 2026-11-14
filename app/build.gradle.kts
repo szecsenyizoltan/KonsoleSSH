@@ -104,6 +104,14 @@ kotlin {
     }
 }
 
+// Every resolved dependency version is pinned in gradle.lockfile, so a
+// build cannot pick up a different transitive version unnoticed, and the
+// CVE scan in CI has an exact list to check. After changing a dependency:
+// ./gradlew :app:dependencies --write-locks
+dependencyLocking {
+    lockAllConfigurations()
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

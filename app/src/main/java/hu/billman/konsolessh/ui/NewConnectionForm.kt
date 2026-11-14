@@ -148,37 +148,33 @@ fun NewConnectionForm(
 
 @Composable
 private fun Fields(form: FormState, actions: NewConnectionActions) {
-    OutlinedTextField(
+    FormTextField(
         value = form.name,
         onValueChange = actions.onName,
         label = { Text(stringResource(R.string.connection_name_hint)) },
-        singleLine = true,
         modifier = Modifier.fillMaxWidth(),
     )
-    OutlinedTextField(
+    FormTextField(
         value = form.host,
         onValueChange = actions.onHost,
         label = { Text(stringResource(if (form.isInternalHost) R.string.host_internal_hint else R.string.host_hint)) },
-        singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
         modifier = Modifier.fillMaxWidth(),
     )
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        OutlinedTextField(
+        FormTextField(
             value = form.port,
             onValueChange = actions.onPort,
             label = {
                 Text(stringResource(if (form.isInternalHost) R.string.port_internal_hint else R.string.port_hint))
             },
-            singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.weight(1f),
         )
-        OutlinedTextField(
+        FormTextField(
             value = form.username,
             onValueChange = actions.onUsername,
             label = { Text(stringResource(R.string.username_hint)) },
-            singleLine = true,
             modifier = Modifier.weight(2f),
         )
     }
@@ -211,11 +207,10 @@ private fun Authentication(form: FormState, actions: NewConnectionActions) {
         }
     } else {
         var visible by rememberSaveable { mutableStateOf(false) }
-        OutlinedTextField(
+        FormTextField(
             value = form.password,
             onValueChange = actions.onPassword,
             label = { Text(stringResource(R.string.password_hint_optional)) },
-            singleLine = true,
             visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             trailingIcon = {

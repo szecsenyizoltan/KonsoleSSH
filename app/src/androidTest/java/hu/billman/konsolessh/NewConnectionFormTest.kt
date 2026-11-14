@@ -1,5 +1,8 @@
 package hu.billman.konsolessh
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
@@ -62,6 +65,23 @@ class NewConnectionFormTest {
         KonsoleTheme {
             NewConnectionForm(form, message, keyDialog = null, errorText = { it.toString() }, actions = actions())
         }
+    }
+
+    @Test
+    fun typingIntoAPrefilledFieldAppendsAtTheEnd() {
+        var form by mutableStateOf(FormState())
+        compose.setContent {
+            KonsoleTheme {
+                NewConnectionForm(form, null, keyDialog = null, errorText = { it.toString() }, actions = actions())
+            }
+        }
+        // The ViewModel fills the usual user name in after the form is shown.
+        form = form.copy(username = "root")
+        compose.waitForIdle()
+
+        compose.onNodeWithText("root").performTextInput("x")
+
+        assertEquals("user:rootx", events.last())
     }
 
     @Test

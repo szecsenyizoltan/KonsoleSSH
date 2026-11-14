@@ -7,6 +7,7 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kotlin.compose)
 }
 
 val keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -80,6 +81,7 @@ android {
     }
 
     buildFeatures {
+        compose = true
         viewBinding = true
     }
 
@@ -116,6 +118,14 @@ dependencies {
     implementation(libs.bouncycastle.bcprov)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.datastore)
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -134,6 +144,8 @@ dependencies {
 
     // Instrumented tests (device/emulator)
     androidTestImplementation(libs.androidx.test.junit)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.androidx.test.rules)
     androidTestImplementation(libs.espresso.core)

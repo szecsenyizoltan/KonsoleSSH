@@ -3,26 +3,26 @@ package hu.billman.konsolessh.diagnostics
 import java.io.File
 
 /**
- * Hibajelentések az előző futásokból: ANR (a rendszer kilépési előzményeiből)
- * és nem kezelt kivétel (saját rögzítéssel). Telemetria nincs: a jelentés a
- * készüléken marad, a felhasználó dönt a megosztásról.
+ * Problem reports from earlier runs: ANRs, from the system's exit history,
+ * and uncaught exceptions, recorded by the app. There is no telemetry: the
+ * report stays on the device until the user decides to share it.
  */
 interface ProblemReports {
 
-    /** Feldolgozza az új eseményeket; ha van meg nem mutatott jelentés, annak fájlja. */
+    /** Processes new events; returns the report file if there is one the user has not seen. */
     suspend fun collectNew(): File?
 
-    /** Az utolsó jelentés, akkor is, ha már megmutattuk. */
+    /** The latest report, even if it was already shown. */
     suspend fun latest(): File?
 
-    /** A felhasználó látta a jelentést (megosztotta vagy elutasította). */
+    /** The user has seen the report, and shared or dismissed it. */
     suspend fun markSeen()
 }
 
-/** A jelentés szövege; tiszta függvény, hogy tesztelhető legyen. */
+/** The report's text; pure, so it can be tested. */
 object ProblemReportFormat {
 
-    /** Ennyi karakter fér egy szakaszba; egy ANR-nyom minden szálat tartalmaz. */
+    /** Caps one section; an ANR trace holds every thread and can be very long. */
     const val MAX_SECTION_CHARS = 200_000
 
     data class Section(val title: String, val body: String)

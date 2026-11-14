@@ -5,9 +5,10 @@ import java.io.PrintWriter
 import java.time.Instant
 
 /**
- * Nem kezelt kivételnél a veremet fájlba írja, majd átadja az eredeti
- * kezelőnek (az Android ugyanúgy leállítja az appot). A rendszer kilépési
- * előzménye Java-összeomlásnál nem tartalmaz vermet, ezért kell ez.
+ * Writes an uncaught exception's stack trace to a file, then passes the
+ * exception on to the previous handler, so Android still stops the app as
+ * usual. The system's exit history holds no stack trace for a Java crash,
+ * which is why this is needed.
  */
 object CrashRecorder {
 

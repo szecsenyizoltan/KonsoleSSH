@@ -16,9 +16,9 @@ import java.io.File
 import java.time.Instant
 
 /**
- * [ProblemReports] Androidon: az ANR-nyom az [ApplicationExitInfo]-ból jön
- * (API 30+), az összeomlás a [CrashRecorder] fájljából. A jelentés a
- * `files/diagnostics/report.txt`-be kerül, onnan osztható meg.
+ * [ProblemReports] on Android: the ANR trace comes from [ApplicationExitInfo]
+ * (API 30+), the crash from the [CrashRecorder]'s file. The report is
+ * written to `files/diagnostics/report.txt` and shared from there.
  */
 class AndroidProblemReports(
     context: Context,
@@ -31,7 +31,7 @@ class AndroidProblemReports(
     private val prefs by lazy { appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE) }
     private val mutex = Mutex()
 
-    /** A [CrashRecorder] ide ír. */
+    /** Where the [CrashRecorder] writes. */
     val crashFile = File(dir, "crash.txt")
 
     override suspend fun collectNew(): File? = io {
@@ -98,7 +98,7 @@ class AndroidProblemReports(
     private fun format(timestamp: Long) = ReportTime.format(Instant.ofEpochMilli(timestamp))
 
     companion object {
-        /** A FileProvider-ben is ez a könyvtár szerepel. */
+        /** The FileProvider paths name this directory too. */
         const val DIR = "diagnostics"
         private const val PREFS = "konsole_diagnostics"
         private const val KEY_LAST_EXIT = "last_exit_timestamp"

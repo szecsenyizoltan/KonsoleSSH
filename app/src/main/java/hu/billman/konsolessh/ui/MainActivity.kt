@@ -27,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -49,6 +50,7 @@ import hu.billman.konsolessh.terminal.TerminalView
 import hu.billman.konsolessh.ui.keybar.Keybar
 import hu.billman.konsolessh.ui.keybar.KeybarHost
 import hu.billman.konsolessh.ui.theme.KonsoleTheme
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import hu.billman.konsolessh.terminal.Modifier as Key
 
@@ -127,6 +129,8 @@ class MainActivity : AppCompatActivity(), KeybarHost {
         val tabs = sessions.tabs
         val pageKeys = remember(tabs.map { it.id }) { PageKey.pages(tabs.map { it.id }) }
         val pagerState = rememberPagerState { pageKeys.size }
+        // Pager animations need the composition's frame clock, which lifecycleScope lacks.
+        val scope = rememberCoroutineScope()
         // Saved, so the picker and the form it opened survive a configuration change.
         var pickingTab by rememberSaveable { mutableStateOf(false) }
         var form by rememberSaveable(stateSaver = FormRequest.Saver) { mutableStateOf<FormRequest?>(null) }
@@ -148,7 +152,7 @@ class MainActivity : AppCompatActivity(), KeybarHost {
             pages = pageKeys,
             pager = pagerState,
             actions = MainScreenActions(
-                onSelectPage = { index -> lifecycleScope.launch { pagerState.animateScrollToPage(index) } },
+                onSelectPage = { index -> scope.launch { pagerState.animateScrollToPage(index) } },
                 onCloseTab = viewModel::requestCloseTab,
                 onRenameTab = { renaming = it },
                 onNewTab = { pickingTab = true },
@@ -174,19 +178,24 @@ class MainActivity : AppCompatActivity(), KeybarHost {
             },
         )
         Overlay()
-        if (pickingTab) TabPicker(pagerState, onForm = { form = it }, onDismiss = { pickingTab = false })
+        if (pickingTab) TabPicker(pagerState, scope, onForm = { form = it }, onDismiss = { pickingTab = false })
         form?.let { request -> ConnectionForm(request, onClose = { form = null }) }
     }
 
     @Composable
-    private fun TabPicker(pagerState: PagerState, onForm: (FormRequest) -> Unit, onDismiss: () -> Unit) {
+    private fun TabPicker(
+        pagerState: PagerState,
+        scope: CoroutineScope,
+        onForm: (FormRequest) -> Unit,
+        onDismiss: () -> Unit,
+    ) {
         TabPickerSheet(
             mainViewModel = viewModel,
             currentPage = pagerState.currentPage,
             choices = TabPickerChoices(
                 onNewConnection = { onForm(FormRequest(editId = null, openTab = true)) },
                 // The picker counts tabs only; the welcome page comes before them.
-                onSelectTab = { index -> lifecycleScope.launch { pagerState.animateScrollToPage(index + 1) } },
+                onSelectTab = { index -> scope.launch { pagerState.animateScrollToPage(index + 1) } },
                 onOpen = { viewModel.openTab(it.id) },
                 onEdit = { onForm(FormRequest(editId = it.id, openTab = false)) },
                 onExit = viewModel::requestCloseApp,

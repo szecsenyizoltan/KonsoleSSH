@@ -5,6 +5,7 @@ import android.os.Build
 import androidx.compose.ui.test.ComposeTimeoutException
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -74,7 +75,8 @@ class MainActivityFlowTest {
 
     private fun openFakeTab() {
         compose.onNodeWithContentDescription(app.getString(R.string.content_desc_new_tab)).performClick()
-        compose.onNodeWithText(connection.name).performClick()
+        // The saved connection's row; with a tab open, the open-tabs list shows the name too.
+        compose.onNodeWithText("${connection.username}@${connection.host}:${connection.port}").performClick()
     }
 
     /**
@@ -154,6 +156,28 @@ class MainActivityFlowTest {
             compose.onNodeWithText(app.getString(R.string.upload_title, UPLOAD_NAME)).assertIsDisplayed()
             gate.complete(Unit)
             await("upload finished") { UPLOAD_NAME in FakeTerminalSession.uploaded }
+        }
+    }
+
+    @Test
+    fun tappingATabInTheStripSwitchesToIt() {
+        FakeTerminalSession.askHostKey = false
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            openFakeTab()
+            openFakeTab()
+            await("two tabs") { container.sessionManager.state.value.tabs.size == 2 }
+            var before: Any? = null
+            scenario.onActivity { before = it.currentTerminal() }
+
+            // Both tabs carry the connection's name; the first one in the strip is the first tab.
+            compose.onAllNodesWithText(connection.name)[0].performClick()
+
+            await("first tab shown") {
+                var current: Any? = null
+                scenario.onActivity { current = it.currentTerminal() }
+                current != null && current !== before
+            }
+            assertEquals(Lifecycle.State.RESUMED, scenario.state)
         }
     }
 

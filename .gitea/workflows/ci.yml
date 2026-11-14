@@ -4,8 +4,9 @@ name: CI
 # against real sshd instances (with coverage), Android lint, detekt, and a
 # CVE scan of the locked dependencies.
 #
-# Not here yet: the instrumented emulator tests. They need KVM on the runner;
-# until then run them locally with ./gradlew :app:connectedDebugAndroidTest.
+# The instrumented emulator tests run in their own job, and only where the
+# runner gives the job container a usable /dev/kvm; elsewhere the job warns
+# and skips them. Locally: ./gradlew :app:connectedDebugAndroidTest
 
 on:
   push:
@@ -72,3 +73,44 @@ jobs:
           echo "::group::All configurations (report only)"
           /tmp/osv-scanner scan source --lockfile app/gradle.lockfile || true
           echo "::endgroup::"
+
+  instrumented:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: KVM
+        id: kvm
+        run: |
+          if [ -r /dev/kvm ] && [ -w /dev/kvm ]; then
+            echo "usable=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::No usable /dev/kvm on this runner; the instrumented tests are skipped."
+            echo "usable=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout
+        if: steps.kvm.outputs.usable == 'true'
+        uses: actions/checkout@v4
+
+      - name: JDK 17
+        if: steps.kvm.outputs.usable == 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Android SDK
+        if: steps.kvm.outputs.usable == 'true'
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+
+      - name: Instrumented tests on an emulator
+        if: steps.kvm.outputs.usable == 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          script: ./gradlew --no-daemon :app:connectedDebugAndroidTest

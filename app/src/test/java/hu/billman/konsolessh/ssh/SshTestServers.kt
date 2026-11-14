@@ -40,7 +40,7 @@ class SshTestServers : AutoCloseable {
                 #!/bin/sh
                 case "${'$'}SSH_ORIGINAL_COMMAND" in
                   *sftp*) exec $SFTP_SERVER -d ${uploadDir.path} ;;
-                  *) echo $MARKER; echo ${'$'}${'$'} > ${shellPidFile.path}; exec cat ;;
+                  *) echo $MARKER; echo ${'$'}${'$'} > ${shellPidFile.path}.tmp; mv ${shellPidFile.path}.tmp ${shellPidFile.path}; exec cat ;;
                 esac
                 """.trimIndent() + "\n",
             )
@@ -92,7 +92,7 @@ class SshTestServers : AutoCloseable {
      */
     fun diagnostics(): String = buildString {
         val shell = shellPidFile.takeIf { it.exists() }?.readText()?.trim()
-        appendLine("shell pid: ${shell ?: "-"} ${shell?.let(::describe).orEmpty()}")
+        appendLine("shell pid: ${shell ?: "-"} ${shell?.takeIf { it.isNotEmpty() }?.let(::describe).orEmpty()}")
         val all = processTable()
         processes.keys.forEach { name ->
             val root = File(dir, "$name.pid").takeIf { it.exists() }?.readText()?.trim()
@@ -211,7 +211,10 @@ class SshTestServers : AutoCloseable {
 
         /** True while [pid] runs; a zombie counts as gone. */
         fun processRunning(pid: String): Boolean {
-            val stat = runCatching { File("/proc/$pid/stat").readText() }.getOrNull() ?: return false
+            // An empty pid would read /proc/stat, which always exists.
+            val stat = pid.takeIf { it.isNotEmpty() && it.all(Char::isDigit) }
+                ?.let { runCatching { File("/proc/$it/stat").readText() }.getOrNull() }
+                ?: return false
             // "pid (comm) S ...": comm may contain spaces and parentheses, the state follows the last ')'.
             val state = stat.substringAfterLast(')').trim().firstOrNull()
             return state != null && state !in DEAD_STATES

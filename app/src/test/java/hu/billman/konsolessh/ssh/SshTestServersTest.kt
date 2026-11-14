@@ -36,6 +36,15 @@ class SshTestServersTest {
     }
 
     @Test
+    fun `an empty or malformed pid is no process`() {
+        // A shell killed between creating its pid file and writing it leaves the file
+        // empty; "/proc//stat" would be /proc/stat, which always exists.
+        assertFalse(SshTestServers.processRunning(""))
+        assertFalse(SshTestServers.processRunning("self"))
+        assertFalse(SshTestServers.processRunning("12 "))
+    }
+
+    @Test
     fun `diagnostics list every server, its processes and its listening socket`() {
         SshTestServers().use { servers ->
             val text = servers.diagnostics()

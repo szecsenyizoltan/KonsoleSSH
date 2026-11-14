@@ -207,6 +207,7 @@
     <string name="sync_err_consent">A Google-nek engedély kell a Drive használatához.</string>
     <string name="sync_err_not_configured">Az alkalmazás ezen buildjében nincs beállítva a Google Drive-hozzáférés.</string>
     <string name="sync_err_network">A Google Drive nem érhető el. Ellenőrizd a kapcsolatot, és próbáld újra.</string>
+    <string name="sync_err_drive_full">A Google-tárhelyed megtelt, ezért a Drive nem fogad új adatot. Szabadíts fel helyet a Google-fiókodban, majd szinkronizálj újra.</string>
     <string name="sync_err_wrong_passphrase">Ez a jelszó nem nyitja meg a mentést.</string>
     <string name="sync_err_passphrase_changed">A mentés jelszavát egy másik eszközön megváltoztatták. Kapcsold ki itt a szinkront, majd kapcsold be újra az új jelszóval.</string>
     <string name="sync_err_newer">A mentést a KonsoleSSH egy újabb verziója írta. Frissítsd az alkalmazást.</string>

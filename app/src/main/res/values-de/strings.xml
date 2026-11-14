@@ -207,6 +207,7 @@
     <string name="sync_err_consent">Google braucht deine Erlaubnis, um Drive zu verwenden.</string>
     <string name="sync_err_not_configured">Der Google-Drive-Zugriff ist für diesen Build der App nicht eingerichtet.</string>
     <string name="sync_err_network">Google Drive ist nicht erreichbar. Prüfe die Verbindung und versuche es erneut.</string>
+    <string name="sync_err_drive_full">Dein Google-Speicher ist voll, daher nimmt Drive nichts Neues an. Gib in deinem Google-Konto Speicher frei und synchronisiere dann erneut.</string>
     <string name="sync_err_wrong_passphrase">Diese Passphrase öffnet die Sicherung nicht.</string>
     <string name="sync_err_passphrase_changed">Die Passphrase der Sicherung wurde auf einem anderen Gerät geändert. Schalte die Synchronisierung hier aus und mit der neuen Passphrase wieder ein.</string>
     <string name="sync_err_newer">Die Sicherung wurde von einer neueren Version von KonsoleSSH geschrieben. Aktualisiere die App.</string>

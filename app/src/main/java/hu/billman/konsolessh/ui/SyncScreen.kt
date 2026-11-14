@@ -143,6 +143,7 @@ private fun ProblemText(problem: Problem, actions: SyncActions) {
             Problem.CONSENT -> R.string.sync_err_consent
             Problem.NOT_CONFIGURED -> R.string.sync_err_not_configured
             Problem.NETWORK -> R.string.sync_err_network
+            Problem.DRIVE_FULL -> R.string.sync_err_drive_full
             Problem.WRONG_PASSPHRASE -> R.string.sync_err_wrong_passphrase
             Problem.PASSPHRASE_CHANGED -> R.string.sync_err_passphrase_changed
             Problem.NEWER_FORMAT -> R.string.sync_err_newer

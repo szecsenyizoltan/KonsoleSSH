@@ -210,6 +210,7 @@
     <string name="sync_err_consent">Google necesita tu permiso para usar Drive.</string>
     <string name="sync_err_not_configured">El acceso a Google Drive no está configurado en esta compilación de la app.</string>
     <string name="sync_err_network">No se pudo acceder a Google Drive. Comprueba la conexión y vuelve a intentarlo.</string>
+    <string name="sync_err_drive_full">Tu almacenamiento de Google está lleno, así que Drive no acepta nada nuevo. Libera espacio en tu cuenta de Google y vuelve a sincronizar.</string>
     <string name="sync_err_wrong_passphrase">Esta frase no abre la copia.</string>
     <string name="sync_err_passphrase_changed">La frase de la copia se cambió en otro dispositivo. Desactiva aquí la sincronización y vuelve a activarla con la frase nueva.</string>
     <string name="sync_err_newer">La copia la escribió una versión más reciente de KonsoleSSH. Actualiza la app.</string>

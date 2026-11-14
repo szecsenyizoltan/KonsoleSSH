@@ -17,6 +17,7 @@ class DriveAppDataStoreTest {
     private var file: Pair<String, String>? = null
     private val requests = mutableListOf<String>()
     private var acceptedToken = "good"
+    private var quotaExceeded = false
 
     private val server = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0).apply {
         createContext("/") { handle(it) }
@@ -37,6 +38,8 @@ class DriveAppDataStoreTest {
         val body = ex.requestBody.readBytes().toString(Charsets.UTF_8)
         val (code, answer) = when {
             ex.requestHeaders.getFirst("Authorization") != "Bearer $acceptedToken" -> 401 to "{}"
+            quotaExceeded && method == "POST" ->
+                403 to """{"error":{"code":403,"errors":[{"reason":"storageQuotaExceeded"}]}}"""
             method == "GET" && path == "/drive/v3/files" -> {
                 assertTrue(query.contains("spaces=appDataFolder"))
                 200 to (file?.let { """{"files":[{"id":"${it.first}"}]}""" } ?: """{"files":[]}""")
@@ -84,6 +87,12 @@ class DriveAppDataStoreTest {
         )
         assertNull(store.read())
         assertEquals(listOf("expired"), forgotten)
+    }
+
+    @Test(expected = DriveFullException::class)
+    fun `a full Google storage is reported as such`() {
+        quotaExceeded = true
+        runBlocking { store().write("{}") }
     }
 
     @Test(expected = DriveAuthException::class)

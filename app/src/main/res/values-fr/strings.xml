@@ -210,6 +210,7 @@
     <string name="sync_err_consent">Google a besoin de votre autorisation pour utiliser Drive.</string>
     <string name="sync_err_not_configured">L\'accès à Google Drive n\'est pas configuré pour cette version de l\'app.</string>
     <string name="sync_err_network">Google Drive est injoignable. Vérifiez la connexion et réessayez.</string>
+    <string name="sync_err_drive_full">Votre stockage Google est plein, Drive n\'accepte donc rien de nouveau. Libérez de l\'espace dans votre compte Google, puis synchronisez à nouveau.</string>
     <string name="sync_err_wrong_passphrase">Cette phrase n\'ouvre pas la sauvegarde.</string>
     <string name="sync_err_passphrase_changed">La phrase de la sauvegarde a été changée sur un autre appareil. Désactivez la synchronisation ici, puis réactivez-la avec la nouvelle phrase.</string>
     <string name="sync_err_newer">La sauvegarde a été écrite par une version plus récente de KonsoleSSH. Mettez l\'app à jour.</string>

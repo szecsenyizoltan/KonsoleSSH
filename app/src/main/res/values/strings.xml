@@ -226,6 +226,7 @@
     <string name="sync_err_consent">Google needs your permission to use Drive.</string>
     <string name="sync_err_not_configured">Google Drive access is not set up for this build of the app.</string>
     <string name="sync_err_network">Google Drive could not be reached. Check the connection and try again.</string>
+    <string name="sync_err_drive_full">Your Google storage is full, so Drive accepts nothing new. Free up space in your Google account, then sync again.</string>
     <string name="sync_err_wrong_passphrase">This passphrase does not open the backup.</string>
     <string name="sync_err_passphrase_changed">The backup\'s passphrase was changed on another device. Turn sync off here and on again with the new passphrase.</string>
     <string name="sync_err_newer">The backup was written by a newer version of KonsoleSSH. Update the app.</string>

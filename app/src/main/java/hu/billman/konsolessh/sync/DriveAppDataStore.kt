@@ -24,6 +24,9 @@ interface SyncFileStore {
 /** The account's authorization for Drive is gone or was revoked. */
 class DriveAuthException(message: String) : IOException(message)
 
+/** The user's Google storage is full, so Drive accepts no new data. */
+class DriveFullException(message: String) : IOException(message)
+
 /**
  * The sync file in the hidden app data folder of the user's Google Drive.
  * Only this app can see that folder, and it does not show in Drive's own
@@ -126,7 +129,12 @@ class DriveAppDataStore(
             val code = connection.responseCode
             when {
                 code == HttpURLConnection.HTTP_UNAUTHORIZED -> throw DriveAuthException("Drive refused the token")
-                code !in 200..299 -> throw IOException("Drive answered $code")
+                // Google's error body names the cause (e.g. a disabled API or a missing scope); it holds no user data.
+                code !in 200..299 -> {
+                    val error = errorBody(connection)
+                    if (error.contains(QUOTA_EXCEEDED)) throw DriveFullException("Drive storage is full")
+                    throw IOException("Drive answered $code: $error")
+                }
                 else -> connection.inputStream.use { it.readBytes().toString(Charsets.UTF_8) }
             }
         } finally {
@@ -134,9 +142,15 @@ class DriveAppDataStore(
         }
     }
 
+    private fun errorBody(connection: HttpURLConnection): String =
+        runCatching { connection.errorStream?.use { it.readBytes().toString(Charsets.UTF_8) } }.getOrNull()
+            ?.take(ERROR_BODY_CHARS).orEmpty()
+
     companion object {
         const val FILE_NAME = "konsolessh-sync.json"
         const val SCOPE = "https://www.googleapis.com/auth/drive.appdata"
         private const val TIMEOUT_MS = 30_000
+        private const val ERROR_BODY_CHARS = 500
+        private const val QUOTA_EXCEEDED = "storageQuotaExceeded"
     }
 }

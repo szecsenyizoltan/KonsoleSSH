@@ -213,6 +213,7 @@
     <string name="sync_err_consent">Google potrebuje vaše povolenie na použitie Drive.</string>
     <string name="sync_err_not_configured">Prístup ku Google Drive nie je v tejto zostave aplikácie nastavený.</string>
     <string name="sync_err_network">Google Drive je nedostupný. Skontrolujte pripojenie a skúste to znova.</string>
+    <string name="sync_err_drive_full">Vaše úložisko Google je plné, preto Drive neprijme nič nové. Uvoľnite miesto vo svojom účte Google a potom znova synchronizujte.</string>
     <string name="sync_err_wrong_passphrase">Toto heslo zálohu neotvorí.</string>
     <string name="sync_err_passphrase_changed">Heslo zálohy sa zmenilo v inom zariadení. Vypnite tu synchronizáciu a znova ju zapnite s novým heslom.</string>
     <string name="sync_err_newer">Zálohu zapísala novšia verzia KonsoleSSH. Aktualizujte aplikáciu.</string>

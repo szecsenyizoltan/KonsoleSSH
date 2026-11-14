@@ -1,6 +1,7 @@
 package hu.billman.konsolessh.ui
 
 import android.app.PendingIntent
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.common.api.ApiException
@@ -9,6 +10,7 @@ import hu.billman.konsolessh.data.ConnectionRepository
 import hu.billman.konsolessh.data.ConnectionStoreException
 import hu.billman.konsolessh.data.SettingsRepository
 import hu.billman.konsolessh.sync.DriveAuthorizer
+import hu.billman.konsolessh.sync.DriveFullException
 import hu.billman.konsolessh.sync.SyncCipher
 import hu.billman.konsolessh.sync.SyncManager
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,6 +40,7 @@ class SyncViewModel(
         CONSENT,
         NOT_CONFIGURED,
         NETWORK,
+        DRIVE_FULL,
         WRONG_PASSPHRASE,
         PASSPHRASE_CHANGED,
         NEWER_FORMAT,
@@ -159,6 +162,8 @@ class SyncViewModel(
     }
 
     private fun failed(e: Exception, joining: Boolean, onFailure: () -> Unit) {
+        // The screen shows a short reason; the log keeps the cause for a problem report.
+        Log.w(TAG, "sync step failed", e)
         onFailure()
         if (step.value == Step.CHECKING) step.value = Step.INTRO
         problem.value = classify(e, joining)
@@ -170,11 +175,13 @@ class SyncViewModel(
         is SyncCipher.WrongPassphraseException -> if (joining) Problem.WRONG_PASSPHRASE else Problem.PASSPHRASE_CHANGED
         is SyncCipher.UnreadableFileException -> Problem.NEWER_FORMAT
         is ConnectionStoreException -> Problem.STORE
+        is DriveFullException -> Problem.DRIVE_FULL
         is IOException -> Problem.NETWORK
         else -> Problem.NETWORK
     }
 
     private companion object {
+        const val TAG = "Sync"
         const val MIN_PASSPHRASE = 8
     }
 }

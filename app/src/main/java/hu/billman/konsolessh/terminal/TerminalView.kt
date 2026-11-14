@@ -170,6 +170,14 @@ class TerminalView @JvmOverloads constructor(
     private var touchY = 0f
     private var touchMoved = false
 
+    /**
+     * Whether the current gesture's movement is this view's: a vertical scroll,
+     * its own horizontal scroll, or a selection. Until the gesture is classified,
+     * and for a horizontal swipe it leaves to its parent (a pager), move events
+     * are reported unhandled, so a Compose pager can take the swipe.
+     */
+    private var ownsGesture = false
+
     init {
         setBackgroundColor(DEFAULT_BG)
         isFocusable = true
@@ -597,12 +605,30 @@ class TerminalView @JvmOverloads constructor(
 
     // ── Touch ────────────────────────────────────────────────────────────────
 
+    /**
+     * Decides, once the finger has moved past the slop, whose the gesture is.
+     * A vertical drag and a horizontal one this view can still scroll are its
+     * own; a horizontal swipe with no horizontal scrolling, or at the edge it
+     * pushes against, is left to the parent pager.
+     */
+    private fun claimGestureIfOwn(dxTotal: Float, dyTotal: Float) {
+        val isHoriz = abs(dxTotal) > abs(dyTotal)
+        if (isHoriz && !horizontalScrollEnabled) return
+        val maxColOff = max(0, buffer.cols - (viewW / cellW).toInt())
+        val atEdge = isHoriz && ((dxTotal > 0 && scrollColOff == 0) || (dxTotal < 0 && scrollColOff >= maxColOff))
+        if (!atEdge) {
+            ownsGesture = true
+            parent?.requestDisallowInterceptTouchEvent(true)
+        }
+    }
+
     override fun onTouchEvent(ev: MotionEvent): Boolean {
         when (ev.action) {
             MotionEvent.ACTION_DOWN -> {
                 touchX0 = ev.x; touchY0 = ev.y
                 touchX = ev.x; touchY = ev.y
                 touchMoved = false; touchScrollFrac = 0f
+                ownsGesture = false
                 lpX = ev.x; lpY = ev.y
                 longPressHandler.postDelayed(longPressRunnable, LONG_PRESS_MS)
             }
@@ -611,23 +637,10 @@ class TerminalView @JvmOverloads constructor(
                 if (!touchMoved && (abs(ev.x - touchX0) > 8f || abs(ev.y - touchY0) > 8f)) {
                     touchMoved = true
                     longPressHandler.removeCallbacks(longPressRunnable)
-                    if (!selActive) {
-                        val dxTotal = ev.x - touchX0
-                        val dyTotal = ev.y - touchY0
-                        val isHoriz = abs(dxTotal) > abs(dyTotal)
-                        if (isHoriz && !horizontalScrollEnabled) {
-                            // hagyjuk a ViewPager-nek a horizontális swipe-ot
-                        } else {
-                            val maxColOff = max(0, buffer.cols - (viewW / cellW).toInt())
-                            val atEdge = isHoriz && (
-                                (dxTotal > 0 && scrollColOff == 0) ||
-                                    (dxTotal < 0 && scrollColOff >= maxColOff)
-                                )
-                            if (!atEdge) parent?.requestDisallowInterceptTouchEvent(true)
-                        }
-                    }
+                    if (!selActive) claimGestureIfOwn(ev.x - touchX0, ev.y - touchY0)
                 }
                 if (selActive) {
+                    ownsGesture = true
                     val (line, col) = touchToLineCol(ev.x, ev.y)
                     selEndLine = line; selEndCol = col
                     invalidate()
@@ -659,7 +672,8 @@ class TerminalView @JvmOverloads constructor(
                 }
             }
         }
-        return true
+        // The down and the up are always this view's; a move only once the gesture is.
+        return ev.action != MotionEvent.ACTION_MOVE || ownsGesture
     }
 
     // ── Key dispatch ─────────────────────────────────────────────────────────

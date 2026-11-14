@@ -10,7 +10,7 @@ name: Release
 # KEYSTORE_KEY_ALIAS, KEYSTORE_KEY_PASSWORD, PLAY_SERVICE_ACCOUNT_JSON
 # (optional: without it the Play upload is skipped).
 # Repository variable PLAY_TRACKS: comma-separated Play tracks
-# (default: internal,alpha).
+# (default: internal).
 
 on:
   push:
@@ -139,7 +139,7 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: hu.billman.konsolessh
           releaseFiles: ${{ env.AAB }}
-          tracks: ${{ vars.PLAY_TRACKS || 'internal,alpha' }}
+          tracks: ${{ vars.PLAY_TRACKS || 'internal' }}
           status: completed
           mappingFile: app/build/outputs/mapping/release/mapping.txt
 

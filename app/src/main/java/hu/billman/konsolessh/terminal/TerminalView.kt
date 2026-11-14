@@ -194,7 +194,7 @@ class TerminalView @JvmOverloads constructor(
     }
 
     private fun applyFontMetrics() {
-        val px = fontSizeSp * resources.displayMetrics.scaledDensity
+        val px = FontScaling.spToPx(fontSizeSp, resources.displayMetrics)
         normPaint.textSize = px
         boldPaint.textSize = px
         val fm = normPaint.fontMetrics
@@ -231,7 +231,7 @@ class TerminalView @JvmOverloads constructor(
             firstLayout = false
             val wantedCellW = w.toFloat() / MIN_COLS
             val ratio = cellW / normPaint.textSize
-            fontSizeSp = (wantedCellW / ratio / resources.displayMetrics.scaledDensity)
+            fontSizeSp = FontScaling.pxToSp(wantedCellW / ratio, resources.displayMetrics)
                 .coerceIn(MIN_FONT_SP, MAX_FONT_SP)
             applyFontMetrics()
         }

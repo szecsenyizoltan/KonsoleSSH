@@ -8,10 +8,6 @@
     <color name="tab_unselected_text">#8B949E</color>
     <color name="status_bg">#1C2128</color>
     <color name="status_text">#7D8590</color>
-    <color name="keybar_bg">#2A3A4E</color>
-    <color name="keybar_key_bg">@android:color/transparent</color>
-    <color name="keybar_key_text">#FFFFFF</color>
-    <color name="keybar_mod_active">#E95420</color>
     <color name="card_bg">#161B22</color>
 
     <!-- Text -->

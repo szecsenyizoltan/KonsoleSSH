@@ -30,29 +30,6 @@
 
 
 
-    <!-- Key toolbar button -->
-    <style name="KeyBarButton" parent="Widget.AppCompat.Button.Borderless">
-        <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">36dp</item>
-        <item name="android:minWidth">48dp</item>
-        <item name="android:textSize">13sp</item>
-        <item name="android:textColor">@color/keybar_key_text</item>
-        <item name="android:fontFamily">monospace</item>
-        <item name="android:paddingStart">10dp</item>
-        <item name="android:paddingEnd">10dp</item>
-        <item name="android:layout_marginStart">2dp</item>
-        <item name="android:layout_marginEnd">2dp</item>
-        <item name="android:background">@color/keybar_key_bg</item>
-        <item name="android:focusable">false</item>
-    </style>
 
-    <!-- Divider in key bar -->
-    <style name="KeyBarDivider">
-        <item name="android:layout_width">1dp</item>
-        <item name="android:layout_height">28dp</item>
-        <item name="android:background">@color/tab_unselected_text</item>
-        <item name="android:layout_marginStart">4dp</item>
-        <item name="android:layout_marginEnd">4dp</item>
-    </style>
 
 </resources>

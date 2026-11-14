@@ -12,6 +12,7 @@ import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.TextView
 import androidx.activity.addCallback
@@ -20,10 +21,15 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.runtime.getValue
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.getSystemService
 import androidx.core.os.LocaleListCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewpager2.widget.ViewPager2
@@ -35,7 +41,9 @@ import hu.billman.konsolessh.session.ConnectionStatus
 import hu.billman.konsolessh.session.TabState
 import hu.billman.konsolessh.terminal.Modifier
 import hu.billman.konsolessh.terminal.TerminalView
-import hu.billman.konsolessh.ui.keybar.KeybarController
+import hu.billman.konsolessh.ui.keybar.Keybar
+import hu.billman.konsolessh.ui.keybar.KeybarHost
+import hu.billman.konsolessh.ui.theme.KonsoleTheme
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -43,11 +51,10 @@ import java.io.File
  * A főképernyő: fülsáv, termináloldalak, billentyűsor. Állapotot nem
  * birtokol; a [MainViewModel] állapotát rajzolja ki, és parancsot ad neki.
  */
-class MainActivity : AppCompatActivity(), KeybarController.Host {
+class MainActivity : AppCompatActivity(), KeybarHost {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var pagerAdapter: TerminalPagerAdapter
-    private lateinit var keybar: KeybarController
     private lateinit var uploads: UploadController
 
     private val viewModel: MainViewModel by viewModels { KonsoleViewModelFactory.from(this) }
@@ -80,8 +87,12 @@ class MainActivity : AppCompatActivity(), KeybarController.Host {
         onBackPressedDispatcher.addCallback(this) { moveTaskToBack(true) }
 
         setupViewPager()
-        keybar = KeybarController(binding, this)
-        keybar.restoreState(savedInstanceState)
+        binding.keybar.setContent {
+            KonsoleTheme {
+                val modifiers by viewModel.modifiers.state.collectAsStateWithLifecycle()
+                Keybar(modifiers, host = this)
+            }
+        }
         uploads = UploadController(this, viewModel, binding.root)
 
         binding.btnNewTab.setOnClickListener { showTabPicker() }
@@ -92,17 +103,11 @@ class MainActivity : AppCompatActivity(), KeybarController.Host {
         observeViewModel()
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        keybar.saveState(outState)
-    }
-
     override fun onDestroy() {
         // The prompt stays pending; the recreated activity shows it again.
         promptDialog?.dismiss()
         reportDialog?.dismiss()
         uploads.dismiss()
-        keybar.dispose()
         super.onDestroy()
     }
 
@@ -111,7 +116,6 @@ class MainActivity : AppCompatActivity(), KeybarController.Host {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch { viewModel.sessionsState.collect { renderTabs(it.tabs) } }
                 launch { viewModel.selectTab.collect { applyPendingSelection() } }
-                launch { viewModel.modifiers.state.collect(keybar::render) }
                 launch { viewModel.problemReport.collect(::offerProblemReport) }
                 launch { viewModel.activePrompt.collect(::renderPrompt) }
                 launch { viewModel.connectErrors.collect { errors -> errors.forEach(::showConnectError) } }
@@ -319,7 +323,7 @@ class MainActivity : AppCompatActivity(), KeybarController.Host {
             .show()
     }
 
-    // ── KeybarController.Host ─────────────────────────────────────────────────
+    // ── KeybarHost ────────────────────────────────────────────────────────────
 
     override fun currentTerminal(): TerminalView? = pagerAdapter.pageAt(binding.viewPager.currentItem)?.terminalView
 
@@ -340,6 +344,16 @@ class MainActivity : AppCompatActivity(), KeybarController.Host {
     override fun toggleModifier(modifier: Modifier) = viewModel.modifiers.toggle(modifier)
 
     override fun pickUploadFile() = pickFileForUpload.launch(arrayOf("*/*"))
+
+    override fun toggleKeyboard() {
+        val imm = getSystemService<InputMethodManager>() ?: return
+        val imeVisible = ViewCompat.getRootWindowInsets(binding.root)?.isVisible(WindowInsetsCompat.Type.ime()) ?: false
+        if (imeVisible) {
+            imm.hideSoftInputFromWindow(binding.root.windowToken, 0)
+        } else {
+            currentTerminal()?.focusAndShowKeyboard()
+        }
+    }
 
     override fun showMessage(message: String) = KonsoleToast.show(binding.root, message)
 

@@ -98,6 +98,12 @@ jobs:
             ID=$(curl -fsS -X POST -H "Authorization: token $TOKEN" -H 'Content-Type: application/json' \
                  -d "$BODY" "$API/releases" | python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])')
           fi
+          # A re-run finds the APK attached already; replace it rather than fail.
+          OLD=$(curl -fsS -H "Authorization: token $TOKEN" "$API/releases/$ID/assets" \
+                | python3 -c 'import json,os,sys; print(" ".join(str(a["id"]) for a in json.load(sys.stdin) if a["name"] == os.environ["APK"]))')
+          for A in $OLD; do
+            curl -fsS -X DELETE -H "Authorization: token $TOKEN" "$API/releases/$ID/assets/$A" > /dev/null
+          done
           curl -fsS -X POST -H "Authorization: token $TOKEN" \
                -F "attachment=@$APK" "$API/releases/$ID/assets?name=$APK" > /dev/null
           echo "Release $GITHUB_REF_NAME (id $ID): $APK attached"

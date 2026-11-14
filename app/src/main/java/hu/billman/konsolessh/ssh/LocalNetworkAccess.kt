@@ -7,10 +7,10 @@ import android.os.Build
 import androidx.core.content.ContextCompat
 
 /**
- * Android 17 (targetSdk 37) óta a LAN-címekre induló TCP-kapcsolatokhoz
- * futásidejű engedély kell. Megtagadva a rendszer eldobja a forgalmat, amit a
- * kliens jellemzően sima időtúllépésként lát — ezért a hibaüzenetnek külön
- * kell utalnia az engedélyre, különben szerverhibának tűnne.
+ * Since Android 17 (targetSdk 37), TCP connections to LAN addresses need a
+ * runtime permission. Without it the system drops the traffic, which the
+ * client usually sees as a plain timeout, so the error message has to name
+ * the permission or it would look like a server problem.
  */
 object LocalNetworkAccess {
 

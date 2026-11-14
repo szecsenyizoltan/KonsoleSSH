@@ -1,15 +1,15 @@
 package hu.billman.konsolessh.ssh
 
 /**
- * Típusos SSH-hiba. A felület ebből képez szöveget; így egyetlen helyen dől
- * el, mit jelent egy JSch-kivétel, és a terminál, a kapcsolatteszt és a
- * kulcsfeltöltés ugyanazt az üzenetet adja.
+ * A typed SSH error, which the UI turns into text. What a JSch exception
+ * means is decided in one place, so the terminal, the connection test and
+ * the key upload give the same message.
  */
 sealed interface SshError {
     data object ConnectionRefused : SshError
     data object Timeout : SshError
 
-    /** EPERM: a rendszer tiltja a forgalmat (pl. helyi hálózati engedély). */
+    /** EPERM: the system blocks the traffic, e.g. for lack of the local network permission. */
     data object NotPermitted : SshError
     data object NoRoute : SshError
     data object NetworkUnreachable : SshError
@@ -28,10 +28,10 @@ sealed interface SshError {
     data object JumpNotFound : SshError
     data object JumpChainInvalid : SshError
 
-    /** A tab mögötti mentett kapcsolat már nem létezik. */
+    /** The saved connection behind the tab no longer exists. */
     data object ConnectionMissing : SshError
 
-    /** A mentett kapcsolatok tára nem olvasható. */
+    /** The saved connections' store cannot be read. */
     data object StoreUnreadable : SshError
     data class Other(val detail: String) : SshError
 }
@@ -76,8 +76,8 @@ object SshErrorClassifier {
     }
 
     /**
-     * A nyers üzenetről leveszi a JSch / Java-osztály előtagokat; ezek
-     * egymásra rakódhatnak ("Session.connect: java.net.SocketException: …").
+     * Strips the JSch and Java class prefixes from the raw message; they can
+     * pile up ("Session.connect: java.net.SocketException: …").
      */
     fun detail(message: String): String {
         var text = message

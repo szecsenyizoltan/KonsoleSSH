@@ -5,12 +5,11 @@ import com.jcraft.jsch.KeyPair
 import java.io.ByteArrayOutputStream
 
 /**
- * RSA keypair generálás az authorized_keys-alapú SSH autentikációhoz.
- * RSA-ra esett a választás, mert minden célplatform (Linux, Mikrotik, Dropbear)
- * kezeli; az ED25519 külön EdDSA-provider jelenlétét feltételezné az Android
- * runtime-on, amit nem tudunk garantálni.
+ * Generates RSA key pairs for authorized_keys authentication. RSA because
+ * every target (Linux, MikroTik, Dropbear) accepts it; Ed25519 would need an
+ * EdDSA provider in the Android runtime, which cannot be relied on.
  *
- * Pure logic, Android-függőségek nélkül — unit-tesztelhető JVM-en.
+ * Free of Android dependencies, so it is unit-tested on the JVM.
  */
 object SshKeyGenerator {
 

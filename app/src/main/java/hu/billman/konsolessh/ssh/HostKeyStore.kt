@@ -3,10 +3,11 @@ package hu.billman.konsolessh.ssh
 import java.io.File
 
 /**
- * Elfogadott szerver host key-ek tára (TOFU, mint az OpenSSH known_hosts).
- * Soronként `host típus base64-kulcs`; a host a JSch-féle alak (`host` vagy
- * `[host]:port`). Egy példány él az appban, mert párhuzamos fülek külön
- * fájlírásai egymás bejegyzéseit írnák felül.
+ * The accepted server host keys (trust on first use, like OpenSSH's
+ * known_hosts). One `host type base64-key` per line; the host is in JSch's
+ * form (`host` or `[host]:port`). The app has one instance, because
+ * parallel tabs writing the file separately would overwrite each other's
+ * entries.
  */
 class HostKeyStore(private val file: File) {
 
@@ -17,7 +18,7 @@ class HostKeyStore(private val file: File) {
     @Synchronized
     fun entries(): List<Entry> = load().toList()
 
-    /** Felvesz egy kulcsot; az azonos hostú és típusú régit lecseréli. */
+    /** Adds a key, replacing an older one of the same host and type. */
     @Synchronized
     fun put(host: String, type: String, key: String) {
         val list = load()
@@ -26,7 +27,7 @@ class HostKeyStore(private val file: File) {
         save(list)
     }
 
-    /** Null típus vagy kulcs: az adott hosthoz bármi illeszkedik. */
+    /** A null type or key matches anything stored for the host. */
     @Synchronized
     fun remove(host: String, type: String?, key: String?) {
         val list = load()
@@ -55,7 +56,7 @@ class HostKeyStore(private val file: File) {
         val BASE64 = Regex("[A-Za-z0-9+/]+={0,2}")
     }
 
-    // Átnevezéssel írunk, hogy egy félbeszakadt írás ne hagyjon csonka fájlt.
+    // Written through a rename, so an interrupted write leaves no truncated file.
     private fun save(list: List<Entry>) {
         file.parentFile?.mkdirs()
         val tmp = File(file.path + ".tmp")

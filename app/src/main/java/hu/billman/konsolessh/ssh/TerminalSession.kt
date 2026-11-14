@@ -4,16 +4,16 @@ import hu.billman.konsolessh.model.ConnectionConfig
 import java.io.InputStream
 
 /**
- * Egy interaktív shell-munkamenet. A [SshSession] a valós impl; az interfész
- * miatt a munkamenet-kezelés hálózat nélkül is tesztelhető.
+ * An interactive shell session. [SshSession] is the real one; the
+ * interface lets the session handling be tested without a network.
  */
 interface TerminalSession {
     val isConnected: Boolean
 
-    /** Kapcsolódik (jump-láncon át is); hibánál kivételt dob. */
+    /** Connects, through the jump chain if there is one; throws on failure. */
     suspend fun connect(cols: Int, rows: Int, onProgress: suspend (String) -> Unit)
 
-    /** Blokkoló olvasás a shell-csatornából; -1 a folyam végén. */
+    /** A blocking read from the shell channel; -1 at the end of the stream. */
     fun read(buffer: ByteArray): Int
 
     fun send(bytes: ByteArray)
@@ -41,17 +41,17 @@ fun interface TerminalSessionFactory {
 }
 
 /**
- * Felhasználói döntések a kapcsolódás közben. Az IO-szálon, blokkolva hívódik
- * (a JSch így kéri); a válasz a felület felől érkezik.
+ * The user's decisions while connecting. Called blocking, on the I/O
+ * thread, as JSch requires; the answer comes from the UI.
  */
 interface SessionPrompter {
-    /** Null: a felhasználó megszakította, vagy lejárt az idő. */
+    /** null: the user cancelled, or the time ran out. */
     fun password(displayHost: String): String?
 
     fun confirmHostKey(prompt: HostKeyPrompt): Boolean
 
     companion object {
-        /** Felület nélkül: jelszót nem ad, ismeretlen kulcsot nem fogad el. */
+        /** Without a UI: gives no password and accepts no unknown key. */
         val Reject: SessionPrompter = object : SessionPrompter {
             override fun password(displayHost: String): String? = null
             override fun confirmHostKey(prompt: HostKeyPrompt): Boolean = false

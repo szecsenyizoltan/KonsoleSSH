@@ -5,22 +5,22 @@ import hu.billman.konsolessh.model.ConnectionConfig
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 
-/** A jump-lánc nem építhető fel a mentett kapcsolatokból. */
+/** The jump chain cannot be built from the saved connections. */
 class JumpChainException(val reason: Reason) : IllegalStateException("jump chain: $reason") {
     enum class Reason { NOT_FOUND, CYCLE, TOO_LONG }
 }
 
 /**
- * Többlépcsős jump host (ssh -J a,b,c). A jump host maga is hivatkozhat egy
- * jump hostra, így elérhető például egy belső hálózaton futó hipervizoron
- * (virsh/QEMU) lévő VM kívülről is.
+ * Multi-hop jump hosts (ssh -J a,b,c). A jump host can have a jump host of
+ * its own, so a VM on a hypervisor (virsh/QEMU) inside a private network
+ * can be reached from outside.
  */
 object JumpChain {
 
     const val MAX_HOPS = 5
     private const val LOOPBACK = "127.0.0.1"
 
-    /** A célig vezető ugrópontok, a legkülső elsőként; a célt nem tartalmazza. */
+    /** The hops up to the target, outermost first, without the target itself. */
     fun resolve(target: ConnectionConfig, saved: List<ConnectionConfig>): List<ConnectionConfig> {
         val chain = ArrayDeque<ConnectionConfig>()
         val seen = mutableSetOf(target.id)
@@ -39,7 +39,7 @@ object JumpChain {
         cfg.jumpConnectionId.isNotBlank() ->
             saved.find { it.id == cfg.jumpConnectionId }
                 ?: throw JumpChainException(JumpChainException.Reason.NOT_FOUND)
-        // Régi, kézzel megadott jump: nincs további hivatkozása, a lánc itt véget ér.
+        // An old, hand-entered jump host refers to nothing further: the chain ends here.
         cfg.jumpHost.isNotBlank() -> ConnectionConfig(
             host = cfg.jumpHost,
             port = cfg.jumpPort,
@@ -50,10 +50,11 @@ object JumpChain {
     }
 
     /**
-     * Sorban kapcsolódik a [hops] elemeihez (az utolsó a cél). Minden köztes
-     * session egy helyi portot továbbít a következő hophoz, amelyhez az [open]
-     * már a 127.0.0.1-en át kapcsolódik; a host key a valódi néven ([alias])
-     * ellenőrződik. Hiba esetén a már nyitott sessionöket lezárja.
+     * Connects to the [hops] in order, the last being the target. Each
+     * intermediate session forwards a local port to the next hop, which
+     * [open] then reaches through 127.0.0.1; its host key is checked under
+     * the real name ([alias]). On failure, the sessions already open are
+     * closed.
      */
     suspend fun connect(
         hops: List<ConnectionConfig>,

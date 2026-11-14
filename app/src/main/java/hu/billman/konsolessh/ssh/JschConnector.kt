@@ -7,8 +7,8 @@ import hu.billman.konsolessh.model.ConnectionConfig
 import java.util.Properties
 
 /**
- * Egy ugrópont (hop) JSch-sessionjének közös beállítása. A terminál és a
- * rövid életű próbakapcsolatok (teszt, kulcsfeltöltés) ugyanezt használják.
+ * The shared setup of one hop's JSch session. The terminal and the
+ * short-lived connections (test, key upload) all use it.
  */
 internal object JschConnector {
 
@@ -27,9 +27,10 @@ internal object JschConnector {
     }
 
     /**
-     * Létrehozza és beállítja (de nem kapcsolja) a sessiont. Jump mögött a
-     * [host]/[port] a helyi továbbított port, az [alias] a valódi név, hogy a
-     * host key ne 127.0.0.1:<véletlen port> alatt tárolódjon.
+     * Creates and configures the session without connecting it. Behind a
+     * jump host, [host] and [port] are the local forwarded port and [alias]
+     * is the real name, so the host key is not stored under
+     * 127.0.0.1:<random port>.
      */
     @Suppress("LongParameterList")
     fun newSession(

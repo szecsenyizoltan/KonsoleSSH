@@ -6,7 +6,7 @@ import com.jcraft.jsch.UserInfo
 import java.security.MessageDigest
 import java.util.Base64
 
-/** Amit a felhasználónak jóvá kell hagynia: új vagy megváltozott host key. */
+/** What the user has to approve: a new or a changed host key. */
 data class HostKeyPrompt(
     val host: String,
     val keyType: String,
@@ -15,9 +15,9 @@ data class HostKeyPrompt(
 )
 
 /**
- * Kapcsolatonként egy példány: a [check] eredményét megjegyzi, így a
- * StrictHostKeyChecking=ask miatt utána hívott UserInfo.promptYesNo a [pending]
- * alapján, a JSch angol szövegének értelmezése nélkül tudja, mit kérdezzen.
+ * One instance per connection. It remembers the result of [check], so the
+ * UserInfo.promptYesNo that StrictHostKeyChecking=ask calls next knows from
+ * [pending] what to ask, without parsing JSch's English message.
  */
 class TofuHostKeyRepository(private val store: HostKeyStore) : HostKeyRepository {
 
@@ -73,15 +73,15 @@ class TofuHostKeyRepository(private val store: HostKeyStore) : HostKeyRepository
         private const val REPOSITORY_ID = "konsolessh_known_hosts"
         private const val LENGTH_PREFIX = 4
 
-        /** JSch-kompatibilis host-azonosító: 22-es portnál a puszta host. */
+        /** The host as JSch names it: the bare host on port 22. */
         fun alias(host: String, port: Int): String = if (port == 22) host else "[$host]:$port"
 
-        /** OpenSSH-formátumú ujjlenyomat: `SHA256:` + padding nélküli base64. */
+        /** The fingerprint as OpenSSH shows it: `SHA256:` and unpadded base64. */
         fun fingerprint(key: ByteArray): String =
             "SHA256:" + Base64.getEncoder().withoutPadding()
                 .encodeToString(MessageDigest.getInstance("SHA-256").digest(key))
 
-        /** A kulcsblob első, hosszelőtagos mezője az algoritmus neve (RFC 4253). */
+        /** The key blob's first, length-prefixed field is the algorithm name (RFC 4253). */
         fun keyType(key: ByteArray): String {
             val len = if (key.size < LENGTH_PREFIX) {
                 -1
@@ -93,7 +93,7 @@ class TofuHostKeyRepository(private val store: HostKeyStore) : HostKeyRepository
             return if (valid) String(key, LENGTH_PREFIX, len, Charsets.US_ASCII) else "unknown"
         }
 
-        // Az RSA aláírási algoritmusok ugyanazt az ssh-rsa kulcsot jelentik.
+        // The RSA signature algorithms all denote the same ssh-rsa key.
         private fun normalizeType(type: String): String =
             if (type.startsWith("rsa-sha2-")) "ssh-rsa" else type
 

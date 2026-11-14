@@ -129,7 +129,7 @@ class SshKeyProvisioner(private val hostKeyStore: HostKeyStore) {
         else -> ServerType.UNKNOWN
     }
 
-    /** Csak a host key kérdést teszi fel; jelszót és passphrase-t nem kér újra. */
+    /** Asks only about the host key; it does not ask for a password or passphrase again. */
     private class ProbeUserInfo(
         private val hostKeys: TofuHostKeyRepository,
         private val prompter: SessionPrompter,

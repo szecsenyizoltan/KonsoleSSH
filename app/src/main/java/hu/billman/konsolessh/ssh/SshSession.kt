@@ -19,7 +19,7 @@ import java.util.concurrent.Executors
 class SshSession(
     private val config: ConnectionConfig,
     private val hostKeyStore: HostKeyStore,
-    /** Jump hostok a célig, a legkülső elsőként ([JumpChain.resolve]). */
+    /** The jump hosts up to the target, outermost first ([JumpChain.resolve]). */
     private val jumps: List<ConnectionConfig> = emptyList(),
     private val prompter: SessionPrompter = SessionPrompter.Reject,
     private val messages: Messages = Messages.Default,
@@ -41,13 +41,12 @@ class SshSession(
         private const val SHELL_CONNECT_TIMEOUT_MS = 10_000
 
         /**
-         * SSH keep-alive: no-op csomag küldése ennyi ms-enként. Mobil NAT-
-         * tűzfalakon egy session 60–120 másodperc inaktivitás után eldobódik,
-         * ezért 30 másodperces alive-intervallum.
+         * SSH keep-alive interval. Mobile carriers' NAT drops an idle
+         * session after 60–120 seconds, so a no-op packet goes out every 30.
          */
         private const val SERVER_ALIVE_INTERVAL_MS = 30_000
 
-        /** Ennyi egymás utáni sikertelen alive-check után a session lezár. */
+        /** The session closes after this many keep-alives in a row go unanswered. */
         private const val SERVER_ALIVE_COUNT_MAX = 3
 
         private const val CELL_W_PX = 8
@@ -56,7 +55,7 @@ class SshSession(
 
     @Volatile private var jumpSessions: List<Session> = emptyList()
 
-    /** A [disconnect] lefutott; egy még futó [connect] eredményét azonnal lebontja. */
+    /** [disconnect] has run; a [connect] still in progress tears its result down at once. */
     @Volatile private var closed = false
 
     @Volatile private var jschSession: Session? = null

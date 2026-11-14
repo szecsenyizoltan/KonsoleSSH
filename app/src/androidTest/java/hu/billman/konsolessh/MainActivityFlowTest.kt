@@ -2,6 +2,9 @@ package hu.billman.konsolessh
 
 import android.Manifest
 import android.os.Build
+import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.test.core.app.ActivityScenario
@@ -23,7 +26,6 @@ import hu.billman.konsolessh.ui.MainActivity
 import hu.billman.konsolessh.ui.MainViewModel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
-import org.hamcrest.Matchers.allOf
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.fail
@@ -40,6 +42,10 @@ import java.io.ByteArrayInputStream
  */
 @RunWith(AndroidJUnit4::class)
 class MainActivityFlowTest {
+
+    /** Finds Compose nodes in any window of the app, the tab picker's sheet included. */
+    @get:Rule
+    val compose = createEmptyComposeRule()
 
     @get:Rule
     val permissions: GrantPermissionRule = GrantPermissionRule.grant(
@@ -71,7 +77,7 @@ class MainActivityFlowTest {
 
     private fun openFakeTab() {
         onView(withId(R.id.btnNewTab)).perform(click())
-        onView(allOf(withId(R.id.itemTitle), withText(connection.name))).perform(click())
+        compose.onNodeWithText(connection.name).performClick()
     }
 
     private fun await(what: String, condition: () -> Boolean) {

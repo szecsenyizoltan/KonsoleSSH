@@ -22,7 +22,6 @@
     <color name="accent">#E95420</color>
 
     <!-- State -->
-    <color name="error_color">#F85149</color>
 
     <!-- Material required -->
     <color name="white">#FFFFFF</color>

@@ -12,3 +12,12 @@ data class TabPickerActions(
     val onToggleGroup: (path: String) -> Unit,
     val onExit: () -> Unit,
 )
+
+/** What the user picked in the [TabPickerSheet]; each choice also closes it. */
+data class TabPickerChoices(
+    val onNewConnection: () -> Unit,
+    val onSelectTab: (index: Int) -> Unit,
+    val onOpen: (ConnectionConfig) -> Unit,
+    val onEdit: (ConnectionConfig) -> Unit,
+    val onExit: () -> Unit,
+)

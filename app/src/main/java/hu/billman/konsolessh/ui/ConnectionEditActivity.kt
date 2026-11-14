@@ -8,13 +8,15 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import hu.billman.konsolessh.ui.theme.KonsoleTheme
 
 /**
- * Manages the saved connections. An AppCompatActivity because the edit form
- * is still a DialogFragment, and because AppCompat applies the in-app
- * language on Android 8-12.
+ * Manages the saved connections. An AppCompatActivity because AppCompat
+ * applies the in-app language on Android 8-12.
  */
 class ConnectionEditActivity : AppCompatActivity() {
 
@@ -27,26 +29,28 @@ class ConnectionEditActivity : AppCompatActivity() {
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
         )
         super.onCreate(savedInstanceState)
-        supportFragmentManager.setFragmentResultListener(NewConnectionDialog.RESULT_KEY, this) { _, _ ->
-            viewModel.refresh()
-        }
         setContent {
             KonsoleTheme {
                 val state by viewModel.state.collectAsStateWithLifecycle()
+                var form by rememberSaveable(stateSaver = FormRequest.Saver) { mutableStateOf<FormRequest?>(null) }
                 ConnectionListScreen(
                     state = state,
                     onBack = ::finish,
-                    onAdd = { showDialog(NewConnectionDialog.newForCreate(openTab = false)) },
-                    onEdit = { showDialog(NewConnectionDialog.newForEdit(it.id)) },
+                    onAdd = { form = FormRequest(editId = null, openTab = false) },
+                    onEdit = { form = FormRequest(editId = it.id, openTab = false) },
                     onDelete = { viewModel.delete(it.id) },
                 )
+                form?.let { request ->
+                    ConnectionFormDialog(
+                        request = request,
+                        onSaved = {
+                            form = null
+                            viewModel.refresh()
+                        },
+                        onDismiss = { form = null },
+                    )
+                }
             }
         }
-    }
-
-    private fun showDialog(dialog: NewConnectionDialog) = dialog.show(supportFragmentManager, DIALOG_TAG)
-
-    private companion object {
-        const val DIALOG_TAG = "connection_dialog"
     }
 }

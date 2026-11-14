@@ -27,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,9 +56,8 @@ import hu.billman.konsolessh.terminal.Modifier as Key
  * The main screen: tab strip, terminal pages, key bar, all in Compose. It
  * owns no state of its own beyond what is on screen: it draws
  * [MainViewModel]'s state and sends it the user's commands. An
- * AppCompatActivity because the connection form and the tab picker are
- * still DialogFragments, and because AppCompat applies the in-app language
- * on Android 8-12.
+ * AppCompatActivity because AppCompat applies the in-app language on
+ * Android 8-12.
  */
 class MainActivity : AppCompatActivity(), KeybarHost {
 
@@ -97,7 +97,6 @@ class MainActivity : AppCompatActivity(), KeybarHost {
         onBackPressedDispatcher.addCallback(this) { moveTaskToBack(true) }
 
         setContent { KonsoleTheme { Screen() } }
-        listenForDialogResults()
         observeViewModel()
     }
 
@@ -128,6 +127,9 @@ class MainActivity : AppCompatActivity(), KeybarHost {
         val tabs = sessions.tabs
         val pageKeys = remember(tabs.map { it.id }) { PageKey.pages(tabs.map { it.id }) }
         val pagerState = rememberPagerState { pageKeys.size }
+        // Saved, so the picker and the form it opened survive a configuration change.
+        var pickingTab by rememberSaveable { mutableStateOf(false) }
+        var form by rememberSaveable(stateSaver = FormRequest.Saver) { mutableStateOf<FormRequest?>(null) }
         pager = pagerState
         pages = pageKeys
 
@@ -149,7 +151,7 @@ class MainActivity : AppCompatActivity(), KeybarHost {
                 onSelectPage = { index -> lifecycleScope.launch { pagerState.animateScrollToPage(index) } },
                 onCloseTab = viewModel::requestCloseTab,
                 onRenameTab = { renaming = it },
-                onNewTab = ::showTabPicker,
+                onNewTab = { pickingTab = true },
                 onZoom = ::zoom,
                 onCloseCurrentTab = { currentTabId()?.let(viewModel::requestCloseTab) },
                 onManageConnections = { startActivity(Intent(this, ConnectionEditActivity::class.java)) },
@@ -172,6 +174,37 @@ class MainActivity : AppCompatActivity(), KeybarHost {
             },
         )
         Overlay()
+        if (pickingTab) TabPicker(pagerState, onForm = { form = it }, onDismiss = { pickingTab = false })
+        form?.let { request -> ConnectionForm(request, onClose = { form = null }) }
+    }
+
+    @Composable
+    private fun TabPicker(pagerState: PagerState, onForm: (FormRequest) -> Unit, onDismiss: () -> Unit) {
+        TabPickerSheet(
+            mainViewModel = viewModel,
+            currentPage = pagerState.currentPage,
+            choices = TabPickerChoices(
+                onNewConnection = { onForm(FormRequest(editId = null, openTab = true)) },
+                // The picker counts tabs only; the welcome page comes before them.
+                onSelectTab = { index -> lifecycleScope.launch { pagerState.animateScrollToPage(index + 1) } },
+                onOpen = { viewModel.openTab(it.id) },
+                onEdit = { onForm(FormRequest(editId = it.id, openTab = false)) },
+                onExit = viewModel::requestCloseApp,
+            ),
+            onDismiss = onDismiss,
+        )
+    }
+
+    @Composable
+    private fun ConnectionForm(request: FormRequest, onClose: () -> Unit) {
+        ConnectionFormDialog(
+            request = request,
+            onSaved = { id ->
+                onClose()
+                if (request.openTab) viewModel.openTab(id)
+            },
+            onDismiss = onClose,
+        )
     }
 
     /**
@@ -277,36 +310,6 @@ class MainActivity : AppCompatActivity(), KeybarHost {
         }
     }
 
-    // ── Dialog / sheet results ────────────────────────────────────────────────
-
-    private fun listenForDialogResults() {
-        supportFragmentManager.setFragmentResultListener(NewConnectionDialog.RESULT_KEY, this) { _, result ->
-            if (result.getBoolean(NewConnectionDialog.KEY_OPEN_TAB)) {
-                result.getString(NewConnectionDialog.KEY_CONNECTION_ID)?.let(viewModel::openTab)
-            }
-        }
-        supportFragmentManager.setFragmentResultListener(TabPickerSheet.RESULT_KEY, this) { _, result ->
-            val connectionId = result.getString(TabPickerSheet.KEY_CONNECTION_ID)
-            when (TabPickerSheet.Action.valueOf(result.getString(TabPickerSheet.KEY_ACTION).orEmpty())) {
-                TabPickerSheet.Action.SELECT_TAB -> {
-                    val index = result.getInt(TabPickerSheet.KEY_POSITION) + 1
-                    lifecycleScope.launch { pager?.animateScrollToPage(index) }
-                }
-                TabPickerSheet.Action.OPEN_CONNECTION -> connectionId?.let(viewModel::openTab)
-                TabPickerSheet.Action.NEW_CONNECTION ->
-                    NewConnectionDialog.newForCreate(openTab = true).show(supportFragmentManager, DIALOG_TAG)
-                TabPickerSheet.Action.EDIT_CONNECTION -> connectionId?.let {
-                    NewConnectionDialog.newForEdit(it).show(supportFragmentManager, DIALOG_TAG)
-                }
-                TabPickerSheet.Action.CLOSE_APP -> viewModel.requestCloseApp()
-            }
-        }
-    }
-
-    private fun showTabPicker() {
-        TabPickerSheet.newInstance(pager?.currentPage ?: 0).show(supportFragmentManager, "tab_picker")
-    }
-
     // ── KeybarHost ────────────────────────────────────────────────────────────
 
     private fun currentPage(): PageKey? = pager?.let { pages.getOrNull(it.currentPage) }
@@ -376,7 +379,6 @@ class MainActivity : AppCompatActivity(), KeybarHost {
     }
 
     private companion object {
-        const val DIALOG_TAG = "connection_dialog"
         const val ERROR_TOAST_MS = 5000L
         val TOAST_BOTTOM = 100.dp
         val SYSTEM_KEYS = setOf(

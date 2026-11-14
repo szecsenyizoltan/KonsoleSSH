@@ -1,93 +1,77 @@
 package hu.billman.konsolessh.ui
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.widget.Toast
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.core.os.bundleOf
-import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.setFragmentResult
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import androidx.lifecycle.viewmodel.compose.viewModel
 import hu.billman.konsolessh.R
-import hu.billman.konsolessh.ui.theme.KonsoleTheme
+import hu.billman.konsolessh.ui.theme.KonsoleColors
+import kotlinx.coroutines.launch
 
-class TabPickerSheet : BottomSheetDialogFragment() {
+/**
+ * The open tabs and the saved connections in a full-height bottom sheet.
+ * The saved connections are loaded anew at each opening: their ViewModel
+ * is scoped to the sheet.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TabPickerSheet(
+    mainViewModel: MainViewModel,
+    currentPage: Int,
+    choices: TabPickerChoices,
+    onDismiss: () -> Unit,
+) {
+    val context = LocalContext.current
+    val connections = viewModel<ConnectionsViewModel>(
+        viewModelStoreOwner = rememberDialogScope("tab_picker"),
+        factory = KonsoleViewModelFactory.from(context),
+    )
+    val sessions by mainViewModel.sessionsState.collectAsStateWithLifecycle()
+    val expanded by mainViewModel.pickerExpanded.collectAsStateWithLifecycle()
+    val state by connections.state.collectAsStateWithLifecycle()
 
-    /**
-     * A választás a Fragment Result API-n megy vissza ([RESULT_KEY]), így
-     * forgatás után is eljut az Activityhez; listener-referencia nincs.
-     */
-    enum class Action { SELECT_TAB, OPEN_CONNECTION, NEW_CONNECTION, EDIT_CONNECTION, CLOSE_APP }
-
-    companion object {
-        const val RESULT_KEY = "tab_picker_result"
-        const val KEY_ACTION = "action"
-        const val KEY_POSITION = "position"
-        const val KEY_CONNECTION_ID = "connection_id"
-        private const val ARG_CURRENT_POSITION = "current_position"
-
-        fun newInstance(currentPosition: Int) =
-            TabPickerSheet().apply { arguments = bundleOf(ARG_CURRENT_POSITION to currentPosition) }
+    // The sheet covers the screen's own toasts, so the platform toast is used.
+    val storeError = stringResource(R.string.err_store_unreadable)
+    LaunchedEffect(state.storeError) {
+        if (state.storeError) Toast.makeText(context, storeError, Toast.LENGTH_LONG).show()
     }
 
-    private val mainViewModel: MainViewModel by activityViewModels { KonsoleViewModelFactory.from(requireContext()) }
-    private val connectionsViewModel: ConnectionsViewModel by viewModels {
-        KonsoleViewModelFactory.from(requireContext())
-    }
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
-        ComposeView(requireContext()).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-            setContent {
-                KonsoleTheme {
-                    val sessions by mainViewModel.sessionsState.collectAsStateWithLifecycle()
-                    val expanded by mainViewModel.pickerExpanded.collectAsStateWithLifecycle()
-                    val state by connectionsViewModel.state.collectAsStateWithLifecycle()
-                    val current = requireArguments().getInt(ARG_CURRENT_POSITION)
-                    val storeError = stringResource(R.string.err_store_unreadable)
-                    LaunchedEffect(state.storeError) {
-                        if (state.storeError) Toast.makeText(requireContext(), storeError, Toast.LENGTH_LONG).show()
-                    }
-                    TabPickerContent(
-                        openTabs = PickerRows.openTabs(sessions.tabs, current),
-                        saved = PickerRows.saved(state.connections, expanded),
-                        actions = TabPickerActions(
-                            onNewConnection = { finish(Action.NEW_CONNECTION) },
-                            onSelectTab = { finish(Action.SELECT_TAB, bundleOf(KEY_POSITION to it)) },
-                            onOpen = { finish(Action.OPEN_CONNECTION, bundleOf(KEY_CONNECTION_ID to it.id)) },
-                            onEdit = { finish(Action.EDIT_CONNECTION, bundleOf(KEY_CONNECTION_ID to it.id)) },
-                            onDelete = { connectionsViewModel.delete(it.id) },
-                            onToggleGroup = mainViewModel::togglePickerGroup,
-                            onExit = { finish(Action.CLOSE_APP) },
-                        ),
-                    )
-                }
-            }
-        }
-
-    override fun onStart() {
-        super.onStart()
-        val sheet = dialog?.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
-        sheet?.let {
-            val behavior = BottomSheetBehavior.from(it)
-            it.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
-            behavior.state = BottomSheetBehavior.STATE_EXPANDED
-            behavior.skipCollapsed = true
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
+    // The sheet slides away before the choice runs and the sheet leaves the composition.
+    val close: (() -> Unit) -> Unit = { then ->
+        scope.launch { sheetState.hide() }.invokeOnCompletion {
+            onDismiss()
+            then()
         }
     }
 
-    private fun finish(action: Action, extras: Bundle = Bundle()) {
-        extras.putString(KEY_ACTION, action.name)
-        setFragmentResult(RESULT_KEY, extras)
-        dismiss()
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = KonsoleColors.Surface,
+        dragHandle = null,
+    ) {
+        TabPickerContent(
+            openTabs = PickerRows.openTabs(sessions.tabs, currentPage),
+            saved = PickerRows.saved(state.connections, expanded),
+            actions = TabPickerActions(
+                onNewConnection = { close(choices.onNewConnection) },
+                onSelectTab = { index -> close { choices.onSelectTab(index) } },
+                onOpen = { connection -> close { choices.onOpen(connection) } },
+                onEdit = { connection -> close { choices.onEdit(connection) } },
+                onDelete = { connections.delete(it.id) },
+                onToggleGroup = mainViewModel::togglePickerGroup,
+                onExit = { close(choices.onExit) },
+            ),
+        )
     }
 }

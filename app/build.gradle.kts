@@ -109,8 +109,9 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.jsch)
-    // JSch Androidon a Bouncy Castle-implementációkat választja (Java-verzió
-    // < 11/15-nek látszik): enélkül nincs ssh-ed25519 host key és curve25519 kulcscsere.
+    // On Android, JSch sees an old Java version and picks the Bouncy Castle
+    // implementations; without them there is no ssh-ed25519 host key and no
+    // curve25519 key exchange.
     implementation(libs.bouncycastle.bcprov)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.datastore)

@@ -8,16 +8,17 @@ plugins {
 }
 
 dependencies {
-    // detekt-formatting: ktlint-szabályok a detekt-futásban (indentation,
-    // trailing-comma, no-wildcard-imports, stb.). Nincs külön ktlint task —
-    // a `./gradlew detekt` intézi a format-check-et is.
+    // ktlint's rules (indentation, wildcard imports, wrapping, ...) run inside
+    // detekt, so `./gradlew detekt` also checks formatting; there is no
+    // separate ktlint task.
     detektPlugins(libs.detekt.formatting)
 }
 
 // ── detekt: Kotlin static analysis ───────────────────────────────────────────
-// Egyetlen gyökér-Task (`./gradlew detekt`), ami az app/ modul összes Kotlin
-// forrását elemzi. A "build upon default config" minta — a jelen állapot
-// baseline-ban (detekt-baseline.xml), a jövőbeli kódra szigorú.
+// One root task (`./gradlew detekt`) analyses all Kotlin sources of the app
+// module. The config only lists differences from detekt's defaults; issues
+// that existed when it was introduced are in detekt-baseline.xml, and new
+// code is held to the full rules.
 
 detekt {
     toolVersion = libs.versions.detekt.get()

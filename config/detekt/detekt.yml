@@ -1,27 +1,26 @@
-# Projektspecifikus detekt-konfiguráció.
-# A "build upon default config" miatt elegendő a különbözőségeket ideírni;
-# minden más a detekt default-ját veszi fel.
+# Project-specific detekt configuration. It builds upon the default config,
+# so only the differences are listed here.
 
 complexity:
   LongMethod:
     active: true
-    threshold: 80        # UI kód kezelésére megengedőbb (default 60)
+    threshold: 80        # looser for UI code (default 60)
   LongParameterList:
     active: true
     functionThreshold: 8
     constructorThreshold: 10
   TooManyFunctions:
-    active: false        # Android Activity/Fragment sok callback-et hordoz
+    active: false        # Android components carry many callbacks
   CyclomaticComplexMethod:
     active: true
-    threshold: 25        # ANSI FSM + handleCSI miatt
+    threshold: 25        # the ANSI state machine and handleCSI
   LargeClass:
     active: true
-    threshold: 900       # MainActivity/TerminalView tudatos tolerancia
+    threshold: 900       # TerminalView is allowed to be large
 
 style:
   MagicNumber:
-    active: false        # port-számok, color-paletta, SGR-kódok, timeout-ok
+    active: false        # port numbers, colour palettes, SGR codes, timeouts
   MaxLineLength:
     active: true
     maxLineLength: 140
@@ -35,11 +34,11 @@ style:
 naming:
   FunctionNaming:
     active: true
-    functionPattern: '[a-zA-Z][a-zA-Z0-9]*'  # `fun `tesztek nevei` ()` engedélyezett
+    functionPattern: '[a-zA-Z][a-zA-Z0-9]*'  # allows test names in backticks
 
 performance:
   SpreadOperator:
-    active: false        # byteArrayOf(27) + "...".toByteArray() mintához
+    active: false        # for the byteArrayOf(27) + "...".toByteArray() pattern
 
 empty-blocks:
   EmptyCatchBlock:
@@ -48,24 +47,24 @@ empty-blocks:
 
 exceptions:
   TooGenericExceptionCaught:
-    active: false        # jsch rengeteg specifikus kivételt dob, a lifecycle-hívások IO-szélesek
+    active: false        # JSch throws many specific exceptions; lifecycle calls catch broadly around I/O
   SwallowedException:
     active: false
 
-# potential-bugs: default szabályok maradnak aktívan.
+# potential-bugs: the default rules stay active.
 
-# ── ktlint-wrapper szabályok (detekt-formatting plugin) ──
+# ── ktlint rules (detekt-formatting plugin) ──
 formatting:
   active: true
   android: true
   autoCorrect: false
   MaximumLineLength:
-    active: false        # detekt core MaxLineLength kezeli
+    active: false        # detekt's MaxLineLength covers it
   NoWildcardImports:
     active: true
   Indentation:
     active: true
   TrailingCommaOnCallSite:
-    active: false        # Kotlin-stílus, hobbi-projekten nem kötelező
+    active: false        # a style choice, not enforced here
   TrailingCommaOnDeclarationSite:
     active: false

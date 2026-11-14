@@ -6,8 +6,8 @@ import androidx.lifecycle.ViewModelProvider
 import hu.billman.konsolessh.AppContainer
 
 /**
- * Manuális ViewModelProvider.Factory: az [AppContainer]-ből konstruktoron át
- * adja a függőségeket, így a ViewModel-ek tesztben fake-ekkel példányosíthatók.
+ * Hands the [AppContainer]'s dependencies to the ViewModels' constructors,
+ * so tests can construct the ViewModels with fakes instead.
  */
 class KonsoleViewModelFactory(
     private val container: AppContainer,

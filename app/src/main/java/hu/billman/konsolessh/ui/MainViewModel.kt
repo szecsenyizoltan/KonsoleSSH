@@ -32,9 +32,9 @@ import java.io.File
 import java.io.InputStream
 
 /**
- * A főképernyő ViewModelje. A fülek állapota a [SessionManager]-ből jön
- * (egyetlen forrás); itt csak a képernyőhöz tartozó állapot él: a ragadós
- * módosítók, a kiválasztandó fül és az egyszer megjelenítendő hiba.
+ * The main screen's ViewModel. The tabs' state comes from the
+ * [SessionManager], its single source; this holds only what belongs to the
+ * screen, such as the sticky modifiers and the events shown once.
  */
 class MainViewModel(
     private val sessions: SessionManager,
@@ -50,7 +50,7 @@ class MainViewModel(
 
     private val _selectTab = MutableStateFlow<String?>(null)
 
-    /** Frissen nyitott fül, amelyre a felületnek át kell váltania. */
+    /** A freshly opened tab the screen should switch to. */
     val selectTab: StateFlow<String?> = _selectTab.asStateFlow()
 
     /** A question the user must answer before something is closed. */
@@ -123,7 +123,7 @@ class MainViewModel(
 
     private val _problemReport = MutableStateFlow<File?>(null)
 
-    /** Az előző futás ANR- vagy összeomlás-jelentése, amíg a felhasználó nem döntött róla. */
+    /** The last run's ANR or crash report, until the user decides about it. */
     val problemReport: StateFlow<File?> = _problemReport.asStateFlow()
 
     init {
@@ -214,7 +214,7 @@ class MainViewModel(
         _selectTab.value = null
     }
 
-    /** Csak az új fület kapcsolja; egy megszakadt kapcsolat a felhasználóra vár. */
+    /** Connects only a new tab; a dropped connection waits for the user to reconnect. */
     fun connectIfNew(tabId: String, cols: Int, rows: Int) {
         if (sessions.state.value.tab(tabId)?.status == ConnectionStatus.NONE) sessions.connect(tabId, cols, rows)
     }
@@ -233,12 +233,12 @@ class MainViewModel(
     fun answerPrompt(tabId: String, promptId: Long, answer: PromptAnswer) =
         sessions.answerPrompt(tabId, promptId, answer)
 
-    /** Felhasználói bevitel: a ragadós módosítók itt érvényesülnek, majd visszaállnak. */
+    /** User input: the sticky modifiers apply here, then reset. */
     fun send(tabId: String, bytes: ByteArray) {
         if (bytes.isNotEmpty()) sessions.send(tabId, modifiers.consume(bytes))
     }
 
-    /** Vezérlőkód a módosítók érintése nélkül (Ctrl-sor: a Ctrl aktív marad). */
+    /** A control sequence that leaves the modifiers alone (from the Ctrl row, where Ctrl stays on). */
     fun sendRaw(tabId: String, bytes: ByteArray) = sessions.send(tabId, bytes)
 
     fun resize(tabId: String, cols: Int, rows: Int) = sessions.resize(tabId, cols, rows)

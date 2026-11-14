@@ -5,7 +5,7 @@ import hu.billman.konsolessh.R
 import hu.billman.konsolessh.ssh.LocalNetworkAccess
 import hu.billman.konsolessh.ssh.SshError
 
-/** Az egyetlen hely, ahol egy [SshError]-ból felhasználói szöveg lesz. */
+/** The one place where an [SshError] becomes text for the user. */
 object SshErrorMessages {
 
     fun text(context: Context, error: SshError): String {

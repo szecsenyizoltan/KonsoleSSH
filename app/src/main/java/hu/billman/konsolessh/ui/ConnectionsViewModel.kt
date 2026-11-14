@@ -11,14 +11,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/** A mentett kapcsolatok listája (kezelő képernyő, fülválasztó). */
+/** The saved connections, for the management screen and the tab picker. */
 class ConnectionsViewModel(
     private val repository: ConnectionRepository,
 ) : ViewModel() {
 
     data class UiState(
         val connections: List<ConnectionConfig> = emptyList(),
-        /** A tár nem olvasható/írható; a lista ilyenkor nem frissül. */
+        /** The store cannot be read or written; the list is then left as it was. */
         val storeError: Boolean = false,
     )
 

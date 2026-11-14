@@ -45,6 +45,16 @@ jobs:
         with:
           packages: platform-tools
 
+      # The unit tests include the SSH integration tests, which start their own
+      # sshd instances; as in CI, sshd needs its privilege separation directory.
+      - name: OpenSSH server
+        run: |
+          SUDO=$(command -v sudo || true)
+          $SUDO apt-get update -q
+          $SUDO apt-get install -y -q openssh-server
+          $SUDO mkdir -p /run/sshd
+          $SUDO chmod 0755 /run/sshd
+
       - name: Write signing secrets to a temporary directory
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
@@ -67,6 +77,8 @@ jobs:
           } > keystore.properties
 
       - name: Tests, then signed APK and AAB
+        env:
+          KONSOLE_REQUIRE_SSHD: '1'
         run: timeout 40m ./gradlew --no-daemon :app:testDebugUnitTest :app:assembleRelease :app:bundleRelease
 
       - name: Name the artifacts, compute the signer fingerprint

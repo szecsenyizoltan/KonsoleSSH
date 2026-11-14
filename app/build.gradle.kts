@@ -126,6 +126,8 @@ dependencies {
     implementation(libs.bouncycastle.bcprov)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.datastore)
+    // Authorization for the Drive app data folder used by sync.
+    implementation(libs.play.services.auth)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui.tooling.preview)

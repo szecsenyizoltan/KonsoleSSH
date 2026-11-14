@@ -20,9 +20,11 @@ androidxTestCore = "1.7.0"
 espresso = "3.7.0"
 mockk = "1.14.9"
 securityCrypto = "1.1.0"
+playServicesAuth = "22.0.0"
 detekt = "1.23.7"
 
 [libraries]
+play-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "playServicesAuth" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }

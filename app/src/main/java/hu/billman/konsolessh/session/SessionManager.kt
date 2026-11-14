@@ -31,12 +31,12 @@ import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Az SSH-fülek egyetlen igazságforrása, alkalmazás-élettartamú. A felület a
- * [state]-et figyeli és parancsokat ad; a foreground service csak életben
- * tartja a folyamatot és az értesítést frissíti.
+ * The single source of truth for the SSH tabs; it lives as long as the
+ * application. The UI observes [state] and sends commands; the foreground
+ * service only keeps the process alive and updates its notification.
  *
- * A fül a mentett kapcsolat azonosítóját tárolja, nem a titkokat: a konfig a
- * kapcsolódáskor töltődik be a repository-ból.
+ * A tab stores the saved connection's id, not its secrets: the config is
+ * loaded from the repository when the tab connects.
  */
 class SessionManager(
     private val repository: ConnectionRepository,
@@ -63,7 +63,7 @@ class SessionManager(
 
     private val runtimes = ConcurrentHashMap<String, Runtime>()
 
-    /** Új fület nyit egy mentett kapcsolathoz; a kapcsolódást a [connect] indítja. */
+    /** Opens a tab for a saved connection; [connect] starts the connection. */
     fun openTab(connection: ConnectionConfig): String {
         val id = UUID.randomUUID().toString()
         val runtime = Runtime(PromptBroker())
@@ -82,7 +82,7 @@ class SessionManager(
         return id
     }
 
-    /** Kapcsolódik, ha a fül nem kapcsolódik épp és nincs kapcsolatban. */
+    /** Connects, unless the tab is already connecting or connected. */
     fun connect(tabId: String, cols: Int, rows: Int, isReconnect: Boolean = false) {
         val runtime = runtimes[tabId]
         val tab = _state.value.tab(tabId)
@@ -154,7 +154,7 @@ class SessionManager(
 
     fun renameTab(tabId: String, title: String) = updateTab(tabId) { it.copy(title = title) }
 
-    /** A felület megjelenítette a hibát. */
+    /** The UI has shown the error. */
     fun clearError(tabId: String) = updateTab(tabId) { it.copy(error = null) }
 
     fun answerPrompt(tabId: String, promptId: Long, answer: PromptAnswer) {

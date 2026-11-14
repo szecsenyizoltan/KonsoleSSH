@@ -11,10 +11,10 @@ import kotlinx.coroutines.withTimeoutOrNull
 import java.util.concurrent.atomic.AtomicLong
 
 /**
- * A JSch blokkoló kérdéseit (jelszó, host key) állapottá alakítja: a kérés a
- * [pending]-ben jelenik meg, a felület megjeleníti és [answer]-rel válaszol.
- * Így a kérdés túléli a forgatást, és a munkamenet nem tart referenciát a
- * felületre. Válasz nélkül [timeoutMs] után elutasít.
+ * Turns JSch's blocking questions (password, host key) into state: the
+ * question appears in [pending], the UI shows it and replies with [answer].
+ * This way the question survives a rotation, and the session holds no
+ * reference to the UI. Without an answer it declines after [timeoutMs].
  */
 class PromptBroker(private val timeoutMs: Long = DEFAULT_TIMEOUT_MS) : SessionPrompter {
 
@@ -25,7 +25,7 @@ class PromptBroker(private val timeoutMs: Long = DEFAULT_TIMEOUT_MS) : SessionPr
 
     @Volatile private var waiting: Waiting? = null
 
-    /** A [cancel] után nincs, aki válaszoljon: minden további kérdés azonnal elutasítva. */
+    /** After [cancel] nobody can answer, so every further question is declined at once. */
     @Volatile private var cancelled = false
 
     override fun password(displayHost: String): String? =
@@ -34,7 +34,7 @@ class PromptBroker(private val timeoutMs: Long = DEFAULT_TIMEOUT_MS) : SessionPr
     override fun confirmHostKey(prompt: HostKeyPrompt): Boolean =
         (ask { id -> PendingPrompt.HostKey(id, prompt) } as? PromptAnswer.HostKey)?.accept == true
 
-    /** Egy elavult kérdésre vagy más fajtájú válasz figyelmen kívül marad. */
+    /** An answer to a stale question, or of the wrong kind, is ignored. */
     fun answer(promptId: Long, answer: PromptAnswer) {
         val current = waiting ?: return
         val matches = when (current.prompt) {
@@ -45,9 +45,9 @@ class PromptBroker(private val timeoutMs: Long = DEFAULT_TIMEOUT_MS) : SessionPr
     }
 
     /**
-     * Lezárja a függő kérdést, és minden későbbit is elutasít (pl. a fül
-     * bezárásakor). Enélkül egy kapcsolódás közben bezárt fül későbbi kérdése
-     * az időkorlátig tartaná nyitva a félkész kapcsolatot.
+     * Declines the pending question and every later one, e.g. when the tab
+     * closes. Otherwise a tab closed while connecting could keep its
+     * half-open connection alive with a question until the timeout.
      */
     fun cancel() {
         cancelled = true

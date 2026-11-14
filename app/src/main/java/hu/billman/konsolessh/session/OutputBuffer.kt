@@ -1,23 +1,23 @@
 package hu.billman.konsolessh.session
 
-/** Kimeneti darab a folyam [start] pozíciójától. */
+/** A piece of output starting at stream position [start]. */
 class OutputChunk(val start: Long, val bytes: ByteArray) {
     val end: Long get() = start + bytes.size
 }
 
 /**
- * Egy fül utolsó [maxBytes] bájtja, a folyam abszolút pozíciójával együtt.
- * A pozíció alapján a felület a pillanatkép és az élő folyam határán sem
- * duplikál, és nem is hagy ki bájtot.
+ * A tab's last [maxBytes] bytes, with their absolute stream position. The
+ * position lets the UI join the snapshot and the live flow without
+ * drawing a byte twice or skipping one.
  *
- * Körpuffer: tele állapotban sem másol írásonként, csak a pillanatkép
- * készítésekor egyszer.
+ * A ring buffer: even when full, a write copies nothing extra; the bytes
+ * are copied once, when a snapshot is taken.
  */
 class OutputBuffer(private val maxBytes: Int = DEFAULT_MAX_BYTES) {
 
     private val ring = ByteArray(maxBytes)
 
-    /** A következő írás helye a [ring]-ben. */
+    /** Where the next write goes in [ring]. */
     private var head = 0
     private var size = 0
     private var end: Long = 0
@@ -41,7 +41,7 @@ class OutputBuffer(private val maxBytes: Int = DEFAULT_MAX_BYTES) {
         return chunk
     }
 
-    /** A tárolt bájtok és a folyam pozíciója az utolsó bájt után. */
+    /** The stored bytes, and the stream position after the last of them. */
     @Synchronized
     fun snapshot(): OutputChunk {
         val out = ByteArray(size)

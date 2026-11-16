@@ -5,7 +5,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import hu.billman.konsolessh.data.AesGcmKeystoreBox
 import hu.billman.konsolessh.data.CryptoBoxConnectionRepository
-import hu.billman.konsolessh.data.LegacyConnectionsMigration
+import hu.billman.konsolessh.data.LegacyStoresCleanup
 import hu.billman.konsolessh.model.ConnectionConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -53,8 +53,8 @@ class ConnectionRepositoryInstrumentedTest {
             scope,
             storeFile = file,
             deletedFile = deletedFile(),
-            // The migration deletes the stores it reads: never let it see the app's real ones.
-            legacyStores = LegacyConnectionsMigration.Stores(
+            // The cleanup deletes the old stores: never let it see the app's real ones.
+            legacyStores = LegacyStoresCleanup.Stores(
                 box = PREFS,
                 encrypted = "${PREFS}_enc",
                 plain = "${PREFS}_plain",

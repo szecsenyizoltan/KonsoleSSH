@@ -12,9 +12,6 @@
     public static ** valueOf(java.lang.String);
 }
 
-# Google Tink (pulled in by androidx.security.crypto) references these
-# compile-time-only javax annotations which are not on the Android classpath.
--dontwarn javax.annotation.Nullable
--dontwarn javax.annotation.concurrent.GuardedBy
-# The same holds for Error Prone's annotations; Material used to bring them in.
+# Error Prone's compile-time annotations are referenced by Google libraries
+# but not on the Android classpath.
 -dontwarn com.google.errorprone.annotations.**

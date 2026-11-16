@@ -22,7 +22,7 @@ import java.io.IOException
  * with an empty list, because writing that back would destroy the saved
  * connections for good.
  *
- * Stores of older versions are moved in once by [LegacyConnectionsMigration].
+ * The stores of 1.x are no longer read; [LegacyStoresCleanup] deletes them.
  *
  * For sync, a save stamps the connection's change time and a delete is
  * recorded in [deletedStore], a separate file.
@@ -102,14 +102,14 @@ class CryptoBoxConnectionRepository internal constructor(
             scope: CoroutineScope,
             storeFile: File = context.applicationContext.dataStoreFile(FILE_NAME),
             deletedFile: File = context.applicationContext.dataStoreFile(DELETED_FILE_NAME),
-            legacyStores: LegacyConnectionsMigration.Stores = LegacyConnectionsMigration.Stores(),
+            legacyStores: LegacyStoresCleanup.Stores = LegacyStoresCleanup.Stores(),
             clock: () -> Long = System::currentTimeMillis,
         ): CryptoBoxConnectionRepository {
             val appContext = context.applicationContext
             return CryptoBoxConnectionRepository(
                 DataStoreFactory.create(
                     serializer = EncryptedConnectionsSerializer(cryptoBox),
-                    migrations = listOf(LegacyConnectionsMigration(appContext, cryptoBox, legacyStores)),
+                    migrations = listOf(LegacyStoresCleanup(appContext, legacyStores)),
                     scope = scope,
                     produceFile = { storeFile },
                 ),

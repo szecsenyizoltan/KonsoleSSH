@@ -206,7 +206,21 @@
     </plurals>
     <!-- Google Drive sync -->
     <string name="menu_sync">Google Drive sync</string>
-    <string name="sync_intro">Your saved connections, with their passwords and keys, and the accepted host keys can sync between your devices through a hidden folder in your own Google Drive. They are encrypted with a passphrase only you know, so Google cannot read them.</string>
+    <string name="sync_help_title">How it works</string>
+    <string name="sync_help_purpose_title">What is it for?</string>
+    <string name="sync_help_purpose">The same connections on all your devices: what you add on the phone appears on the tablet too, and the other way round. On a new or reset device you do not have to type everything again, and if a device is lost, your connections are not lost with it.</string>
+    <string name="sync_help_what_title">What is synced?</string>
+    <string name="sync_help_what">Your saved connections: name, server, port and user name, and the password, private key and key passphrase if you saved them. The accepted host keys too, so a server you already trusted is not questioned again on your other devices.\n\nNot synced: the settings (font size, language), the open tabs and the contents of the terminals.</string>
+    <string name="sync_help_where_title">Where is it stored?</string>
+    <string name="sync_help_where">In your own Google Drive, in a hidden app folder. It does not show in Drive, and KonsoleSSH can reach only this folder, not your other files.</string>
+    <string name="sync_help_privacy_title">Who can read it?</string>
+    <string name="sync_help_privacy">Only you. The device encrypts the data before uploading it, with a sync passphrase only you know. Neither Google nor the app\'s developer can decrypt it. The app does not store the passphrase or send it anywhere.\n\nIf you forget it, the copy in Drive can no longer be opened, but the connections on your devices remain, and you can start a new sync with a new passphrase.</string>
+    <string name="sync_help_when_title">When does it sync?</string>
+    <string name="sync_help_when">When you open the app, a few seconds after you save or delete something, when you send the app to the background, and when you tap “Sync now”. Without internet, the change is uploaded later on its own.</string>
+    <string name="sync_help_conflict_title">What if I change something on two devices?</string>
+    <string name="sync_help_conflict">For each connection, the version saved later is kept. Deletions reach the other devices too.</string>
+    <string name="sync_help_off_title">How do I turn it off?</string>
+    <string name="sync_help_off">With “Turn off on this device”. Your connections stay on the device and in Drive. To delete the copy in Drive, open Google Drive on the web: Settings → Manage apps → KonsoleSSH → Delete hidden app data.</string>
     <string name="sync_connect">Connect Google Drive</string>
     <string name="sync_checking">Looking for a backup in your Google Drive…</string>
     <string name="sync_found">A backup was found in your Google Drive. Enter its sync passphrase to restore it on this device.</string>

@@ -21,6 +21,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -32,6 +33,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -86,8 +89,46 @@ fun SyncScreen(state: SyncViewModel.UiState, actions: SyncActions) {
 
 @Composable
 private fun Intro(actions: SyncActions) {
-    Body(stringResource(R.string.sync_intro))
+    SyncHelp()
     PrimaryButton(stringResource(R.string.sync_connect), onClick = actions.onConnect)
+}
+
+/** What sync is for and what it does, so the user can decide before connecting Drive. */
+private val helpSections = listOf(
+    R.string.sync_help_purpose_title to R.string.sync_help_purpose,
+    R.string.sync_help_what_title to R.string.sync_help_what,
+    R.string.sync_help_where_title to R.string.sync_help_where,
+    R.string.sync_help_privacy_title to R.string.sync_help_privacy,
+    R.string.sync_help_when_title to R.string.sync_help_when,
+    R.string.sync_help_conflict_title to R.string.sync_help_conflict,
+    R.string.sync_help_off_title to R.string.sync_help_off,
+)
+
+@Composable
+private fun SyncHelp() {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        helpSections.forEach { (title, text) ->
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    stringResource(title),
+                    color = KonsoleColors.TextPrimary,
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.semantics { heading() },
+                )
+                Text(stringResource(text), color = KonsoleColors.TextSecondary)
+            }
+        }
+    }
+}
+
+/** With sync on, the same explanation stays at hand, folded away. */
+@Composable
+private fun FoldedHelp() {
+    var open by rememberSaveable { mutableStateOf(false) }
+    TextButton(onClick = { open = !open }) {
+        Text(stringResource(R.string.sync_help_title), color = KonsoleColors.Accent)
+    }
+    if (open) SyncHelp()
 }
 
 @Composable
@@ -126,6 +167,7 @@ private fun On(status: SyncManager.Status, actions: SyncActions) {
         Text(stringResource(R.string.sync_turn_off))
     }
     Text(stringResource(R.string.sync_turn_off_note), color = KonsoleColors.TextSecondary)
+    FoldedHelp()
 }
 
 @Composable

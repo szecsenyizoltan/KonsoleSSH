@@ -190,7 +190,21 @@
     </plurals>
     <!-- Google Drive sync -->
     <string name="menu_sync">Sincronización con Google Drive</string>
-    <string name="sync_intro">Tus conexiones guardadas, con sus contraseñas y claves, y las host keys aceptadas pueden sincronizarse entre tus dispositivos a través de una carpeta oculta de tu propio Google Drive. Se cifran con una frase de contraseña que solo tú conoces, así que Google no puede leerlas.</string>
+    <string name="sync_help_title">Cómo funciona</string>
+    <string name="sync_help_purpose_title">¿Para qué sirve?</string>
+    <string name="sync_help_purpose">Las mismas conexiones en todos tus dispositivos: lo que añades en el teléfono aparece también en la tableta, y al revés. En un dispositivo nuevo o restablecido no tienes que volver a escribirlo todo, y si pierdes un dispositivo, tus conexiones no se pierden con él.</string>
+    <string name="sync_help_what_title">¿Qué se sincroniza?</string>
+    <string name="sync_help_what">Tus conexiones guardadas: nombre, servidor, puerto y usuario, y la contraseña, la clave privada y la frase de la clave si las guardaste. También las host keys aceptadas, para que tus otros dispositivos no vuelvan a preguntar por un servidor en el que ya confiaste.\n\nNo se sincronizan los ajustes (tamaño de letra, idioma), las pestañas abiertas ni el contenido de los terminales.</string>
+    <string name="sync_help_where_title">¿Dónde se guarda?</string>
+    <string name="sync_help_where">En tu propio Google Drive, en una carpeta oculta de la aplicación. No aparece en Drive, y KonsoleSSH solo puede acceder a esa carpeta, no a tus otros archivos.</string>
+    <string name="sync_help_privacy_title">¿Quién puede leerlo?</string>
+    <string name="sync_help_privacy">Solo tú. El dispositivo cifra los datos antes de subirlos con una frase de sincronización que solo tú conoces. Ni Google ni el desarrollador de la aplicación pueden descifrarlos. La aplicación no guarda la frase ni la envía a ninguna parte.\n\nSi la olvidas, la copia de Drive ya no se puede abrir, pero las conexiones de tus dispositivos se conservan y puedes empezar una sincronización nueva con una frase nueva.</string>
+    <string name="sync_help_when_title">¿Cuándo se sincroniza?</string>
+    <string name="sync_help_when">Al abrir la aplicación, unos segundos después de guardar o borrar algo, al pasar la aplicación a segundo plano y al tocar «Sincronizar ahora». Sin internet, el cambio se sube más tarde por sí solo.</string>
+    <string name="sync_help_conflict_title">¿Y si cambio algo en dos dispositivos?</string>
+    <string name="sync_help_conflict">Para cada conexión se conserva la versión guardada más tarde. Los borrados también llegan a los otros dispositivos.</string>
+    <string name="sync_help_off_title">¿Cómo lo desactivo?</string>
+    <string name="sync_help_off">Con «Desactivar en este dispositivo». Tus conexiones se quedan en el dispositivo y en Drive. Para borrar la copia de Drive, abre Google Drive en la web: Configuración → Administrar aplicaciones → KonsoleSSH → Eliminar datos ocultos de la aplicación.</string>
     <string name="sync_connect">Conectar Google Drive</string>
     <string name="sync_checking">Buscando una copia en tu Google Drive…</string>
     <string name="sync_found">Se encontró una copia en tu Google Drive. Introduce su frase de sincronización para restaurarla en este dispositivo.</string>

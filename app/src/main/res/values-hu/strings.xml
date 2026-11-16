@@ -187,7 +187,21 @@
     </plurals>
     <!-- Google Drive sync -->
     <string name="menu_sync">Google Drive szinkron</string>
-    <string name="sync_intro">A mentett kapcsolatok a jelszavaikkal és kulcsaikkal, valamint az elfogadott host keyek szinkronizálhatók az eszközeid között a saját Google Drive-od egy rejtett mappáján keresztül. Egy csak általad ismert jelszóval vannak titkosítva, így a Google nem tudja olvasni őket.</string>
+    <string name="sync_help_title">Hogyan működik?</string>
+    <string name="sync_help_purpose_title">Mire jó?</string>
+    <string name="sync_help_purpose">Ugyanazok a kapcsolatok minden eszközödön: amit a telefonon felveszel, megjelenik a tableten is, és fordítva. Új vagy visszaállított készüléken nem kell mindent újra beírni, és ha egy eszköz elveszik, a kapcsolataid nem vesznek el vele.</string>
+    <string name="sync_help_what_title">Mi szinkronizálódik?</string>
+    <string name="sync_help_what">A mentett kapcsolatok, vagyis a név, a szerver, a port és a felhasználónév, valamint a jelszó, a privát kulcs és a kulcsjelszó, ha elmentetted őket. Szinkronizálódnak az elfogadott host keyek is, így egy már megbízhatónak jelölt szervert a többi eszköz sem kérdez meg újra.\n\nNem szinkronizálódnak a beállítások (betűméret, nyelv), a nyitott fülek és a terminálok tartalma.</string>
+    <string name="sync_help_where_title">Hol tárolódik?</string>
+    <string name="sync_help_where">A saját Google Drive-odon, egy rejtett alkalmazásmappában. Ez a Drive felületén nem látszik, és a KonsoleSSH csak ehhez a mappához fér hozzá, a többi fájlodhoz nem.</string>
+    <string name="sync_help_privacy_title">Ki tudja elolvasni?</string>
+    <string name="sync_help_privacy">Csak te. Az adatokat a készülék még feltöltés előtt titkosítja egy szinkronjelszóval, amelyet csak te ismersz. Sem a Google, sem az alkalmazás fejlesztője nem tudja visszafejteni őket. A jelszót az alkalmazás nem tárolja és nem küldi el sehova.\n\nHa elfelejted, a Drive-on lévő példány nem nyitható meg többé, de az eszközeiden lévő kapcsolatok megmaradnak, és új jelszóval új szinkront indíthatsz.</string>
+    <string name="sync_help_when_title">Mikor szinkronizál?</string>
+    <string name="sync_help_when">Az alkalmazás megnyitásakor, néhány másodperccel egy mentés vagy törlés után, amikor háttérbe teszed az alkalmazást, és amikor a „Szinkronizálás most” gombra koppintasz. Ha éppen nincs internet, a módosítás később, magától kerül fel.</string>
+    <string name="sync_help_conflict_title">Mi történik, ha két eszközön is módosítok?</string>
+    <string name="sync_help_conflict">Kapcsolatonként a később mentett változat marad meg. A törlés is átkerül a többi eszközre.</string>
+    <string name="sync_help_off_title">Hogyan kapcsolhatom ki?</string>
+    <string name="sync_help_off">A „Kikapcsolás ezen az eszközön” gombbal. A kapcsolataid az eszközön és a Drive-on is megmaradnak. A Drive-on lévő példányt a Google Drive webes felületén törölheted: Beállítások → Alkalmazások kezelése → KonsoleSSH → Rejtett alkalmazásadatok törlése.</string>
     <string name="sync_connect">Google Drive csatlakoztatása</string>
     <string name="sync_checking">Mentés keresése a Google Drive-on…</string>
     <string name="sync_found">Találtunk mentést a Google Drive-on. Add meg a szinkronjelszavát, hogy ezen az eszközön visszaállítsd.</string>

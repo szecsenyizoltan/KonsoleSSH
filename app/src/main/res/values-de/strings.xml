@@ -187,7 +187,21 @@
     </plurals>
     <!-- Google Drive sync -->
     <string name="menu_sync">Google-Drive-Synchronisierung</string>
-    <string name="sync_intro">Deine gespeicherten Verbindungen mit Passwörtern und Schlüsseln sowie die akzeptierten Host-Keys lassen sich über einen versteckten Ordner in deinem eigenen Google Drive zwischen deinen Geräten synchronisieren. Sie sind mit einer Passphrase verschlüsselt, die nur du kennst, daher kann Google sie nicht lesen.</string>
+    <string name="sync_help_title">So funktioniert es</string>
+    <string name="sync_help_purpose_title">Wozu dient es?</string>
+    <string name="sync_help_purpose">Dieselben Verbindungen auf allen deinen Geräten: Was du auf dem Telefon anlegst, erscheint auch auf dem Tablet, und umgekehrt. Auf einem neuen oder zurückgesetzten Gerät musst du nicht alles neu eingeben, und geht ein Gerät verloren, sind deine Verbindungen nicht mit ihm verloren.</string>
+    <string name="sync_help_what_title">Was wird synchronisiert?</string>
+    <string name="sync_help_what">Deine gespeicherten Verbindungen: Name, Server, Port und Benutzername sowie Passwort, privater Schlüssel und Schlüssel-Passphrase, wenn du sie gespeichert hast. Auch die akzeptierten Host-Keys, damit deine anderen Geräte einen Server, dem du schon vertraust, nicht erneut nachfragen.\n\nNicht synchronisiert werden die Einstellungen (Schriftgröße, Sprache), die offenen Tabs und der Inhalt der Terminals.</string>
+    <string name="sync_help_where_title">Wo wird es gespeichert?</string>
+    <string name="sync_help_where">In deinem eigenen Google Drive, in einem versteckten App-Ordner. Er erscheint nicht in Drive, und KonsoleSSH erreicht nur diesen Ordner, nicht deine anderen Dateien.</string>
+    <string name="sync_help_privacy_title">Wer kann es lesen?</string>
+    <string name="sync_help_privacy">Nur du. Das Gerät verschlüsselt die Daten vor dem Hochladen mit einer Sync-Passphrase, die nur du kennst. Weder Google noch der Entwickler der App kann sie entschlüsseln. Die App speichert die Passphrase nicht und sendet sie nirgendwohin.\n\nVergisst du sie, lässt sich die Kopie in Drive nicht mehr öffnen. Die Verbindungen auf deinen Geräten bleiben aber erhalten, und du kannst mit einer neuen Passphrase eine neue Synchronisierung starten.</string>
+    <string name="sync_help_when_title">Wann wird synchronisiert?</string>
+    <string name="sync_help_when">Beim Öffnen der App, einige Sekunden nach dem Speichern oder Löschen, wenn du die App in den Hintergrund schickst, und wenn du auf „Jetzt synchronisieren“ tippst. Ohne Internet wird die Änderung später von selbst hochgeladen.</string>
+    <string name="sync_help_conflict_title">Was, wenn ich auf zwei Geräten etwas ändere?</string>
+    <string name="sync_help_conflict">Für jede Verbindung bleibt die später gespeicherte Version erhalten. Auch Löschungen erreichen die anderen Geräte.</string>
+    <string name="sync_help_off_title">Wie schalte ich es aus?</string>
+    <string name="sync_help_off">Mit „Auf diesem Gerät ausschalten“. Deine Verbindungen bleiben auf dem Gerät und in Drive. Die Kopie in Drive löschst du in Google Drive im Web: Einstellungen → Apps verwalten → KonsoleSSH → Versteckte App-Daten löschen.</string>
     <string name="sync_connect">Google Drive verbinden</string>
     <string name="sync_checking">Suche nach einer Sicherung in deinem Google Drive…</string>
     <string name="sync_found">In deinem Google Drive wurde eine Sicherung gefunden. Gib ihre Sync-Passphrase ein, um sie auf diesem Gerät wiederherzustellen.</string>

@@ -190,7 +190,21 @@
     </plurals>
     <!-- Google Drive sync -->
     <string name="menu_sync">Sincronizare Google Drive</string>
-    <string name="sync_intro">Conexiunile salvate, cu parolele și cheile lor, și cheile de host acceptate se pot sincroniza între dispozitivele tale printr-un dosar ascuns din propriul tău Google Drive. Sunt criptate cu o frază de acces pe care o știi doar tu, așa că Google nu le poate citi.</string>
+    <string name="sync_help_title">Cum funcționează</string>
+    <string name="sync_help_purpose_title">La ce folosește?</string>
+    <string name="sync_help_purpose">Aceleași conexiuni pe toate dispozitivele tale: ce adaugi pe telefon apare și pe tabletă, și invers. Pe un dispozitiv nou sau resetat nu trebuie să scrii totul din nou, iar dacă pierzi un dispozitiv, conexiunile tale nu se pierd odată cu el.</string>
+    <string name="sync_help_what_title">Ce se sincronizează?</string>
+    <string name="sync_help_what">Conexiunile salvate: numele, serverul, portul și numele de utilizator, plus parola, cheia privată și fraza cheii, dacă le-ai salvat. Și cheile de host acceptate, ca celelalte dispozitive să nu mai întrebe despre un server în care ai avut deja încredere.\n\nNu se sincronizează setările (mărimea fontului, limba), filele deschise și conținutul terminalelor.</string>
+    <string name="sync_help_where_title">Unde se păstrează?</string>
+    <string name="sync_help_where">În propriul tău Google Drive, într-un dosar ascuns al aplicației. Nu apare în Drive, iar KonsoleSSH are acces doar la acest dosar, nu și la celelalte fișiere ale tale.</string>
+    <string name="sync_help_privacy_title">Cine îl poate citi?</string>
+    <string name="sync_help_privacy">Doar tu. Dispozitivul criptează datele înainte de încărcare, cu o frază de sincronizare pe care doar tu o știi. Nici Google, nici dezvoltatorul aplicației nu le pot decripta. Aplicația nu păstrează fraza și nu o trimite nicăieri.\n\nDacă o uiți, copia din Drive nu mai poate fi deschisă, dar conexiunile de pe dispozitive rămân și poți porni o sincronizare nouă cu o frază nouă.</string>
+    <string name="sync_help_when_title">Când se sincronizează?</string>
+    <string name="sync_help_when">La deschiderea aplicației, la câteva secunde după ce salvezi sau ștergi ceva, când trimiți aplicația în fundal și când atingi „Sincronizează acum”. Fără internet, modificarea se încarcă mai târziu, de la sine.</string>
+    <string name="sync_help_conflict_title">Ce se întâmplă dacă modific ceva pe două dispozitive?</string>
+    <string name="sync_help_conflict">Pentru fiecare conexiune se păstrează versiunea salvată mai târziu. Ștergerile ajung și pe celelalte dispozitive.</string>
+    <string name="sync_help_off_title">Cum o dezactivez?</string>
+    <string name="sync_help_off">Cu „Dezactivează pe acest dispozitiv”. Conexiunile rămân pe dispozitiv și în Drive. Ca să ștergi copia din Drive, deschide Google Drive pe web: Setări → Gestionează aplicațiile → KonsoleSSH → Șterge datele ascunse ale aplicației.</string>
     <string name="sync_connect">Conectează Google Drive</string>
     <string name="sync_checking">Se caută o copie de rezervă în Google Drive…</string>
     <string name="sync_found">S-a găsit o copie de rezervă în Google Drive. Introdu fraza ei de sincronizare pentru a o restaura pe acest dispozitiv.</string>

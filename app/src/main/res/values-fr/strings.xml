@@ -190,7 +190,21 @@
     </plurals>
     <!-- Google Drive sync -->
     <string name="menu_sync">Synchronisation Google Drive</string>
-    <string name="sync_intro">Vos connexions enregistrées, avec leurs mots de passe et clés, et les host keys acceptées peuvent se synchroniser entre vos appareils via un dossier caché de votre propre Google Drive. Elles sont chiffrées avec une phrase secrète que vous seul connaissez : Google ne peut pas les lire.</string>
+    <string name="sync_help_title">Comment ça marche</string>
+    <string name="sync_help_purpose_title">À quoi ça sert ?</string>
+    <string name="sync_help_purpose">Les mêmes connexions sur tous vos appareils : ce que vous ajoutez sur le téléphone apparaît aussi sur la tablette, et inversement. Sur un appareil neuf ou réinitialisé, inutile de tout ressaisir, et si un appareil est perdu, vos connexions ne sont pas perdues avec lui.</string>
+    <string name="sync_help_what_title">Qu\'est-ce qui est synchronisé ?</string>
+    <string name="sync_help_what">Vos connexions enregistrées : nom, serveur, port et nom d\'utilisateur, ainsi que le mot de passe, la clé privée et la phrase secrète de la clé si vous les avez enregistrés. Les host keys acceptées aussi, afin que vos autres appareils ne redemandent pas pour un serveur auquel vous faites déjà confiance.\n\nNe sont pas synchronisés : les réglages (taille de police, langue), les onglets ouverts et le contenu des terminaux.</string>
+    <string name="sync_help_where_title">Où est-ce stocké ?</string>
+    <string name="sync_help_where">Dans votre propre Google Drive, dans un dossier d\'application caché. Il n\'apparaît pas dans Drive, et KonsoleSSH n\'a accès qu\'à ce dossier, pas à vos autres fichiers.</string>
+    <string name="sync_help_privacy_title">Qui peut le lire ?</string>
+    <string name="sync_help_privacy">Vous seul. L\'appareil chiffre les données avant de les envoyer, avec une phrase de synchronisation que vous êtes seul à connaître. Ni Google ni le développeur de l\'app ne peuvent les déchiffrer. L\'app ne conserve pas la phrase et ne l\'envoie nulle part.\n\nSi vous l\'oubliez, la copie dans Drive ne peut plus être ouverte, mais les connexions de vos appareils restent, et vous pouvez démarrer une nouvelle synchronisation avec une nouvelle phrase.</string>
+    <string name="sync_help_when_title">Quand la synchronisation a-t-elle lieu ?</string>
+    <string name="sync_help_when">À l\'ouverture de l\'app, quelques secondes après un enregistrement ou une suppression, quand vous mettez l\'app en arrière-plan, et quand vous touchez « Synchroniser maintenant ». Sans internet, la modification est envoyée plus tard, d\'elle-même.</string>
+    <string name="sync_help_conflict_title">Et si je modifie quelque chose sur deux appareils ?</string>
+    <string name="sync_help_conflict">Pour chaque connexion, la version enregistrée en dernier est conservée. Les suppressions atteignent aussi les autres appareils.</string>
+    <string name="sync_help_off_title">Comment la désactiver ?</string>
+    <string name="sync_help_off">Avec « Désactiver sur cet appareil ». Vos connexions restent sur l\'appareil et dans Drive. Pour supprimer la copie dans Drive, ouvrez Google Drive sur le web : Paramètres → Gérer les applications → KonsoleSSH → Supprimer les données d\'application cachées.</string>
     <string name="sync_connect">Connecter Google Drive</string>
     <string name="sync_checking">Recherche d\'une sauvegarde dans votre Google Drive…</string>
     <string name="sync_found">Une sauvegarde a été trouvée dans votre Google Drive. Saisissez sa phrase de synchronisation pour la restaurer sur cet appareil.</string>

@@ -193,7 +193,21 @@
     </plurals>
     <!-- Google Drive sync -->
     <string name="menu_sync">Synchronizácia cez Google Drive</string>
-    <string name="sync_intro">Uložené pripojenia s heslami a kľúčmi a prijaté host kľúče sa môžu synchronizovať medzi vašimi zariadeniami cez skrytý priečinok vo vašom vlastnom Google Drive. Sú šifrované heslom, ktoré poznáte len vy, takže ich Google nemôže čítať.</string>
+    <string name="sync_help_title">Ako to funguje</string>
+    <string name="sync_help_purpose_title">Na čo slúži?</string>
+    <string name="sync_help_purpose">Rovnaké pripojenia na všetkých vašich zariadeniach: čo pridáte v telefóne, objaví sa aj v tablete, a naopak. Na novom alebo obnovenom zariadení nemusíte všetko zadávať znova, a ak zariadenie stratíte, pripojenia sa s ním nestratia.</string>
+    <string name="sync_help_what_title">Čo sa synchronizuje?</string>
+    <string name="sync_help_what">Uložené pripojenia: názov, server, port a používateľské meno, a heslo, súkromný kľúč a heslo ku kľúču, ak ste ich uložili. Aj prijaté host kľúče, aby sa vaše ďalšie zariadenia znova nepýtali na server, ktorému ste už dôverovali.\n\nNesynchronizujú sa nastavenia (veľkosť písma, jazyk), otvorené karty ani obsah terminálov.</string>
+    <string name="sync_help_where_title">Kde sa ukladá?</string>
+    <string name="sync_help_where">Vo vašom vlastnom Google Drive, v skrytom priečinku aplikácie. V Drive sa nezobrazuje a KonsoleSSH má prístup len k tomuto priečinku, nie k vašim ostatným súborom.</string>
+    <string name="sync_help_privacy_title">Kto to môže čítať?</string>
+    <string name="sync_help_privacy">Len vy. Zariadenie údaje pred nahratím zašifruje synchronizačným heslom, ktoré poznáte len vy. Nedokáže ich rozšifrovať ani Google, ani vývojár aplikácie. Aplikácia heslo neukladá ani ho nikam neposiela.\n\nAk ho zabudnete, kópiu v Drive už nebude možné otvoriť, ale pripojenia vo vašich zariadeniach zostanú a s novým heslom môžete spustiť novú synchronizáciu.</string>
+    <string name="sync_help_when_title">Kedy sa synchronizuje?</string>
+    <string name="sync_help_when">Pri otvorení aplikácie, niekoľko sekúnd po uložení alebo odstránení, keď aplikáciu presuniete do pozadia, a keď ťuknete na „Synchronizovať teraz“. Bez internetu sa zmena nahrá neskôr sama.</string>
+    <string name="sync_help_conflict_title">Čo ak niečo zmením na dvoch zariadeniach?</string>
+    <string name="sync_help_conflict">Pri každom pripojení sa zachová neskôr uložená verzia. Aj odstránenia sa dostanú na ostatné zariadenia.</string>
+    <string name="sync_help_off_title">Ako ju vypnem?</string>
+    <string name="sync_help_off">Tlačidlom „Vypnúť v tomto zariadení“. Pripojenia zostanú v zariadení aj v Drive. Kópiu v Drive odstránite v Google Drive na webe: Nastavenia → Spravovať aplikácie → KonsoleSSH → Odstrániť skryté údaje aplikácie.</string>
     <string name="sync_connect">Pripojiť Google Drive</string>
     <string name="sync_checking">Hľadá sa záloha vo vašom Google Drive…</string>
     <string name="sync_found">Vo vašom Google Drive sa našla záloha. Zadajte jej synchronizačné heslo a obnovte ju v tomto zariadení.</string>

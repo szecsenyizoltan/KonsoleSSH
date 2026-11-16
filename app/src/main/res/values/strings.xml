@@ -181,17 +181,10 @@
     <string name="sym_plus" translatable="false">+</string>
 
     <!-- Problem report -->
-    <string name="menu_problem_report">Send problem report</string>
     <string name="menu_privacy_policy">Privacy policy</string>
     <!-- The policy page in this language on the app's website. -->
     <string name="privacy_policy_url">https://konsolessh.billman.hu/en/privacy/</string>
     <string name="err_no_browser">No app can open web links</string>
-    <string name="report_title">KonsoleSSH stopped responding or crashed</string>
-    <string name="report_message">Last time the app froze or closed unexpectedly. A report was saved on this device: app and Android version, device model and the technical trace. It contains no passwords or keys. Share it with the developer?</string>
-    <string name="report_share">Share report</string>
-    <string name="report_dismiss">Not now</string>
-    <string name="report_subject">KonsoleSSH problem report</string>
-    <string name="report_none">No problem report has been recorded.</string>
     <plurals name="group_connections">
         <item quantity="one">%1$d connection</item>
         <item quantity="other">%1$d connections</item>

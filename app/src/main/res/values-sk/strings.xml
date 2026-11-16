@@ -163,16 +163,9 @@
     <string name="welcome_swipe_hint">Potiahni doprava pre pomoc.</string>
 
     <!-- Problem report -->
-    <string name="menu_problem_report">Odoslať hlásenie o chybe</string>
     <string name="menu_privacy_policy">Zásady ochrany osobných údajov</string>
     <string name="privacy_policy_url">https://konsolessh.billman.hu/sk/privacy/</string>
     <string name="err_no_browser">Žiadna aplikácia nevie otvoriť webový odkaz</string>
-    <string name="report_title">KonsoleSSH prestal reagovať alebo spadol</string>
-    <string name="report_message">Naposledy aplikácia zamrzla alebo sa neočakávane zavrela. V zariadení sa uložilo hlásenie: verzia aplikácie a Androidu, model zariadenia a technická stopa. Neobsahuje heslá ani kľúče. Zdieľať ho s vývojárom?</string>
-    <string name="report_share">Zdieľať hlásenie</string>
-    <string name="report_dismiss">Teraz nie</string>
-    <string name="report_subject">Hlásenie o chybe KonsoleSSH</string>
-    <string name="report_none">Nie je zaznamenané žiadne hlásenie o chybe.</string>
     <plurals name="group_connections">
         <item quantity="one">%1$d pripojenie</item>
         <item quantity="few">%1$d pripojenia</item>

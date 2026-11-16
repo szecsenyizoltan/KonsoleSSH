@@ -163,16 +163,9 @@
     <string name="welcome_swipe_hint">Balaie à droite pour l\'aide.</string>
 
     <!-- Problem report -->
-    <string name="menu_problem_report">Envoyer un rapport d’erreur</string>
     <string name="menu_privacy_policy">Politique de confidentialité</string>
     <string name="privacy_policy_url">https://konsolessh.billman.hu/fr/privacy/</string>
     <string name="err_no_browser">Aucune app ne peut ouvrir les liens web</string>
-    <string name="report_title">KonsoleSSH ne répondait plus ou a planté</string>
-    <string name="report_message">La dernière fois, l’application s’est figée ou s’est fermée de façon inattendue. Un rapport a été enregistré sur cet appareil : versions de l’application et d’Android, modèle de l’appareil et trace technique. Il ne contient ni mot de passe ni clé. Le partager avec le développeur ?</string>
-    <string name="report_share">Partager le rapport</string>
-    <string name="report_dismiss">Pas maintenant</string>
-    <string name="report_subject">Rapport d’erreur KonsoleSSH</string>
-    <string name="report_none">Aucun rapport d’erreur n’a été enregistré.</string>
     <plurals name="group_connections">
         <item quantity="one">%1$d connexion</item>
         <item quantity="many">%1$d connexions</item>

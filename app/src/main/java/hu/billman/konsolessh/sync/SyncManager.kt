@@ -22,7 +22,9 @@ import javax.crypto.spec.SecretKeySpec
  * file in the user's Drive. A sync reads the file, merges it with this
  * device's state ([SyncMerge]), stores the result here and writes it
  * back. Saves and deletes ask for a sync through [requestSync], which
- * waits a moment so a burst of changes becomes one upload.
+ * waits a moment so a burst of changes becomes one upload. Until that
+ * upload succeeds, [scheduler] keeps a later one pending, so a change is
+ * not left behind when the process stops or the network is down.
  */
 class SyncManager(
     private val connections: ConnectionRepository,
@@ -30,6 +32,7 @@ class SyncManager(
     private val keys: SyncKeyStorage,
     private val remote: SyncFileStore,
     private val scope: CoroutineScope,
+    private val scheduler: SyncScheduler = SyncScheduler.None,
     private val timing: Timing = Timing(),
 ) {
 
@@ -90,17 +93,24 @@ class SyncManager(
     /** Turns sync off here. The local data and the file in Drive stay. */
     suspend fun disable() {
         pending?.cancel()
+        scheduler.cancel()
         mutex.withLock { keys.save(null) }
         _status.value = Status.Off
     }
 
-    /** Asks for a sync after a short wait, so a burst of changes becomes one upload; [now] skips the wait. */
+    /**
+     * Asks for a sync after a short wait, so a burst of changes becomes one
+     * upload; [now] skips the wait. [now] is also used without a local change
+     * (the app came to the foreground), so only a waiting request keeps a
+     * later upload pending.
+     */
     fun requestSync(now: Boolean = false) {
         if (_status.value == Status.Off) return
+        if (!now) scheduler.schedule()
         pending?.cancel()
         pending = scope.launch {
             if (!now) delay(timing.delayMs)
-            runCatching { syncNow() }
+            runCatching { syncNow() }.onSuccess { scheduler.cancel() }
         }
     }
 

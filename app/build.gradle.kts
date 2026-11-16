@@ -148,6 +148,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     // Already pulled in by other AndroidX libraries; used directly for app foreground/background.
     implementation(libs.androidx.lifecycle.process)
+    implementation(libs.androidx.work.runtime)
     implementation(libs.androidx.security.crypto)
 
     // Unit tests (JVM + Robolectric for Android classes)

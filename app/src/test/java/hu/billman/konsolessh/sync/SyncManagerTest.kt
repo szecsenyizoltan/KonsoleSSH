@@ -19,16 +19,29 @@ import java.nio.file.Files
 /** Two devices syncing through one shared, in-memory Drive file. */
 class SyncManagerTest {
 
+    private class RecordingScheduler : SyncScheduler {
+        var pending = false
+        override fun schedule() {
+            pending = true
+        }
+
+        override fun cancel() {
+            pending = false
+        }
+    }
+
     private inner class Device(delayMs: Long = 3_000L) {
         val repo = FakeConnectionRepository(clock = { now })
         val hostKeys = HostKeyStore(File(Files.createTempDirectory("sync").toFile(), "known_hosts"), clock = { now })
         val keys = MemoryKeys()
+        val scheduler = RecordingScheduler()
         val sync = SyncManager(
             connections = repo,
             hostKeys = hostKeys,
             keys = keys,
             remote = drive,
             scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined),
+            scheduler = scheduler,
             timing = SyncManager.Timing(clock = { now }, iterations = 1_000, delayMs = delayMs),
         )
 
@@ -169,4 +182,44 @@ class SyncManagerTest {
         runCatching { broken.syncNow() }
         assertTrue((broken.status.value as SyncManager.Status.Failed).cause is java.io.IOException)
     }
+
+    @Test
+    fun `a local change keeps a later upload pending until the upload succeeds`() = runBlocking {
+        val device = Device(delayMs = 60_000L)
+        device.sync.enable("pass".toCharArray())
+
+        device.repo.saveOne(conn("a", "Alpha", 1))
+        device.sync.requestSync()
+        assertTrue("pending while waiting", device.scheduler.pending)
+
+        device.sync.flush()
+        assertFalse("withdrawn after the upload", device.scheduler.pending)
+    }
+
+    @Test
+    fun `a failed upload leaves the later one pending`() = runBlocking {
+        val device = Device()
+        device.sync.enable("pass".toCharArray())
+        drive.failure = java.io.IOException("offline")
+
+        device.sync.requestSync()
+        device.sync.flush()
+
+        assertTrue(device.scheduler.pending)
+        assertTrue(device.sync.status.value is SyncManager.Status.Failed)
+    }
+
+    @Test
+    fun `a sync without a local change schedules nothing, and turning sync off withdraws a pending one`() =
+        runBlocking {
+            val device = Device()
+            device.sync.enable("pass".toCharArray())
+
+            device.sync.requestSync(now = true)
+            assertFalse(device.scheduler.pending)
+
+            device.scheduler.schedule()
+            device.sync.disable()
+            assertFalse(device.scheduler.pending)
+        }
 }

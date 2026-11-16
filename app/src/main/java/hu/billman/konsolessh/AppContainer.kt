@@ -20,6 +20,7 @@ import hu.billman.konsolessh.sync.DriveAppDataStore
 import hu.billman.konsolessh.sync.DriveAuthorizer
 import hu.billman.konsolessh.sync.SyncManager
 import hu.billman.konsolessh.sync.SyncTriggeringRepository
+import hu.billman.konsolessh.sync.WorkManagerSyncScheduler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -75,6 +76,7 @@ class AppContainer(
             keys = CryptoBoxSyncKeyStorage(File(appContext.filesDir, "sync_key.bin"), cryptoBox),
             remote = DriveAppDataStore(driveAuthorizer::accessToken, driveAuthorizer::forget),
             scope = ioScope,
+            scheduler = WorkManagerSyncScheduler(appContext),
         )
     }
 

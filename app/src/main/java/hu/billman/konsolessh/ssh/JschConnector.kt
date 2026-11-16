@@ -60,7 +60,7 @@ internal object JschConnector {
                 set("PreferredAuthentications", preferredAuths(useKey, hop.password.isNotBlank()))
             },
         )
-        if (hop.password.isNotBlank()) session.setPassword(hop.password)
+        if (hop.password.isNotBlank()) session.setPassword(hop.password.toByteArray())
         session.userInfo = userInfo(hostKeys)
         return session
     }

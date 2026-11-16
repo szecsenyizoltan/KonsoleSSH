@@ -43,8 +43,10 @@ import hu.billman.konsolessh.sync.SyncManager
 import hu.billman.konsolessh.ui.SyncViewModel.Problem
 import hu.billman.konsolessh.ui.SyncViewModel.Step
 import hu.billman.konsolessh.ui.theme.KonsoleColors
-import java.text.DateFormat
-import java.util.Date
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -143,12 +145,19 @@ private fun Passphrase(restore: Boolean, actions: SyncActions) {
     }
 }
 
+// Built on every call: the formatter takes the locale when it is created,
+// and the user can switch the app language while it runs.
+private fun formatSyncTime(epochMillis: Long): String =
+    DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
+        .withZone(ZoneId.systemDefault())
+        .format(Instant.ofEpochMilli(epochMillis))
+
 @Composable
 private fun On(status: SyncManager.Status, actions: SyncActions) {
     val line = when (status) {
         SyncManager.Status.Syncing -> stringResource(R.string.sync_syncing)
         is SyncManager.Status.Ready -> status.lastSyncAt?.let {
-            stringResource(R.string.sync_last, DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(it)))
+            stringResource(R.string.sync_last, formatSyncTime(it))
         } ?: stringResource(R.string.sync_never)
         else -> stringResource(R.string.sync_never)
     }

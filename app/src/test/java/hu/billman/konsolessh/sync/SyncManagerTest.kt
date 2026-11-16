@@ -60,6 +60,23 @@ class SyncManagerTest {
     }
 
     @Test
+    fun `a device with its own connections joins without losing any, on either side`() = runBlocking {
+        val first = Device()
+        first.repo.saveOne(conn("a", "Alpha", 1))
+        first.sync.enable("pass".toCharArray())
+
+        // An older device: more connections than Drive, saved before change times existed.
+        val old = Device()
+        old.repo.saveOne(conn("x", "Xray", 0))
+        old.repo.saveOne(conn("y", "Yankee", 0))
+        old.sync.enable("pass".toCharArray())
+        first.sync.syncNow()
+
+        assertEquals(setOf("Alpha", "Xray", "Yankee"), old.names().toSet())
+        assertEquals(setOf("Alpha", "Xray", "Yankee"), first.names().toSet())
+    }
+
+    @Test
     fun `edits and deletions travel both ways`() = runBlocking {
         val first = Device()
         first.repo.saveOne(conn("a", "Alpha", 1))

@@ -43,6 +43,7 @@ SSH terminál s kartami pre Android, inšpirovaný KDE Konsole.
 - Relácie bežia aj na pozadí, za upozornením, ktoré počíta aktívne pripojenia.
 - Po páde alebo ANR aplikácia ponúkne hlásenie na zdieľanie; nič sa neodošle automaticky.
 - Sedem jazykov: angličtina, maďarčina, nemčina, španielčina, francúzština, slovenčina, rumunčina; voliteľné aj v aplikácii.
+- Voliteľná synchronizácia cez Google Drive: uložené pripojenia (s heslami a kľúčmi) a prijaté host kľúče sa synchronizujú medzi zariadeniami cez skrytý priečinok vo vlastnom Google Drive používateľa, šifrované end-to-end heslom, ktoré pozná len on. Nové zariadenie pri prvom spustení ponúkne ich obnovenie.
 
 ## Architektúra
 
@@ -58,6 +59,7 @@ SSH terminál s kartami pre Android, inšpirovaný KDE Konsole.
   sa ohlási a nikdy sa neprepíše.
 - **Model terminálu:** `TerminalBuffer` je čistý Kotlin bez závislostí na Androide, preto sa testuje na JVM.
 - **Závislosti** sú pospájané ručne v `AppContainer`, bez DI frameworku.
+- **Synchronizácia** (voliteľná): `SyncManager` zlučuje pripojenia a host kľúče zariadenia so súborom šifrovaným AES-256-GCM v skrytom priečinku údajov aplikácie v Drive; kľúč pochádza z hesla používateľa (PBKDF2) a nikdy neopustí zariadenia.
 
 ## Štruktúra projektu
 
@@ -67,6 +69,7 @@ app/src/main/java/hu/billman/konsolessh/
   data/         šifrované úložisko pripojení, nastavenia, migrácia starších formátov
   ssh/          JSch relácie, reťaz skokov, overovanie host kľúčov, nahratie kľúča, typované chyby
   session/      SessionManager, výstupný buffer, otázky na heslo a host kľúč
+  sync/         synchronizácia cez Google Drive: šifrovanie, zlučovanie, klient Drive
   terminal/     TerminalView a TerminalBuffer: vykresľovanie, vstup, emulácia
   service/      služba v popredí
   diagnostics/  hlásenia o pádoch a ANR
@@ -112,6 +115,7 @@ a bez neho sa preskočia. Release zostavenie je minimalizované pomocou R8.
 | kotlinx.serialization | formát úložiska pripojení |
 | AndroidX DataStore | úložisko pripojení a nastavenia |
 | AndroidX AppCompat | výber jazyka v aplikácii na Androide 8–12 |
+| Google Play services auth | autorizácia pre voliteľnú synchronizáciu cez Google Drive |
 | androidx.security | len na migráciu úložísk spred verzie 1.1.12 |
 
 Presné verzie sú v `gradle/libs.versions.toml`.

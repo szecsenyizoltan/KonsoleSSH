@@ -43,6 +43,7 @@ Többfüles SSH-terminál Androidra, a KDE Konsole mintájára.
 - A munkamenetek a háttérben is futnak, egy értesítés mögött, amely az aktív kapcsolatokat számolja.
 - Összeomlás vagy ANR után az app felajánl egy megosztható hibajelentést; magától semmit nem küld el.
 - Hét nyelv: angol, magyar, német, spanyol, francia, szlovák, román; az appon belül is választható.
+- Bekapcsolható Google Drive szinkron: a mentett kapcsolatok (jelszavakkal, kulcsokkal) és az elfogadott host keyek a felhasználó saját Google Drive-jának rejtett mappáján át szinkronizálódnak az eszközök között, végponttól végpontig titkosítva egy csak általa ismert jelszóval. Új eszközön az első indításkor felajánlja a visszaállítást.
 
 ## Architektúra
 
@@ -58,6 +59,7 @@ Többfüles SSH-terminál Androidra, a KDE Konsole mintájára.
   fájlban. Az olvashatatlan tárat az app jelzi, és sosem írja felül.
 - **Terminálmodell:** a `TerminalBuffer` Android-függőség nélküli Kotlin, ezért JVM-en unit-tesztelt.
 - **Függőségek:** kézzel összekötve az `AppContainer`-ben, DI-keretrendszer nélkül.
+- **Szinkron** (bekapcsolható): a `SyncManager` az eszköz kapcsolatait és host keyeit egy AES-256-GCM-mel titkosított fájllal fésüli össze a Drive rejtett alkalmazásmappájában; a kulcs a felhasználó jelszavából származik (PBKDF2), és nem hagyja el az eszközöket.
 
 ## Projektszerkezet
 
@@ -67,6 +69,7 @@ app/src/main/java/hu/billman/konsolessh/
   data/         titkosított kapcsolattár, beállítások, régi formátumok migrációja
   ssh/          JSch-munkamenetek, jump-lánc, host key ellenőrzés, kulcsfeltöltés, típusos hibák
   session/      SessionManager, kimeneti puffer, jelszó- és host key kérdések
+  sync/         Google Drive szinkron: titkosítás, összefésülés, Drive-kliens
   terminal/     TerminalView és TerminalBuffer: rajzolás, bevitel, emuláció
   service/      az előtérszolgáltatás
   diagnostics/  összeomlás- és ANR-jelentések
@@ -112,6 +115,7 @@ A unit tesztek között valódi OpenSSH-szerverek elleni integrációs tesztek i
 | kotlinx.serialization | a kapcsolattár formátuma |
 | AndroidX DataStore | kapcsolattár és beállítások |
 | AndroidX AppCompat | appon belüli nyelvválasztás Android 8–12-n |
+| Google Play services auth | engedélykérés a bekapcsolható Google Drive szinkronhoz |
 | androidx.security | csak az 1.1.12 előtti tárak migrációjához |
 
 A pontos verziók a `gradle/libs.versions.toml` fájlban vannak.

@@ -43,6 +43,7 @@ Terminal SSH à onglets pour Android, inspiré de KDE Konsole.
 - Les sessions continuent en arrière-plan, derrière une notification qui compte les connexions actives.
 - Après un plantage ou un ANR, l'app propose un rapport à partager ; rien n'est envoyé automatiquement.
 - Sept langues : anglais, hongrois, allemand, espagnol, français, slovaque, roumain ; à choisir aussi dans l'app.
+- Synchronisation Google Drive facultative : les connexions enregistrées (avec mots de passe et clés) et les host keys acceptées se synchronisent entre appareils via un dossier caché du propre Google Drive de l'utilisateur, chiffrées de bout en bout avec une phrase secrète qu'il est seul à connaître. Un nouvel appareil propose de les restaurer au premier démarrage.
 
 ## Architecture
 
@@ -58,6 +59,7 @@ Terminal SSH à onglets pour Android, inspiré de KDE Konsole.
   d'OpenSSH. Un stockage illisible est signalé, jamais écrasé.
 - **Modèle du terminal :** `TerminalBuffer` est du Kotlin sans dépendance Android, testé donc sur la JVM.
 - **Les dépendances** sont reliées à la main dans `AppContainer`, sans framework d'injection.
+- **Synchronisation** (facultative) : `SyncManager` fusionne les connexions et host keys de l'appareil avec un fichier chiffré en AES-256-GCM dans le dossier caché de données d'application de Drive ; la clé provient de la phrase secrète de l'utilisateur (PBKDF2) et ne quitte jamais les appareils.
 
 ## Structure du projet
 
@@ -67,6 +69,7 @@ app/src/main/java/hu/billman/konsolessh/
   data/         stockage chiffré des connexions, réglages, migration des anciens formats
   ssh/          sessions JSch, chaîne de sauts, vérification des host keys, envoi de clé, erreurs typées
   session/      SessionManager, tampon de sortie, questions de mot de passe et de host key
+  sync/         synchronisation Google Drive : chiffrement, fusion, client Drive
   terminal/     TerminalView et TerminalBuffer : rendu, saisie, émulation
   service/      le service de premier plan
   diagnostics/  rapports de plantage et d'ANR
@@ -112,6 +115,7 @@ un `sshd` installé et sont ignorés sans lui. Le build release est minifié ave
 | kotlinx.serialization | format du stockage des connexions |
 | AndroidX DataStore | stockage des connexions et réglages |
 | AndroidX AppCompat | choix de la langue dans l'app sous Android 8–12 |
+| Google Play services auth | autorisation pour la synchronisation Google Drive facultative |
 | androidx.security | uniquement pour migrer les stockages antérieurs à 1.1.12 |
 
 Les versions exactes se trouvent dans `gradle/libs.versions.toml`.

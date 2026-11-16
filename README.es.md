@@ -43,6 +43,7 @@ Terminal SSH con pestañas para Android, inspirado en KDE Konsole.
 - Las sesiones siguen en segundo plano, tras una notificación que cuenta las conexiones activas.
 - Tras un cierre inesperado o un ANR, la app ofrece un informe para compartir; nada se envía automáticamente.
 - Siete idiomas: inglés, húngaro, alemán, español, francés, eslovaco y rumano; también se pueden elegir dentro de la app.
+- Sincronización opcional con Google Drive: las conexiones guardadas (con contraseñas y claves) y las host keys aceptadas se sincronizan entre dispositivos a través de una carpeta oculta del propio Google Drive del usuario, cifradas de extremo a extremo con una frase que solo él conoce. Un dispositivo nuevo ofrece restaurarlas en el primer inicio.
 
 ## Arquitectura
 
@@ -58,6 +59,7 @@ Terminal SSH con pestañas para Android, inspirado en KDE Konsole.
   al estilo de OpenSSH. Un almacén ilegible se notifica y nunca se sobrescribe.
 - **Modelo del terminal:** `TerminalBuffer` es Kotlin sin dependencias de Android, por lo que se prueba en la JVM.
 - **Las dependencias** se conectan a mano en `AppContainer`, sin framework de inyección.
+- **Sincronización** (opcional): `SyncManager` fusiona las conexiones y host keys del dispositivo con un archivo cifrado con AES-256-GCM en la carpeta oculta de datos de la app en Drive; la clave proviene de la frase del usuario (PBKDF2) y nunca sale de los dispositivos.
 
 ## Estructura del proyecto
 
@@ -67,6 +69,7 @@ app/src/main/java/hu/billman/konsolessh/
   data/         almacén cifrado de conexiones, ajustes, migración de formatos antiguos
   ssh/          sesiones JSch, cadena de saltos, verificación de host keys, subida de claves, errores tipados
   session/      SessionManager, búfer de salida, preguntas de contraseña y host key
+  sync/         sincronización con Google Drive: cifrado, fusión, cliente de Drive
   terminal/     TerminalView y TerminalBuffer: dibujo, entrada, emulación
   service/      el servicio en primer plano
   diagnostics/  informes de cierres inesperados y ANR
@@ -112,6 +115,7 @@ instalado y se omiten si falta. La compilación release se minimiza con R8.
 | kotlinx.serialization | formato del almacén de conexiones |
 | AndroidX DataStore | almacén de conexiones y ajustes |
 | AndroidX AppCompat | selección de idioma en la app en Android 8–12 |
+| Google Play services auth | autorización para la sincronización opcional con Google Drive |
 | androidx.security | solo para migrar almacenes anteriores a 1.1.12 |
 
 Las versiones exactas están en `gradle/libs.versions.toml`.

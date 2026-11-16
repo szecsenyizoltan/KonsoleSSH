@@ -43,6 +43,7 @@ Multi-tab SSH terminal for Android, inspired by KDE Konsole.
 - Sessions keep running in the background behind a notification that counts the active connections.
 - After a crash or an ANR the app offers a problem report to share; nothing is sent automatically.
 - Seven languages: English, Hungarian, German, Spanish, French, Slovak, Romanian; selectable inside the app.
+- Optional Google Drive sync: saved connections (with passwords and keys) and accepted host keys sync between devices through a hidden folder in the user's own Google Drive, end-to-end encrypted with a passphrase only the user knows. A new device offers to restore them on first start.
 
 ## Architecture
 
@@ -59,6 +60,7 @@ Multi-tab SSH terminal for Android, inspired by KDE Konsole.
 - **Terminal model:** `TerminalBuffer` is plain Kotlin without Android dependencies, so it is
   unit-tested on the JVM.
 - **Dependencies** are wired by hand in `AppContainer`, without a DI framework.
+- **Sync** (optional): `SyncManager` merges this device's connections and host keys with an AES-256-GCM encrypted file in Drive's hidden app data folder; the key comes from the user's passphrase (PBKDF2) and never leaves the devices.
 
 ## Project structure
 
@@ -68,6 +70,7 @@ app/src/main/java/hu/billman/konsolessh/
   data/         encrypted connection store, settings, migration of older formats
   ssh/          JSch sessions, jump chain, host key checks, key upload, typed errors
   session/      SessionManager, output buffer, password and host key questions
+  sync/         Google Drive sync: encryption, merge, Drive client
   terminal/     TerminalView and TerminalBuffer: rendering, input, emulation
   service/      the foreground service
   diagnostics/  crash and ANR reports
@@ -113,6 +116,7 @@ and are skipped without it. The release build is minified with R8.
 | kotlinx.serialization | the connection store's format |
 | AndroidX DataStore | connection store and settings |
 | AndroidX AppCompat | in-app language selection on Android 8–12 |
+| Google Play services auth | authorization for the optional Google Drive sync |
 | androidx.security | only to migrate stores written before 1.1.12 |
 
 Exact versions are in `gradle/libs.versions.toml`.

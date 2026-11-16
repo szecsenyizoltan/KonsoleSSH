@@ -43,6 +43,7 @@ Terminal SSH cu file pentru Android, inspirat de KDE Konsole.
 - Sesiunile continuă în fundal, în spatele unei notificări care numără conexiunile active.
 - După o cădere sau un ANR, aplicația oferă un raport de partajat; nimic nu se trimite automat.
 - Șapte limbi: engleză, maghiară, germană, spaniolă, franceză, slovacă, română; selectabile și în aplicație.
+- Sincronizare opțională cu Google Drive: conexiunile salvate (cu parole și chei) și cheile de host acceptate se sincronizează între dispozitive printr-un dosar ascuns din propriul Google Drive al utilizatorului, criptate end-to-end cu o frază pe care doar el o știe. Un dispozitiv nou oferă restaurarea lor la prima pornire.
 
 ## Arhitectură
 
@@ -58,6 +59,7 @@ Terminal SSH cu file pentru Android, inspirat de KDE Konsole.
   Un depozit ilizibil este semnalat, niciodată suprascris.
 - **Modelul terminalului:** `TerminalBuffer` este Kotlin fără dependențe Android, deci este testat pe JVM.
 - **Dependențele** sunt legate manual în `AppContainer`, fără framework de injecție.
+- **Sincronizare** (opțională): `SyncManager` îmbină conexiunile și cheile de host ale dispozitivului cu un fișier criptat AES-256-GCM din dosarul ascuns de date al aplicației din Drive; cheia provine din fraza utilizatorului (PBKDF2) și nu părăsește niciodată dispozitivele.
 
 ## Structura proiectului
 
@@ -67,6 +69,7 @@ app/src/main/java/hu/billman/konsolessh/
   data/         depozitul criptat de conexiuni, setări, migrarea formatelor vechi
   ssh/          sesiuni JSch, lanț de salturi, verificarea cheilor de host, încărcarea cheii, erori tipizate
   session/      SessionManager, buffer de ieșire, întrebări de parolă și cheie de host
+  sync/         sincronizare Google Drive: criptare, îmbinare, client Drive
   terminal/     TerminalView și TerminalBuffer: desenare, intrare, emulare
   service/      serviciul în prim-plan
   diagnostics/  rapoarte de cădere și ANR
@@ -112,6 +115,7 @@ omise fără el. Build-ul release este minimizat cu R8.
 | kotlinx.serialization | formatul depozitului de conexiuni |
 | AndroidX DataStore | depozitul de conexiuni și setările |
 | AndroidX AppCompat | alegerea limbii în aplicație pe Android 8–12 |
+| Google Play services auth | autorizare pentru sincronizarea opțională cu Google Drive |
 | androidx.security | doar pentru migrarea depozitelor dinainte de 1.1.12 |
 
 Versiunile exacte sunt în `gradle/libs.versions.toml`.

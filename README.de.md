@@ -43,6 +43,7 @@ SSH-Terminal mit mehreren Tabs für Android, nach dem Vorbild von KDE Konsole.
 - Sitzungen laufen im Hintergrund weiter, hinter einer Benachrichtigung, die die aktiven Verbindungen zählt.
 - Nach einem Absturz oder ANR bietet die App einen Fehlerbericht zum Teilen an; nichts wird automatisch gesendet.
 - Sieben Sprachen: Englisch, Ungarisch, Deutsch, Spanisch, Französisch, Slowakisch, Rumänisch; auch in der App wählbar.
+- Optionale Google-Drive-Synchronisierung: gespeicherte Verbindungen (mit Passwörtern und Schlüsseln) und akzeptierte Host-Keys werden über einen versteckten Ordner im eigenen Google Drive zwischen Geräten synchronisiert, Ende-zu-Ende verschlüsselt mit einer Passphrase, die nur der Nutzer kennt. Ein neues Gerät bietet beim ersten Start die Wiederherstellung an.
 
 ## Architektur
 
@@ -58,6 +59,7 @@ SSH-Terminal mit mehreren Tabs für Android, nach dem Vorbild von KDE Konsole.
   im OpenSSH-Stil. Ein unlesbarer Speicher wird gemeldet, nie überschrieben.
 - **Terminalmodell:** `TerminalBuffer` ist reines Kotlin ohne Android-Abhängigkeiten und wird daher auf der JVM getestet.
 - **Abhängigkeiten** werden in `AppContainer` von Hand verdrahtet, ohne DI-Framework.
+- **Synchronisierung** (optional): `SyncManager` führt die Verbindungen und Host-Keys des Geräts mit einer AES-256-GCM-verschlüsselten Datei im versteckten App-Datenordner von Drive zusammen; der Schlüssel stammt aus der Passphrase des Nutzers (PBKDF2) und verlässt die Geräte nie.
 
 ## Projektstruktur
 
@@ -67,6 +69,7 @@ app/src/main/java/hu/billman/konsolessh/
   data/         verschlüsselter Verbindungsspeicher, Einstellungen, Migration älterer Formate
   ssh/          JSch-Sitzungen, Jump-Kette, Host-Key-Prüfung, Schlüssel-Upload, typisierte Fehler
   session/      SessionManager, Ausgabepuffer, Passwort- und Host-Key-Fragen
+  sync/         Google-Drive-Synchronisierung: Verschlüsselung, Zusammenführung, Drive-Client
   terminal/     TerminalView und TerminalBuffer: Darstellung, Eingabe, Emulation
   service/      der Vordergrunddienst
   diagnostics/  Absturz- und ANR-Berichte
@@ -112,6 +115,7 @@ Die Unit-Tests enthalten Integrationstests gegen echte OpenSSH-Server; sie brauc
 | kotlinx.serialization | Format des Verbindungsspeichers |
 | AndroidX DataStore | Verbindungsspeicher und Einstellungen |
 | AndroidX AppCompat | Sprachwahl in der App unter Android 8–12 |
+| Google Play services auth | Autorisierung für die optionale Google-Drive-Synchronisierung |
 | androidx.security | nur zur Migration von Speichern aus der Zeit vor 1.1.12 |
 
 Die genauen Versionen stehen in `gradle/libs.versions.toml`.

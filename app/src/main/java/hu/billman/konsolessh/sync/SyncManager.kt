@@ -3,6 +3,7 @@ package hu.billman.konsolessh.sync
 import hu.billman.konsolessh.data.ConnectionRepository
 import hu.billman.konsolessh.data.ConnectionSyncState
 import hu.billman.konsolessh.ssh.HostKeyStore
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -110,7 +111,14 @@ class SyncManager(
         pending?.cancel()
         pending = scope.launch {
             if (!now) delay(timing.delayMs)
-            runCatching { syncNow() }.onSuccess { scheduler.cancel() }
+            try {
+                syncNow()
+                scheduler.cancel()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                // Already reported in status; the scheduled job retries the upload.
+            }
         }
     }
 

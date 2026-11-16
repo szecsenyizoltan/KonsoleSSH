@@ -13,6 +13,7 @@ import hu.billman.konsolessh.sync.DriveAuthorizer
 import hu.billman.konsolessh.sync.DriveFullException
 import hu.billman.konsolessh.sync.SyncCipher
 import hu.billman.konsolessh.sync.SyncManager
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -81,7 +82,14 @@ class SyncViewModel(
 
     init {
         viewModelScope.launch {
-            hasConnections.value = runCatching { connections.load().isNotEmpty() }.getOrDefault(true)
+            hasConnections.value = try {
+                connections.load().isNotEmpty()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                // An unreadable store is not empty: offering a restore over it could replace it.
+                true
+            }
         }
     }
 

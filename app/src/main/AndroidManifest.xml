@@ -32,16 +32,6 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name=".ui.ConnectionEditActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
-
-        <activity
-            android:name=".ui.SyncActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
-
         <service
             android:name=".service.SshForegroundService"
             android:foregroundServiceType="specialUse"

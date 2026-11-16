@@ -61,11 +61,11 @@ import kotlinx.coroutines.launch
 import hu.billman.konsolessh.terminal.Modifier as Key
 
 /**
- * The main screen: tab strip, terminal pages, key bar, all in Compose. It
- * owns no state of its own beyond what is on screen: it draws
- * [MainViewModel]'s state and sends it the user's commands. An
- * AppCompatActivity because AppCompat applies the in-app language on
- * Android 8-12.
+ * The app's only activity. It hosts [KonsoleNavigation] and draws its root,
+ * the main screen: tab strip, terminal pages, key bar. It owns no state of
+ * its own beyond what is on screen: it draws [MainViewModel]'s state and
+ * sends it the user's commands. An AppCompatActivity because AppCompat
+ * applies the in-app language on Android 8-12.
  */
 class MainActivity : AppCompatActivity(), KeybarHost {
 
@@ -105,7 +105,7 @@ class MainActivity : AppCompatActivity(), KeybarHost {
         // app to the background so the sessions stay alive.
         onBackPressedDispatcher.addCallback(this) { moveTaskToBack(true) }
 
-        setContent { KonsoleTheme { Screen() } }
+        setContent { KonsoleTheme { KonsoleNavigation { navigate -> Screen(navigate) } } }
         observeViewModel()
     }
 
@@ -131,7 +131,7 @@ class MainActivity : AppCompatActivity(), KeybarHost {
     }
 
     @Composable
-    private fun Screen() {
+    private fun Screen(navigate: (Route) -> Unit) {
         val sessions by viewModel.sessionsState.collectAsStateWithLifecycle()
         val tabs = sessions.tabs
         val pageKeys = remember(tabs.map { it.id }) { PageKey.pages(tabs.map { it.id }) }
@@ -173,8 +173,8 @@ class MainActivity : AppCompatActivity(), KeybarHost {
                 onNewTab = { pickingTab = true },
                 onZoom = ::zoom,
                 onCloseCurrentTab = { currentTabId()?.let(viewModel::requestCloseTab) },
-                onManageConnections = { startActivity(Intent(this, ConnectionEditActivity::class.java)) },
-                onSync = { startActivity(Intent(this, SyncActivity::class.java)) },
+                onManageConnections = { navigate(Route.Connections) },
+                onSync = { navigate(Route.Sync) },
                 onLanguage = { pickingLanguage = true },
                 onProblemReport = viewModel::shareLatestProblemReport,
                 onPrivacyPolicy = ::openPrivacyPolicy,
@@ -194,7 +194,7 @@ class MainActivity : AppCompatActivity(), KeybarHost {
                 Keybar(modifiers, host = this)
             },
         )
-        Overlay()
+        Overlay(navigate)
         if (pickingTab) TabPicker(pagerState, scope, onForm = { form = it }, onDismiss = { pickingTab = false })
         form?.let { request -> ConnectionForm(request, onClose = { form = null }) }
     }
@@ -237,7 +237,7 @@ class MainActivity : AppCompatActivity(), KeybarHost {
      * in the ViewModel, so a recreated activity asks it again.
      */
     @Composable
-    private fun Overlay() {
+    private fun Overlay(navigate: (Route) -> Unit) {
         val prompt by viewModel.activePrompt.collectAsStateWithLifecycle()
         prompt?.let { active ->
             key(active.prompt.id) {
@@ -258,7 +258,7 @@ class MainActivity : AppCompatActivity(), KeybarHost {
 
         Confirmations()
         Messages()
-        RestoreOffer()
+        RestoreOffer(navigate)
 
         val upload by viewModel.upload.collectAsStateWithLifecycle()
         UploadStatus(upload, toasts, onShown = viewModel::onUploadShown, onUndo = viewModel::undoUpload)
@@ -289,7 +289,7 @@ class MainActivity : AppCompatActivity(), KeybarHost {
 
     /** On a first start with nothing saved, offer to restore from Google Drive. */
     @Composable
-    private fun RestoreOffer() {
+    private fun RestoreOffer(navigate: (Route) -> Unit) {
         val offer by syncViewModel.offerRestore.collectAsStateWithLifecycle()
         if (!offer) return
         AlertDialog(
@@ -299,7 +299,7 @@ class MainActivity : AppCompatActivity(), KeybarHost {
             confirmButton = {
                 TextButton(onClick = {
                     syncViewModel.dismissOffer()
-                    startActivity(Intent(this, SyncActivity::class.java))
+                    navigate(Route.Sync)
                 }) { Text(stringResource(R.string.sync_restore)) }
             },
             dismissButton = {

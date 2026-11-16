@@ -13,6 +13,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
+import androidx.test.espresso.Espresso.pressBack
 import androidx.test.espresso.Espresso.pressBackUnconditionally
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
@@ -35,8 +36,8 @@ import java.io.ByteArrayInputStream
 /**
  * The main screen's critical flows with the real UI and a fake session
  * ([FakeTerminalSession]): a question and the output after the activity is
- * recreated, and the Back button, which moves the app to the background
- * but keeps the session alive.
+ * recreated, moving between the screens, and the Back button, which moves
+ * the app to the background but keeps the session alive.
  */
 @RunWith(AndroidJUnit4::class)
 class MainActivityFlowTest {
@@ -201,6 +202,47 @@ class MainActivityFlowTest {
                 }
                 welcome in text
             }
+        }
+    }
+
+    private fun openMenuItem(label: Int) {
+        compose.onNodeWithContentDescription(app.getString(R.string.content_desc_more)).performClick()
+        compose.onNodeWithText(app.getString(label)).performClick()
+    }
+
+    @Test
+    fun backFromTheConnectionsScreenReturnsToTheTerminal() {
+        FakeTerminalSession.askHostKey = false
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            openFakeTab()
+            await("connected") { tabStatus() == ConnectionStatus.CONNECTED }
+
+            openMenuItem(R.string.manage_connections)
+            val add = app.getString(R.string.content_desc_add_connection)
+            compose.onNodeWithContentDescription(add).assertIsDisplayed()
+            scenario.recreate()
+            compose.onNodeWithContentDescription(add).assertIsDisplayed()
+
+            pressBack()
+
+            await("terminal shown again") {
+                var shown = false
+                scenario.onActivity { shown = it.currentTerminal() != null }
+                shown
+            }
+            assertEquals(Lifecycle.State.RESUMED, scenario.state)
+            assertEquals(ConnectionStatus.CONNECTED, tabStatus())
+        }
+    }
+
+    @Test
+    fun theSyncScreenClosesWithItsBackButton() {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            openMenuItem(R.string.menu_sync)
+            compose.onNodeWithContentDescription(app.getString(R.string.content_desc_back)).performClick()
+
+            compose.onNodeWithContentDescription(app.getString(R.string.content_desc_new_tab)).assertIsDisplayed()
+            assertEquals(Lifecycle.State.RESUMED, scenario.state)
         }
     }
 

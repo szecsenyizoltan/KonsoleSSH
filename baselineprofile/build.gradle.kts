@@ -33,6 +33,11 @@ android {
     }
 }
 
+// Same compiler JDK as :app.
+kotlin {
+    jvmToolchain(21)
+}
+
 baselineProfile {
     useConnectedDevices = true
 }

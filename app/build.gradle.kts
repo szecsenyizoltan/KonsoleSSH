@@ -102,7 +102,12 @@ tasks.withType<Test>().configureEach {
     }
 }
 
+// Compiles and runs the unit tests with JDK 21, the JDK Android Studio
+// bundles, whatever JDK starts Gradle; foojay downloads it when missing.
+// The bytecode stays at Java 17 (jvmTarget, compileOptions): on Android the
+// available APIs come from minSdk and desugaring, not from the JDK.
 kotlin {
+    jvmToolchain(21)
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)
     }

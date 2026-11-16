@@ -25,6 +25,7 @@ import hu.billman.konsolessh.ui.NewConnectionForm
 import hu.billman.konsolessh.ui.NewConnectionViewModel.FormState
 import hu.billman.konsolessh.ui.NewConnectionViewModel.JumpOption
 import hu.billman.konsolessh.ui.NewConnectionViewModel.Message
+import hu.billman.konsolessh.ui.NewConnectionViewModel.PasswordTest
 import hu.billman.konsolessh.ui.NewConnectionViewModel.Status
 import hu.billman.konsolessh.ui.STATUS_TAG
 import hu.billman.konsolessh.ui.theme.KonsoleTheme
@@ -130,7 +131,12 @@ class NewConnectionFormTest {
     @Test
     fun aFreshPasswordTestEnablesKeyGeneration() {
         val tested = FormState(host = "h", username = "u", password = "p")
-        show(tested.copy(authType = AuthType.PRIVATE_KEY, testedCredentials = tested.credentials()))
+        show(
+            tested.copy(
+                authType = AuthType.PRIVATE_KEY,
+                passwordTest = PasswordTest(tested.credentials(), "SSH-2.0-OpenSSH_9.6"),
+            ),
+        )
         compose.onNodeWithText(context.getString(R.string.generate_and_upload_key)).assertIsEnabled()
     }
 

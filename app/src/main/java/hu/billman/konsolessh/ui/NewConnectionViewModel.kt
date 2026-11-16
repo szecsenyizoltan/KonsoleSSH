@@ -41,6 +41,12 @@ class NewConnectionViewModel(
     /** What a test checked; editing any of these makes the test stale. */
     data class Credentials(val host: String, val port: String, val username: String, val password: String)
 
+    /**
+     * A successful password test: what it checked and the banner of the
+     * server it reached, which picks the type of the key to upload.
+     */
+    data class PasswordTest(val credentials: Credentials, val serverVersion: String)
+
     sealed interface Status {
         data object None : Status
         data object Testing : Status
@@ -91,9 +97,7 @@ class NewConnectionViewModel(
         val jumpOptions: List<JumpOption> = emptyList(),
         val status: Status = Status.None,
         val busy: Boolean = false,
-        val testedCredentials: Credentials? = null,
-        /** The banner of the last successful password test; it picks the type of the key to upload. */
-        val testedServerVersion: String = "",
+        val passwordTest: PasswordTest? = null,
     ) {
         val usesKey: Boolean get() = authType == AuthType.PRIVATE_KEY
         val hasKey: Boolean get() = privateKey.isNotBlank()
@@ -103,7 +107,7 @@ class NewConnectionViewModel(
         val showJump: Boolean get() = isInternalHost || jumpId != null || jumpExpanded
 
         /** Key upload logs in with the password, so it needs a fresh password test. */
-        val canGenerateKey: Boolean get() = !busy && testedCredentials != null && testedCredentials == credentials()
+        val canGenerateKey: Boolean get() = !busy && passwordTest?.credentials == credentials()
 
         fun credentials() = Credentials(host.trim(), port.trim(), username.trim(), password)
     }
@@ -204,8 +208,8 @@ class NewConnectionViewModel(
     /** A change to what was tested drops the test result. */
     private fun editCredentials(change: (FormState) -> FormState) = _form.update { old ->
         val new = change(old)
-        if (new.testedCredentials != null && new.credentials() != new.testedCredentials) {
-            new.copy(testedCredentials = null, status = Status.None)
+        if (new.passwordTest != null && new.credentials() != new.passwordTest.credentials) {
+            new.copy(passwordTest = null, status = Status.None)
         } else {
             new
         }
@@ -224,23 +228,22 @@ class NewConnectionViewModel(
             else -> null
         }
         if (invalid != null) {
-            _form.update { it.copy(status = Status.Invalid(invalid), testedCredentials = null) }
+            _form.update { it.copy(status = Status.Invalid(invalid), passwordTest = null) }
             return
         }
         // Only the credentials of the selected mode are tested.
         val probe = if (form.usesKey) config.copy(password = "") else config.copy(privateKey = "")
         val tested = form.credentials()
-        val passwordTest = !form.usesKey
+        val isPasswordTest = !form.usesKey
         runOperation(Status.Testing) {
             val status = testConnection(probe)
             _form.update {
                 when (status) {
                     is Status.TestSucceeded -> it.copy(
                         status = status,
-                        testedCredentials = tested.takeIf { passwordTest },
-                        testedServerVersion = status.serverVersion,
+                        passwordTest = PasswordTest(tested, status.serverVersion).takeIf { isPasswordTest },
                     )
-                    else -> it.copy(status = status, testedCredentials = null)
+                    else -> it.copy(status = status, passwordTest = null)
                 }
             }
         }
@@ -248,15 +251,15 @@ class NewConnectionViewModel(
 
     fun generateKey() {
         val form = _form.value
-        if (!form.canGenerateKey) {
+        val tested = form.passwordTest
+        if (tested == null || !form.canGenerateKey) {
             if (!form.busy) _message.value = Message.NeedsTest
             return
         }
         val config = form.toConfig().copy(authType = AuthType.PASSWORD, privateKey = "")
         val previousStatus = form.status
-        val tested = form.testedCredentials
         runOperation(Status.Uploading) {
-            when (val result = generateAndUploadKey(config, form.testedServerVersion)) {
+            when (val result = generateAndUploadKey(config, tested.serverVersion)) {
                 is UploadResult.KeyGenerationFailure -> {
                     _form.update { it.copy(status = previousStatus) }
                     _message.value = Message.KeyGenerationFailed(result.error)
@@ -269,14 +272,14 @@ class NewConnectionViewModel(
                             privateKey = result.privatePem,
                             password = "",
                             status = Status.UploadSucceeded(result.serverType),
-                            testedCredentials = null,
+                            passwordTest = null,
                         )
                     }
                     _keyDialog.value = KeyDialog.Uploaded(result.publicLine)
                 }
                 is UploadResult.UploadFailure -> {
                     // The test still holds, so the user can retry.
-                    _form.update { it.copy(status = Status.UploadFailed(result.error), testedCredentials = tested) }
+                    _form.update { it.copy(status = Status.UploadFailed(result.error), passwordTest = tested) }
                     _keyDialog.value = KeyDialog.ManualFallback(result.publicLine)
                 }
             }

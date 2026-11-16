@@ -35,8 +35,9 @@ fun TabPickerSheet(
         viewModelStoreOwner = rememberDialogScope("tab_picker"),
         factory = KonsoleViewModelFactory.from(context),
     )
-    val sessions by mainViewModel.sessionsState.collectAsStateWithLifecycle()
-    val expanded by mainViewModel.pickerExpanded.collectAsStateWithLifecycle()
+    val main by mainViewModel.state.collectAsStateWithLifecycle()
+    val sessions = main.sessions
+    val expanded = main.pickerExpanded
     val state by connections.state.collectAsStateWithLifecycle()
 
     // The sheet covers the screen's own toasts, so the platform toast is used.

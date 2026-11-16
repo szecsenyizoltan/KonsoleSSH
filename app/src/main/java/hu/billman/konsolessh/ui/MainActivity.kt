@@ -57,6 +57,9 @@ import hu.billman.konsolessh.ui.keybar.Keybar
 import hu.billman.konsolessh.ui.keybar.KeybarHost
 import hu.billman.konsolessh.ui.theme.KonsoleTheme
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import hu.billman.konsolessh.terminal.Modifier as Key
 
@@ -114,26 +117,26 @@ class MainActivity : AppCompatActivity(), KeybarHost {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 // Started from the visible activity, as Android requires; the service stops itself.
                 launch {
-                    viewModel.serviceNeeded.collect { needed ->
+                    viewModel.state.map { it.serviceNeeded }.distinctUntilChanged().collect { needed ->
                         if (needed) SshForegroundService.start(this@MainActivity)
                     }
                 }
                 launch {
-                    viewModel.reportToShare.collect { report ->
+                    viewModel.state.map { it.reportToShare }.distinctUntilChanged().collect { report ->
                         report ?: return@collect
                         ProblemReportUi.share(this@MainActivity, report)
                         viewModel.onReportShared()
                     }
                 }
-                launch { viewModel.exit.collect { exit -> if (exit) finishApp() } }
+                launch { viewModel.state.first { it.exit }.also { finishApp() } }
             }
         }
     }
 
     @Composable
     private fun Screen(navigate: (Route) -> Unit) {
-        val sessions by viewModel.sessionsState.collectAsStateWithLifecycle()
-        val tabs = sessions.tabs
+        val state by viewModel.state.collectAsStateWithLifecycle()
+        val tabs = state.sessions.tabs
         val pageKeys = remember(tabs.map { it.id }) { PageKey.pages(tabs.map { it.id }) }
         val pagerState = rememberPagerState { pageKeys.size }
         // Pager animations need the composition's frame clock, which lifecycleScope lacks.
@@ -153,7 +156,7 @@ class MainActivity : AppCompatActivity(), KeybarHost {
         }
 
         // A freshly opened tab is shown at once.
-        val selectTab by viewModel.selectTab.collectAsStateWithLifecycle()
+        val selectTab = state.selectTab
         LaunchedEffect(selectTab, pageKeys) {
             val index = selectTab?.let { pageKeys.indexOf(PageKey.Tab(it)) } ?: return@LaunchedEffect
             if (index >= 0) {
@@ -194,7 +197,7 @@ class MainActivity : AppCompatActivity(), KeybarHost {
                 Keybar(modifiers, host = this)
             },
         )
-        Overlay(navigate)
+        Overlay(state, navigate)
         if (pickingTab) TabPicker(pagerState, scope, onForm = { form = it }, onDismiss = { pickingTab = false })
         form?.let { request -> ConnectionForm(request, onClose = { form = null }) }
     }
@@ -237,16 +240,14 @@ class MainActivity : AppCompatActivity(), KeybarHost {
      * in the ViewModel, so a recreated activity asks it again.
      */
     @Composable
-    private fun Overlay(navigate: (Route) -> Unit) {
-        val prompt by viewModel.activePrompt.collectAsStateWithLifecycle()
-        prompt?.let { active ->
+    private fun Overlay(state: MainViewModel.UiState, navigate: (Route) -> Unit) {
+        state.activePrompt?.let { active ->
             key(active.prompt.id) {
                 PromptDialog(active.prompt) { answer -> viewModel.answerPrompt(active.tabId, active.prompt.id, answer) }
             }
         }
 
-        val report by viewModel.problemReport.collectAsStateWithLifecycle()
-        report?.let { file ->
+        state.problemReport?.let { file ->
             ProblemReportDialog(
                 onShare = {
                     ProblemReportUi.share(this, file)
@@ -256,12 +257,11 @@ class MainActivity : AppCompatActivity(), KeybarHost {
             )
         }
 
-        Confirmations()
-        Messages()
+        Confirmations(state.confirm)
+        Messages(state.message, state.connectErrors)
         RestoreOffer(navigate)
 
-        val upload by viewModel.upload.collectAsStateWithLifecycle()
-        UploadStatus(upload, toasts, onShown = viewModel::onUploadShown, onUndo = viewModel::undoUpload)
+        UploadStatus(state.upload, toasts, onShown = viewModel::onUploadShown, onUndo = viewModel::undoUpload)
 
         renaming?.let { tab ->
             RenameTabDialog(tab.title, onRename = { viewModel.renameTab(tab.id, it) }, onDismiss = { renaming = null })
@@ -309,8 +309,7 @@ class MainActivity : AppCompatActivity(), KeybarHost {
     }
 
     @Composable
-    private fun Confirmations() {
-        val confirm by viewModel.confirm.collectAsStateWithLifecycle()
+    private fun Confirmations(confirm: MainViewModel.Confirm?) {
         var shown by remember { mutableStateOf<MainViewModel.Confirm?>(null) }
         LaunchedEffect(confirm) {
             confirm?.let {
@@ -330,8 +329,7 @@ class MainActivity : AppCompatActivity(), KeybarHost {
 
     // A failed connect closes its tab after the toast unless the user acts first.
     @Composable
-    private fun Messages() {
-        val message by viewModel.message.collectAsStateWithLifecycle()
+    private fun Messages(message: MainViewModel.Message?, errors: List<MainViewModel.ConnectError>) {
         val text = when (val m = message) {
             null -> null
             is MainViewModel.Message.Error -> SshErrorMessages.text(this, m.error)
@@ -345,7 +343,6 @@ class MainActivity : AppCompatActivity(), KeybarHost {
                 viewModel.onMessageShown()
             }
         }
-        val errors by viewModel.connectErrors.collectAsStateWithLifecycle()
         val closeTab = stringResource(R.string.close_tab)
         LaunchedEffect(errors) {
             errors.forEach { failed ->

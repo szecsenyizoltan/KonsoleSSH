@@ -54,8 +54,8 @@ import kotlinx.coroutines.withContext
  */
 @Composable
 fun SshTerminalPage(tabId: String, viewModel: MainViewModel, onTerminal: (TerminalView?) -> Unit) {
-    val sessions by viewModel.sessionsState.collectAsStateWithLifecycle()
-    val tab = sessions.tab(tabId)
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val tab = state.sessions.tab(tabId)
     val status = tab?.status ?: ConnectionStatus.NONE
     val name = tab?.displayName.orEmpty()
     val statusText = when (status) {
@@ -90,7 +90,7 @@ fun SshTerminalPage(tabId: String, viewModel: MainViewModel, onTerminal: (Termin
     val terminal = view ?: return
     // The saved size is applied once, when the tab's view is created.
     LaunchedEffect(terminal) {
-        val sp = viewModel.fontSizeSp.first { it > 0f }
+        val sp = viewModel.state.first { it.fontSizeSp > 0f }.fontSizeSp
         terminal.post { terminal.setFontSize(sp) }
     }
     val lifecycle = LocalLifecycleOwner.current.lifecycle

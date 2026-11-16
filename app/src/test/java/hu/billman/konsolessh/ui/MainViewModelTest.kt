@@ -78,13 +78,13 @@ class MainViewModelTest {
 
         vm.requestCloseTab("b")
         verify { sessions.closeTab("b") }
-        assertNull(vm.confirm.value)
+        assertNull(vm.state.value.confirm)
 
         vm.requestCloseTab("a")
-        assertEquals(Confirm.CloseTab("a", "Tab a"), vm.confirm.value)
+        assertEquals(Confirm.CloseTab("a", "Tab a"), vm.state.value.confirm)
         verify(exactly = 0) { sessions.closeTab("a") }
 
-        vm.confirmed(vm.confirm.value!!)
+        vm.confirmed(vm.state.value.confirm!!)
         verify { sessions.closeTab("a") }
     }
 
@@ -96,20 +96,20 @@ class MainViewModelTest {
         val vm = vm()
 
         vm.requestCloseApp()
-        assertEquals(Confirm.CloseApp(2), vm.confirm.value)
-        assertFalse(vm.exit.value)
+        assertEquals(Confirm.CloseApp(2), vm.state.value.confirm)
+        assertFalse(vm.state.value.exit)
 
-        vm.confirmed(vm.confirm.value!!)
+        vm.confirmed(vm.state.value.confirm!!)
         verify { sessions.closeAll() }
-        assertTrue(vm.exit.value)
+        assertTrue(vm.state.value.exit)
     }
 
     @Test
     fun `exiting without connections needs no confirmation`() {
         val vm = vm()
         vm.requestCloseApp()
-        assertNull(vm.confirm.value)
-        assertTrue(vm.exit.value)
+        assertNull(vm.state.value.confirm)
+        assertTrue(vm.state.value.exit)
     }
 
     @Test
@@ -129,12 +129,12 @@ class MainViewModelTest {
         val second = PendingPrompt.Password(2, "b.example")
         val first = PendingPrompt.Password(1, "a.example")
         state.value = SessionsState(listOf(tab("a", ConnectionStatus.CONNECTING), tab("b", ConnectionStatus.CONNECTING, second)))
-        assertEquals(MainViewModel.TabPrompt("b", second), vm.activePrompt.value)
+        assertEquals(MainViewModel.TabPrompt("b", second), vm.state.value.activePrompt)
 
         state.value = SessionsState(
             listOf(tab("a", ConnectionStatus.CONNECTING, first), tab("b", ConnectionStatus.CONNECTING, second)),
         )
-        assertEquals(MainViewModel.TabPrompt("a", first), vm.activePrompt.value)
+        assertEquals(MainViewModel.TabPrompt("a", first), vm.state.value.activePrompt)
     }
 
     @Test
@@ -143,17 +143,17 @@ class MainViewModelTest {
         state.value = SessionsState(
             listOf(tab("a", ConnectionStatus.DISCONNECTED, error = SshError.AuthFailed), tab("b", ConnectionStatus.CONNECTED)),
         )
-        assertEquals(listOf(MainViewModel.ConnectError("a", SshError.AuthFailed)), vm.connectErrors.value)
+        assertEquals(listOf(MainViewModel.ConnectError("a", SshError.AuthFailed)), vm.state.value.connectErrors)
     }
 
     @Test
     fun `the service is needed while a session connects or runs`() {
         val vm = vm()
-        assertFalse(vm.serviceNeeded.value)
+        assertFalse(vm.state.value.serviceNeeded)
         state.value = SessionsState(listOf(tab("a", ConnectionStatus.CONNECTING)))
-        assertTrue(vm.serviceNeeded.value)
+        assertTrue(vm.state.value.serviceNeeded)
         state.value = SessionsState(listOf(tab("a", ConnectionStatus.DISCONNECTED)))
-        assertFalse(vm.serviceNeeded.value)
+        assertFalse(vm.state.value.serviceNeeded)
     }
 
     // ── Upload ────────────────────────────────────────────────────────────────
@@ -169,18 +169,18 @@ class MainViewModelTest {
         }
         val vm = vm()
         vm.startUpload("a", "f.txt", 10) { ByteArrayInputStream(ByteArray(10)) }
-        seen += vm.upload.value
+        seen += vm.state.value.upload
         gate.complete(Unit)
 
         assertEquals(listOf(MainViewModel.Upload.Running("f.txt", 4, 10)), seen)
-        val done = vm.upload.value as MainViewModel.Upload.Done
+        val done = vm.state.value.upload as MainViewModel.Upload.Done
         assertEquals(MainViewModel.Upload.Done("a", "f.txt"), done)
 
         vm.onUploadShown()
-        assertNull(vm.upload.value)
+        assertNull(vm.state.value.upload)
         vm.undoUpload(done)
         coVerify { sessions.deleteRemote("a", "f.txt") }
-        assertEquals(Message.UploadUndone("f.txt"), vm.message.value)
+        assertEquals(Message.UploadUndone("f.txt"), vm.state.value.message)
     }
 
     @Test
@@ -188,9 +188,9 @@ class MainViewModelTest {
         state.value = SessionsState(listOf(tab("a", ConnectionStatus.DISCONNECTED)))
         val vm = vm()
         vm.startUpload("a", "f", 1) { error("must not be opened") }
-        assertEquals(MainViewModel.Upload.NotConnected, vm.upload.value)
+        assertEquals(MainViewModel.Upload.NotConnected, vm.state.value.upload)
         vm.startUpload(null, "f", 1) { error("must not be opened") }
-        assertEquals(MainViewModel.Upload.NotConnected, vm.upload.value)
+        assertEquals(MainViewModel.Upload.NotConnected, vm.state.value.upload)
     }
 
     @Test
@@ -200,10 +200,10 @@ class MainViewModelTest {
         coEvery { sessions.deleteRemote(any(), any()) } throws java.io.IOException("gone")
         val vm = vm()
         vm.startUpload("a", "f", 1) { ByteArrayInputStream(ByteArray(1)) }
-        assertEquals(MainViewModel.Upload.Failed("disk full"), vm.upload.value)
+        assertEquals(MainViewModel.Upload.Failed("disk full"), vm.state.value.upload)
 
         vm.undoUpload(MainViewModel.Upload.Done("a", "f"))
-        assertEquals(Message.UndoFailed("gone"), vm.message.value)
+        assertEquals(Message.UndoFailed("gone"), vm.state.value.message)
     }
 
     @Test
@@ -214,7 +214,7 @@ class MainViewModelTest {
         val vm = vm()
         vm.startUpload("a", "f", 1) { ByteArrayInputStream(ByteArray(1)) }
         vm.onUploadShown()
-        assertTrue(vm.upload.value is MainViewModel.Upload.Running)
+        assertTrue(vm.state.value.upload is MainViewModel.Upload.Running)
         gate.complete(Unit)
     }
 
@@ -224,21 +224,21 @@ class MainViewModelTest {
     fun `sharing the problem report offers the latest one, or says there is none`() {
         val vm = vm()
         vm.shareLatestProblemReport()
-        assertEquals(Message.NoProblemReport, vm.message.value)
+        assertEquals(Message.NoProblemReport, vm.state.value.message)
 
         latestReport = File("report.txt")
         vm.shareLatestProblemReport()
-        assertEquals(latestReport, vm.reportToShare.value)
+        assertEquals(latestReport, vm.state.value.reportToShare)
         vm.onReportShared()
-        assertNull(vm.reportToShare.value)
+        assertNull(vm.state.value.reportToShare)
     }
 
     @Test
     fun `opening a connection that is gone is reported`() {
         val vm = vm()
         vm.openTab("missing")
-        assertEquals(Message.Error(SshError.ConnectionMissing), vm.message.value)
+        assertEquals(Message.Error(SshError.ConnectionMissing), vm.state.value.message)
         vm.onMessageShown()
-        assertNull(vm.message.value)
+        assertNull(vm.state.value.message)
     }
 }

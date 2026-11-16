@@ -41,7 +41,6 @@ Többfüles SSH-terminál Androidra, a KDE Konsole mintájára.
 
 **Egyéb**
 - A munkamenetek a háttérben is futnak, egy értesítés mögött, amely az aktív kapcsolatokat számolja.
-- Összeomlás vagy ANR után az app felajánl egy megosztható hibajelentést; magától semmit nem küld el.
 - Hét nyelv: angol, magyar, német, spanyol, francia, szlovák, román; az appon belül is választható.
 - Bekapcsolható Google Drive szinkron: a mentett kapcsolatok (jelszavakkal, kulcsokkal) és az elfogadott host keyek a felhasználó saját Google Drive-jának rejtett mappáján át szinkronizálódnak az eszközök között, végponttól végpontig titkosítva egy csak általa ismert jelszóval. Új eszközön az első indításkor felajánlja a visszaállítást.
 
@@ -66,13 +65,12 @@ Többfüles SSH-terminál Androidra, a KDE Konsole mintájára.
 ```
 app/src/main/java/hu/billman/konsolessh/
   model/        ConnectionConfig: a mentett kapcsolat
-  data/         titkosított kapcsolattár, beállítások, régi formátumok migrációja
+  data/         titkosított kapcsolattár, beállítások, régi tárak törlése
   ssh/          JSch-munkamenetek, jump-lánc, host key ellenőrzés, kulcsfeltöltés, típusos hibák
   session/      SessionManager, kimeneti puffer, jelszó- és host key kérdések
   sync/         Google Drive szinkron: titkosítás, összefésülés, Drive-kliens
   terminal/     TerminalView és TerminalBuffer: rajzolás, bevitel, emuláció
   service/      az előtérszolgáltatás
-  diagnostics/  összeomlás- és ANR-jelentések
   ui/           Compose-képernyők, ViewModelek, billentyűsor, téma
   AppContainer.kt  a függőségi gráf
 ```

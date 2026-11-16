@@ -41,7 +41,6 @@ SSH terminál s kartami pre Android, inšpirovaný KDE Konsole.
 
 **Ďalšie**
 - Relácie bežia aj na pozadí, za upozornením, ktoré počíta aktívne pripojenia.
-- Po páde alebo ANR aplikácia ponúkne hlásenie na zdieľanie; nič sa neodošle automaticky.
 - Sedem jazykov: angličtina, maďarčina, nemčina, španielčina, francúzština, slovenčina, rumunčina; voliteľné aj v aplikácii.
 - Voliteľná synchronizácia cez Google Drive: uložené pripojenia (s heslami a kľúčmi) a prijaté host kľúče sa synchronizujú medzi zariadeniami cez skrytý priečinok vo vlastnom Google Drive používateľa, šifrované end-to-end heslom, ktoré pozná len on. Nové zariadenie pri prvom spustení ponúkne ich obnovenie.
 
@@ -66,13 +65,12 @@ SSH terminál s kartami pre Android, inšpirovaný KDE Konsole.
 ```
 app/src/main/java/hu/billman/konsolessh/
   model/        ConnectionConfig: uložené pripojenie
-  data/         šifrované úložisko pripojení, nastavenia, migrácia starších formátov
+  data/         šifrované úložisko pripojení, nastavenia, odstránenie starých úložísk
   ssh/          JSch relácie, reťaz skokov, overovanie host kľúčov, nahratie kľúča, typované chyby
   session/      SessionManager, výstupný buffer, otázky na heslo a host kľúč
   sync/         synchronizácia cez Google Drive: šifrovanie, zlučovanie, klient Drive
   terminal/     TerminalView a TerminalBuffer: vykresľovanie, vstup, emulácia
   service/      služba v popredí
-  diagnostics/  hlásenia o pádoch a ANR
   ui/           Compose obrazovky, ViewModely, lišta kláves, téma
   AppContainer.kt  graf závislostí
 ```

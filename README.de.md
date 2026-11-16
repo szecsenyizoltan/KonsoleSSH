@@ -41,7 +41,6 @@ SSH-Terminal mit mehreren Tabs für Android, nach dem Vorbild von KDE Konsole.
 
 **Sonstiges**
 - Sitzungen laufen im Hintergrund weiter, hinter einer Benachrichtigung, die die aktiven Verbindungen zählt.
-- Nach einem Absturz oder ANR bietet die App einen Fehlerbericht zum Teilen an; nichts wird automatisch gesendet.
 - Sieben Sprachen: Englisch, Ungarisch, Deutsch, Spanisch, Französisch, Slowakisch, Rumänisch; auch in der App wählbar.
 - Optionale Google-Drive-Synchronisierung: gespeicherte Verbindungen (mit Passwörtern und Schlüsseln) und akzeptierte Host-Keys werden über einen versteckten Ordner im eigenen Google Drive zwischen Geräten synchronisiert, Ende-zu-Ende verschlüsselt mit einer Passphrase, die nur der Nutzer kennt. Ein neues Gerät bietet beim ersten Start die Wiederherstellung an.
 
@@ -66,13 +65,12 @@ SSH-Terminal mit mehreren Tabs für Android, nach dem Vorbild von KDE Konsole.
 ```
 app/src/main/java/hu/billman/konsolessh/
   model/        ConnectionConfig: die gespeicherte Verbindung
-  data/         verschlüsselter Verbindungsspeicher, Einstellungen, Migration älterer Formate
+  data/         verschlüsselter Verbindungsspeicher, Einstellungen, Löschen alter Speicher
   ssh/          JSch-Sitzungen, Jump-Kette, Host-Key-Prüfung, Schlüssel-Upload, typisierte Fehler
   session/      SessionManager, Ausgabepuffer, Passwort- und Host-Key-Fragen
   sync/         Google-Drive-Synchronisierung: Verschlüsselung, Zusammenführung, Drive-Client
   terminal/     TerminalView und TerminalBuffer: Darstellung, Eingabe, Emulation
   service/      der Vordergrunddienst
-  diagnostics/  Absturz- und ANR-Berichte
   ui/           Compose-Bildschirme, ViewModels, Tastenleiste, Theme
   AppContainer.kt  der Abhängigkeitsgraph
 ```

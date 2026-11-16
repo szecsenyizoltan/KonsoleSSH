@@ -41,7 +41,6 @@ Terminal SSH à onglets pour Android, inspiré de KDE Konsole.
 
 **Divers**
 - Les sessions continuent en arrière-plan, derrière une notification qui compte les connexions actives.
-- Après un plantage ou un ANR, l'app propose un rapport à partager ; rien n'est envoyé automatiquement.
 - Sept langues : anglais, hongrois, allemand, espagnol, français, slovaque, roumain ; à choisir aussi dans l'app.
 - Synchronisation Google Drive facultative : les connexions enregistrées (avec mots de passe et clés) et les host keys acceptées se synchronisent entre appareils via un dossier caché du propre Google Drive de l'utilisateur, chiffrées de bout en bout avec une phrase secrète qu'il est seul à connaître. Un nouvel appareil propose de les restaurer au premier démarrage.
 
@@ -66,13 +65,12 @@ Terminal SSH à onglets pour Android, inspiré de KDE Konsole.
 ```
 app/src/main/java/hu/billman/konsolessh/
   model/        ConnectionConfig : la connexion enregistrée
-  data/         stockage chiffré des connexions, réglages, migration des anciens formats
+  data/         stockage chiffré des connexions, réglages, suppression des anciens stockages
   ssh/          sessions JSch, chaîne de sauts, vérification des host keys, envoi de clé, erreurs typées
   session/      SessionManager, tampon de sortie, questions de mot de passe et de host key
   sync/         synchronisation Google Drive : chiffrement, fusion, client Drive
   terminal/     TerminalView et TerminalBuffer : rendu, saisie, émulation
   service/      le service de premier plan
-  diagnostics/  rapports de plantage et d'ANR
   ui/           écrans Compose, ViewModels, barre de touches, thème
   AppContainer.kt  le graphe de dépendances
 ```

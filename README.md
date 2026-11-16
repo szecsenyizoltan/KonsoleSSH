@@ -41,7 +41,6 @@ Multi-tab SSH terminal for Android, inspired by KDE Konsole.
 
 **Other**
 - Sessions keep running in the background behind a notification that counts the active connections.
-- After a crash or an ANR the app offers a problem report to share; nothing is sent automatically.
 - Seven languages: English, Hungarian, German, Spanish, French, Slovak, Romanian; selectable inside the app.
 - Optional Google Drive sync: saved connections (with passwords and keys) and accepted host keys sync between devices through a hidden folder in the user's own Google Drive, end-to-end encrypted with a passphrase only the user knows. A new device offers to restore them on first start.
 
@@ -67,13 +66,12 @@ Multi-tab SSH terminal for Android, inspired by KDE Konsole.
 ```
 app/src/main/java/hu/billman/konsolessh/
   model/        ConnectionConfig: the saved connection
-  data/         encrypted connection store, settings, migration of older formats
+  data/         encrypted connection store, settings, removal of old stores
   ssh/          JSch sessions, jump chain, host key checks, key upload, typed errors
   session/      SessionManager, output buffer, password and host key questions
   sync/         Google Drive sync: encryption, merge, Drive client
   terminal/     TerminalView and TerminalBuffer: rendering, input, emulation
   service/      the foreground service
-  diagnostics/  crash and ANR reports
   ui/           Compose screens, ViewModels, key bar, theme
   AppContainer.kt  the dependency graph
 ```

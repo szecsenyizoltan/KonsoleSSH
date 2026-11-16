@@ -41,7 +41,6 @@ Terminal SSH cu file pentru Android, inspirat de KDE Konsole.
 
 **Altele**
 - Sesiunile continuă în fundal, în spatele unei notificări care numără conexiunile active.
-- După o cădere sau un ANR, aplicația oferă un raport de partajat; nimic nu se trimite automat.
 - Șapte limbi: engleză, maghiară, germană, spaniolă, franceză, slovacă, română; selectabile și în aplicație.
 - Sincronizare opțională cu Google Drive: conexiunile salvate (cu parole și chei) și cheile de host acceptate se sincronizează între dispozitive printr-un dosar ascuns din propriul Google Drive al utilizatorului, criptate end-to-end cu o frază pe care doar el o știe. Un dispozitiv nou oferă restaurarea lor la prima pornire.
 
@@ -66,13 +65,12 @@ Terminal SSH cu file pentru Android, inspirat de KDE Konsole.
 ```
 app/src/main/java/hu/billman/konsolessh/
   model/        ConnectionConfig: conexiunea salvată
-  data/         depozitul criptat de conexiuni, setări, migrarea formatelor vechi
+  data/         depozitul criptat de conexiuni, setări, ștergerea depozitelor vechi
   ssh/          sesiuni JSch, lanț de salturi, verificarea cheilor de host, încărcarea cheii, erori tipizate
   session/      SessionManager, buffer de ieșire, întrebări de parolă și cheie de host
   sync/         sincronizare Google Drive: criptare, îmbinare, client Drive
   terminal/     TerminalView și TerminalBuffer: desenare, intrare, emulare
   service/      serviciul în prim-plan
-  diagnostics/  rapoarte de cădere și ANR
   ui/           ecrane Compose, ViewModel-uri, bara de taste, temă
   AppContainer.kt  graful de dependențe
 ```

@@ -30,11 +30,19 @@ class SyncManager(
     private val keys: SyncKeyStorage,
     private val remote: SyncFileStore,
     private val scope: CoroutineScope,
-    private val clock: () -> Long = System::currentTimeMillis,
-    private val iterations: Int = SyncCipher.ITERATIONS,
-    private val delayMs: Long = REQUEST_DELAY_MS,
-    private val cpu: CoroutineDispatcher = Dispatchers.Default,
+    private val timing: Timing = Timing(),
 ) {
+
+    /**
+     * The clock, the key derivation's cost and the wait before an upload.
+     * Tests make them fast and predictable; the defaults are the real ones.
+     */
+    class Timing(
+        val clock: () -> Long = System::currentTimeMillis,
+        val iterations: Int = SyncCipher.ITERATIONS,
+        val delayMs: Long = REQUEST_DELAY_MS,
+        val cpu: CoroutineDispatcher = Dispatchers.Default,
+    )
 
     sealed interface Status {
         /** Sync is not set up on this device. */
@@ -71,8 +79,8 @@ class SyncManager(
      */
     suspend fun enable(passphrase: CharArray): Enabled {
         val existing = remote.read()
-        val params = existing?.let { SyncCipher.keyParamsOf(it) } ?: SyncCipher.newKeyParams(iterations)
-        val secret = withContext(cpu) { SyncCipher.deriveKey(passphrase, params) }
+        val params = existing?.let { SyncCipher.keyParamsOf(it) } ?: SyncCipher.newKeyParams(timing.iterations)
+        val secret = withContext(timing.cpu) { SyncCipher.deriveKey(passphrase, params) }
         if (existing != null) SyncCipher.open(existing, secret)
         keys.save(SyncKey(secret.encoded, params))
         syncNow()
@@ -91,7 +99,7 @@ class SyncManager(
         if (_status.value == Status.Off) return
         pending?.cancel()
         pending = scope.launch {
-            if (!now) delay(delayMs)
+            if (!now) delay(timing.delayMs)
             runCatching { syncNow() }
         }
     }
@@ -107,7 +115,7 @@ class SyncManager(
         _status.value = Status.Syncing
         try {
             sync(key)
-            val done = key.copy(lastSyncAt = clock())
+            val done = key.copy(lastSyncAt = timing.clock())
             keys.save(done)
             _status.value = Status.Ready(done.lastSyncAt)
         } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {

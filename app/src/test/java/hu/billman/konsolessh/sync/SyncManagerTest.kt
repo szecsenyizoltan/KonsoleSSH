@@ -29,9 +29,7 @@ class SyncManagerTest {
             keys = keys,
             remote = drive,
             scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined),
-            clock = { now },
-            iterations = 1_000,
-            delayMs = delayMs,
+            timing = SyncManager.Timing(clock = { now }, iterations = 1_000, delayMs = delayMs),
         )
 
         suspend fun names() = repo.load().map { it.name }
@@ -166,7 +164,7 @@ class SyncManagerTest {
                 override suspend fun write(content: String) = Unit
             },
             CoroutineScope(Dispatchers.Unconfined),
-            iterations = 1_000,
+            timing = SyncManager.Timing(iterations = 1_000),
         )
         runCatching { broken.syncNow() }
         assertTrue((broken.status.value as SyncManager.Status.Failed).cause is java.io.IOException)

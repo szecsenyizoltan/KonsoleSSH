@@ -62,7 +62,7 @@ class SyncViewModelTest {
         keys = MemoryKeys(),
         remote = drive,
         scope = CoroutineScope(Dispatchers.Unconfined),
-        iterations = 1_000,
+        timing = SyncManager.Timing(iterations = 1_000),
     )
 
     @Before

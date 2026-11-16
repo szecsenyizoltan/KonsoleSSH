@@ -26,7 +26,7 @@ Terminal SSH cu file pentru Android, inspirat de KDE Konsole.
 - Conexiuni salvate într-un arbore: numele cu prefix comun până la liniuța de subliniere (`acme_prod_web`, `acme_prod_db`) sunt grupate.
 - Autentificare cu parolă sau cheie privată, inclusiv întrebări keyboard-interactive. O parolă nesalvată este cerută la conectare.
 - Jump hosturi, și înlănțuite: un jump host poate avea propriul jump host, până la 5 salturi. Pentru o adresă privată, formularul propune unul.
-- Test de conexiune, precum și generarea unei chei RSA și încărcarea părții publice în `authorized_keys` de pe server.
+- Test de conexiune, precum și generarea unei chei (Ed25519 dacă serverul o acceptă, altfel RSA) și încărcarea părții publice în `authorized_keys` de pe server.
 - Verificarea cheilor de host prin încredere la prima utilizare: la prima conectare se afișează amprenta SHA256, iar o cheie schimbată este acceptată doar după înlocuire explicită.
 
 **Terminal**

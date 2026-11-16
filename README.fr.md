@@ -26,7 +26,7 @@ Terminal SSH à onglets pour Android, inspiré de KDE Konsole.
 - Connexions enregistrées en arbre : les noms partageant un préfixe jusqu'au tiret bas (`acme_prod_web`, `acme_prod_db`) sont regroupés.
 - Authentification par mot de passe ou clé privée, questions keyboard-interactive comprises. Un mot de passe non enregistré est demandé à la connexion.
 - Jump hosts, y compris en chaîne : un jump host peut avoir son propre jump host, jusqu'à 5 sauts. Pour une adresse privée, le formulaire en propose un.
-- Test de connexion, et génération d'une clé RSA avec envoi de sa partie publique dans le `authorized_keys` du serveur.
+- Test de connexion, et génération d'une clé (Ed25519 si le serveur l'accepte, sinon RSA) avec envoi de sa partie publique dans le `authorized_keys` du serveur.
 - Vérification des host keys par confiance à la première utilisation : l'empreinte SHA256 s'affiche à la première connexion, et une clé modifiée n'est acceptée qu'après un remplacement explicite.
 
 **Terminal**

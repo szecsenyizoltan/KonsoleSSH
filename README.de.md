@@ -26,7 +26,7 @@ SSH-Terminal mit mehreren Tabs für Android, nach dem Vorbild von KDE Konsole.
 - Gespeicherte Verbindungen als Baum: Namen mit gemeinsamem Präfix bis zum Unterstrich (`acme_prod_web`, `acme_prod_db`) werden gruppiert.
 - Anmeldung per Passwort oder privatem Schlüssel, einschließlich keyboard-interactive. Ein nicht gespeichertes Passwort wird beim Verbinden abgefragt.
 - Jump-Hosts, auch verkettet: ein Jump-Host kann selbst einen Jump-Host haben, bis zu 5 Stufen. Bei einer privaten Adresse schlägt das Formular einen vor.
-- Verbindungstest sowie Erzeugen eines RSA-Schlüssels und Hochladen des öffentlichen Teils in die `authorized_keys` des Servers.
+- Verbindungstest sowie Erzeugen eines Schlüssels (Ed25519, wenn der Server ihn akzeptiert, sonst RSA) und Hochladen des öffentlichen Teils in die `authorized_keys` des Servers.
 - Host-Key-Prüfung nach dem Prinzip „Trust on first use“: beim ersten Verbinden wird der SHA256-Fingerabdruck angezeigt, ein geänderter Schlüssel wird nur nach ausdrücklichem Ersetzen akzeptiert.
 
 **Terminal**

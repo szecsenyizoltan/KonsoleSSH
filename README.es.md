@@ -26,7 +26,7 @@ Terminal SSH con pestañas para Android, inspirado en KDE Konsole.
 - Conexiones guardadas en árbol: los nombres que comparten prefijo hasta el guion bajo (`acme_prod_web`, `acme_prod_db`) se agrupan.
 - Autenticación por contraseña o clave privada, incluidas las preguntas keyboard-interactive. Una contraseña no guardada se pide al conectar.
 - Jump hosts, también encadenados: un jump host puede tener su propio jump host, hasta 5 saltos. Para una dirección privada el formulario propone uno.
-- Prueba de conexión, y generación de una clave RSA con subida de su mitad pública al `authorized_keys` del servidor.
+- Prueba de conexión, y generación de una clave (Ed25519 si el servidor la acepta; si no, RSA) con subida de su mitad pública al `authorized_keys` del servidor.
 - Verificación de host keys por confianza en el primer uso: en la primera conexión se muestra la huella SHA256, y una clave cambiada solo se acepta tras reemplazarla expresamente.
 
 **Terminal**

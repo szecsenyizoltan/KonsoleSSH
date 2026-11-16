@@ -26,7 +26,7 @@ Többfüles SSH-terminál Androidra, a KDE Konsole mintájára.
 - Mentett kapcsolatok fában: az aláhúzásig közös előtagú nevek (`acme_prod_web`, `acme_prod_db`) csoportba kerülnek.
 - Jelszavas vagy kulcsos hitelesítés, keyboard-interactive kérdésekkel együtt. A nem mentett jelszót kapcsolódáskor kéri.
 - Jump hostok, láncolva is: egy jump hostnak is lehet jump hostja, legfeljebb 5 lépésig. Privát címnél az űrlap javasolja.
-- Kapcsolatteszt, valamint RSA-kulcs generálása és a nyilvános fél feltöltése a szerver `authorized_keys` fájljába.
+- Kapcsolatteszt, valamint kulcs generálása (Ed25519, ha a szerver elfogadja, egyébként RSA) és a nyilvános fél feltöltése a szerver `authorized_keys` fájljába.
 - Host key ellenőrzés első használatkor bizalommal (TOFU): az első kapcsolódáskor megjelenik a SHA256-ujjlenyomat, a megváltozott kulcsot pedig csak kifejezett csere után fogadja el.
 
 **Terminál**

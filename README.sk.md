@@ -26,7 +26,7 @@ SSH terminál s kartami pre Android, inšpirovaný KDE Konsole.
 - Uložené pripojenia v strome: názvy so spoločnou predponou po podčiarkovník (`acme_prod_web`, `acme_prod_db`) sa zoskupia.
 - Overenie heslom alebo súkromným kľúčom, vrátane otázok keyboard-interactive. Neuložené heslo sa vyžiada pri pripájaní.
 - Jump hosty, aj v reťazci: jump host môže mať vlastný jump host, najviac 5 skokov. Pri súkromnej adrese ho formulár navrhne.
-- Test pripojenia a vygenerovanie RSA kľúča s nahratím jeho verejnej časti do `authorized_keys` na serveri.
+- Test pripojenia a vygenerovanie kľúča (Ed25519, ak ho server prijíma, inak RSA) s nahratím jeho verejnej časti do `authorized_keys` na serveri.
 - Overovanie host kľúčov s dôverou pri prvom použití: pri prvom pripojení sa zobrazí odtlačok SHA256 a zmenený kľúč sa prijme len po výslovnej výmene.
 
 **Terminál**

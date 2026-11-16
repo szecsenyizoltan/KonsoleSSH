@@ -26,7 +26,7 @@ Multi-tab SSH terminal for Android, inspired by KDE Konsole.
 - Saved connections in a tree: names sharing an underscore prefix (`acme_prod_web`, `acme_prod_db`) are grouped.
 - Password or private key authentication, keyboard-interactive prompts included. A password that is not saved is asked for when connecting.
 - Jump hosts, also chained: a jump host may have its own jump host, up to 5 hops. For a private address the form suggests one.
-- Connection test, and generating an RSA key and uploading its public half to the server's `authorized_keys`.
+- Connection test, and generating a key (Ed25519 if the server accepts it, otherwise RSA) and uploading its public half to the server's `authorized_keys`.
 - Host keys are checked on trust on first use: the SHA256 fingerprint is shown at the first connection, and a changed key is refused unless the user replaces it explicitly.
 
 **Terminal**

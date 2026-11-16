@@ -137,6 +137,16 @@ GPL-3.0-or-later; see [LICENSE](LICENSE).
 
 ## Release history
 
+- **3.0.0** — a major release, because two things are removed. The connection
+  stores of 1.x are no longer read: updating from 1.x straight to 3.0.0 means
+  entering the connections again, and the old files are deleted. The problem
+  report dialog and its menu entry are gone; crashes are followed through
+  Google Play. New: with Google Drive sync on, a change that could not be
+  uploaded (no network, app closed) goes up later on its own, and the sync
+  screen explains what sync does. SSH connections use the post-quantum hybrid
+  key exchange (mlkem768x25519-sha256) with servers that support it (JSch
+  2.28.8). The app starts faster thanks to a baseline profile, and its screens
+  now run in a single activity
 - **2.3.0** — the tab picker closes with a sideways swipe, left or right, or
   with its new Back row, which replaces Exit there; leaving the app stays in
   the main menu. With Google Drive sync on, the app also syncs whenever it

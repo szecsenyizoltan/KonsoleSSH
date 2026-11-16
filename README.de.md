@@ -136,6 +136,19 @@ GPL-3.0-or-later; siehe [LICENSE](LICENSE).
 
 ## Versionsgeschichte
 
+- **3.0.0** — eine Hauptversion, weil zwei Dinge entfernt sind. Die
+  Verbindungsspeicher von 1.x werden nicht mehr gelesen: Wer von 1.x direkt
+  auf 3.0.0 aktualisiert, muss die Verbindungen neu eingeben; die alten
+  Dateien werden gelöscht. Der Fehlerbericht-Dialog und sein Menüeintrag
+  entfallen; Abstürze werden über Google Play verfolgt. Neu: Mit
+  eingeschalteter Google-Drive-Synchronisierung wird eine Änderung, die nicht
+  hochgeladen werden konnte (kein Netz, App geschlossen), später von selbst
+  hochgeladen, und der Synchronisierungsbildschirm erklärt, was die
+  Synchronisierung tut. SSH-Verbindungen nutzen bei Servern, die es
+  unterstützen, den hybriden Post-Quanten-Schlüsselaustausch
+  (mlkem768x25519-sha256) (JSch 2.28.8). Die App startet dank eines
+  Baseline-Profils schneller, und ihre Bildschirme laufen jetzt in einer
+  einzigen Activity
 - **2.3.0** — die Tab-Auswahl schließt sich mit einem seitlichen Wischen,
   nach links oder rechts, oder mit der neuen Zeile „Zurück", die dort
   „Beenden" ersetzt; die App wird über das Hauptmenü beendet. Mit

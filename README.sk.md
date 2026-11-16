@@ -136,6 +136,17 @@ GPL-3.0-or-later; pozri [LICENSE](LICENSE).
 
 ## História verzií
 
+- **3.0.0** — hlavná verzia, pretože sa odstraňujú dve veci. Úložiská
+  pripojení z 1.x sa už nečítajú: kto aktualizuje z 1.x priamo na 3.0.0, musí
+  pripojenia zadať znova a staré súbory sa odstránia. Dialóg hlásenia o chybe
+  a jeho položka v ponuke zanikli; pády sa sledujú cez Google Play. Novinky:
+  so zapnutou synchronizáciou cez Google Drive sa zmena, ktorú sa nepodarilo
+  nahrať (bez siete, zatvorená aplikácia), nahrá neskôr sama a obrazovka
+  synchronizácie vysvetľuje, čo synchronizácia robí. Pripojenia SSH používajú
+  pri serveroch, ktoré to podporujú, hybridnú postkvantovú výmenu kľúčov
+  (mlkem768x25519-sha256) (JSch 2.28.8). Aplikácia sa spúšťa rýchlejšie vďaka
+  základnému profilu (baseline profile) a jej obrazovky teraz bežia v jedinej
+  aktivite
 - **2.3.0** — výber kariet sa zatvára potiahnutím do strany, doľava alebo
   doprava, alebo novým riadkom „Späť", ktorý tam nahradil „Ukončiť";
   aplikácia sa ukončuje z hlavnej ponuky. So zapnutou synchronizáciou cez

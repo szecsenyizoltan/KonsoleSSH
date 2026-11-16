@@ -136,6 +136,18 @@ GPL-3.0-or-later ; voir [LICENSE](LICENSE).
 
 ## Historique des versions
 
+- **3.0.0** — une version majeure, car deux choses sont retirées. Les
+  stockages de connexions de la 1.x ne sont plus lus : en passant directement
+  de la 1.x à la 3.0.0, il faut saisir de nouveau ses connexions, et les
+  anciens fichiers sont supprimés. La boîte de dialogue de rapport d'erreur et
+  son entrée de menu disparaissent ; les plantages sont suivis via Google
+  Play. Nouveau : avec la synchronisation Google Drive activée, une
+  modification qui n'a pas pu être envoyée (pas de réseau, app fermée) part
+  plus tard d'elle-même, et l'écran de synchronisation explique ce que fait la
+  synchronisation. Les connexions SSH utilisent l'échange de clés hybride
+  post-quantique (mlkem768x25519-sha256) avec les serveurs qui le prennent en
+  charge (JSch 2.28.8). L'app démarre plus vite grâce à un profil de référence
+  (baseline profile), et ses écrans tournent désormais dans une seule activité
 - **2.3.0** — le sélecteur d'onglets se ferme d'un balayage latéral, vers la
   gauche ou la droite, ou avec sa nouvelle ligne « Retour », qui y remplace
   « Quitter » ; on quitte l'app depuis le menu principal. Avec la

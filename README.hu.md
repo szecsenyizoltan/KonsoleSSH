@@ -136,6 +136,16 @@ GPL-3.0-or-later; lásd [LICENSE](LICENSE).
 
 ## Verziótörténet
 
+- **3.0.0** — főverzió, mert két dolog kikerült. Az 1.x verziók
+  kapcsolattárait az alkalmazás már nem olvassa: aki 1.x-ről közvetlenül a
+  3.0.0-ra frissít, annak újra fel kell vennie a kapcsolatait, a régi fájlokat
+  pedig az alkalmazás törli. Megszűnt a hibajelentés-ablak és a menüpontja; az
+  összeomlásokat a Google Play követi. Új: bekapcsolt Google Drive szinkronnál
+  a fel nem töltött módosítás (nincs hálózat, bezárt alkalmazás) később
+  magától felkerül, és a szinkronképernyő elmagyarázza, mit csinál a szinkron.
+  Az SSH-kapcsolatok a támogató szervereknél poszt-kvantum hibrid kulcscserét
+  (mlkem768x25519-sha256) használnak (JSch 2.28.8). Az alkalmazás gyorsabban
+  indul (baseline profile), a képernyői pedig egyetlen activityben futnak
 - **2.3.0** — a fülválasztó oldalra (jobbra vagy balra) húzással, illetve az
   új „Vissza” sorral záródik be, amely ott a „Kilépés” helyére került; az
   alkalmazásból a főmenüből lehet kilépni. Bekapcsolt Google Drive szinkronnál

@@ -136,6 +136,18 @@ GPL-3.0-or-later; vezi [LICENSE](LICENSE).
 
 ## Istoricul versiunilor
 
+- **3.0.0** — o versiune majoră, pentru că două lucruri sunt eliminate.
+  Depozitele de conexiuni din 1.x nu mai sunt citite: cine actualizează direct
+  de la 1.x la 3.0.0 trebuie să-și introducă din nou conexiunile, iar
+  fișierele vechi sunt șterse. Dialogul de raport de eroare și intrarea lui
+  din meniu dispar; căderile sunt urmărite prin Google Play. Nou: cu
+  sincronizarea Google Drive activată, o modificare care nu a putut fi
+  încărcată (fără rețea, aplicație închisă) se încarcă mai târziu, de la sine,
+  iar ecranul de sincronizare explică ce face sincronizarea. Conexiunile SSH
+  folosesc schimbul de chei hibrid post-cuantic (mlkem768x25519-sha256) cu
+  serverele care îl suportă (JSch 2.28.8). Aplicația pornește mai repede
+  datorită unui profil de bază (baseline profile), iar ecranele ei rulează
+  acum într-o singură activitate
 - **2.3.0** — selectorul de file se închide glisând lateral, la stânga sau la
   dreapta, sau cu noul rând „Înapoi", care înlocuiește acolo „Ieșire";
   ieșirea din aplicație rămâne în meniul principal. Cu sincronizarea Google

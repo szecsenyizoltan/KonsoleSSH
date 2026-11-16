@@ -27,8 +27,8 @@ android {
         applicationId = "hu.billman.konsolessh"
         minSdk = 26
         targetSdk = 37
-        versionCode = 45
-        versionName = "2.3.0"
+        versionCode = 46
+        versionName = "3.0.0"
         // Starts TestKonsoleApplication, which swaps in network-free sessions.
         testInstrumentationRunner = "hu.billman.konsolessh.KonsoleTestRunner"
     }

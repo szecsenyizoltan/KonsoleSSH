@@ -123,7 +123,7 @@ class MainActivityFlowTest {
                 var text = ""
                 scenario.onActivity { activity ->
                     // Right after recreation the page may not be composed yet.
-                    val buffer = activity.currentTerminal()?.buffer ?: return@onActivity
+                    val buffer = activity.focus.currentTerminal()?.buffer ?: return@onActivity
                     text = (0 until buffer.totalLines).joinToString("\n") { line ->
                         buffer.lineAt(line).orEmpty().joinToString("") { it.ch }
                     }
@@ -168,14 +168,14 @@ class MainActivityFlowTest {
             openFakeTab()
             await("two tabs") { container.sessionManager.state.value.tabs.size == 2 }
             var before: Any? = null
-            scenario.onActivity { before = it.currentTerminal() }
+            scenario.onActivity { before = it.focus.currentTerminal() }
 
             // Both tabs carry the connection's name; the first one in the strip is the first tab.
             compose.onAllNodesWithText(connection.name)[0].performClick()
 
             await("first tab shown") {
                 var current: Any? = null
-                scenario.onActivity { current = it.currentTerminal() }
+                scenario.onActivity { current = it.focus.currentTerminal() }
                 current != null && current !== before
             }
             assertEquals(Lifecycle.State.RESUMED, scenario.state)
@@ -195,7 +195,7 @@ class MainActivityFlowTest {
             await("welcome page shown") {
                 var text = ""
                 scenario.onActivity { activity ->
-                    val buffer = activity.currentTerminal()?.buffer ?: return@onActivity
+                    val buffer = activity.focus.currentTerminal()?.buffer ?: return@onActivity
                     text = (0 until buffer.totalLines).joinToString("\n") { line ->
                         buffer.lineAt(line).orEmpty().joinToString("") { it.ch }
                     }
@@ -227,7 +227,7 @@ class MainActivityFlowTest {
 
             await("terminal shown again") {
                 var shown = false
-                scenario.onActivity { shown = it.currentTerminal() != null }
+                scenario.onActivity { shown = it.focus.currentTerminal() != null }
                 shown
             }
             assertEquals(Lifecycle.State.RESUMED, scenario.state)

@@ -77,19 +77,14 @@ class MainActivity : AppCompatActivity(), KeybarHost {
     private lateinit var uploads: UploadController
     private val toasts = ToastHostState()
 
-    /** The pager, once composed; the key bar, zoom and hardware keys act on its current page. */
-    private var pager: PagerState? = null
-    private var pages: List<PageKey> = emptyList()
-
-    /** The terminal view of each page that is currently composed. */
-    private val terminals = mutableMapOf<PageKey, TerminalView>()
+    private val focus = TerminalFocus()
 
     /** The tab whose rename dialog is open. */
     private var renaming by mutableStateOf<TabState?>(null)
     private var pickingLanguage by mutableStateOf(false)
 
     private val pickFileForUpload = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) uploads.upload(currentTabId(), uri)
+        if (uri != null) uploads.upload(focus.currentTabId(), uri)
     }
 
     private val requestPermissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {}
@@ -144,8 +139,8 @@ class MainActivity : AppCompatActivity(), KeybarHost {
         // Saved, so the picker and the form it opened survive a configuration change.
         var pickingTab by rememberSaveable { mutableStateOf(false) }
         var form by rememberSaveable(stateSaver = FormRequest.Saver) { mutableStateOf<FormRequest?>(null) }
-        pager = pagerState
-        pages = pageKeys
+        focus.pager = pagerState
+        focus.pages = pageKeys
 
         // With the last tab closed, the pager would stay on the cheat sheet that took
         // the tab's place; the welcome page comes back instead.
@@ -175,7 +170,7 @@ class MainActivity : AppCompatActivity(), KeybarHost {
                 onRenameTab = { renaming = it },
                 onNewTab = { pickingTab = true },
                 onZoom = ::zoom,
-                onCloseCurrentTab = { currentTabId()?.let(viewModel::requestCloseTab) },
+                onCloseCurrentTab = { focus.currentTabId()?.let(viewModel::requestCloseTab) },
                 onManageConnections = { navigate(Route.Connections) },
                 onSync = { navigate(Route.Sync) },
                 onLanguage = { pickingLanguage = true },
@@ -184,9 +179,7 @@ class MainActivity : AppCompatActivity(), KeybarHost {
                 onExit = viewModel::requestCloseApp,
             ),
             page = { page ->
-                val register: (TerminalView?) -> Unit = { view ->
-                    if (view == null) terminals.remove(page) else terminals[page] = view
-                }
+                val register: (TerminalView?) -> Unit = { view -> focus.register(page, view) }
                 when (page) {
                     is PageKey.Tab -> SshTerminalPage(page.id, viewModel, register)
                     else -> StaticTerminalPage(page, register)
@@ -357,20 +350,16 @@ class MainActivity : AppCompatActivity(), KeybarHost {
 
     // ── KeybarHost ────────────────────────────────────────────────────────────
 
-    private fun currentPage(): PageKey? = pager?.let { pages.getOrNull(it.currentPage) }
-
-    override fun currentTerminal(): TerminalView? = currentPage()?.let(terminals::get)
-
-    private fun currentTabId(): String? = (currentPage() as? PageKey.Tab)?.id
+    override fun currentTerminal(): TerminalView? = focus.currentTerminal()
 
     override fun sendKey(bytes: ByteArray) {
-        val tabId = currentTabId() ?: return
+        val tabId = focus.currentTabId() ?: return
         viewModel.send(tabId, bytes)
         currentTerminal()?.scrollToBottom()
     }
 
     override fun sendRaw(bytes: ByteArray) {
-        val tabId = currentTabId() ?: return
+        val tabId = focus.currentTabId() ?: return
         viewModel.sendRaw(tabId, bytes)
         currentTerminal()?.scrollToBottom()
     }
@@ -425,22 +414,10 @@ class MainActivity : AppCompatActivity(), KeybarHost {
 
     // ── Hardware keys ─────────────────────────────────────────────────────────
 
-    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        if (event.keyCode !in SYSTEM_KEYS) {
-            val terminal = currentTerminal()
-            if (terminal != null && terminal.isAttachedToWindow && terminal.dispatchKeyEvent(event)) return true
-        }
-        return super.dispatchKeyEvent(event)
-    }
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean = focus.dispatchKey(event) || super.dispatchKeyEvent(event)
 
     private companion object {
         const val ERROR_TOAST_MS = 5000L
         val TOAST_BOTTOM = 100.dp
-        val SYSTEM_KEYS = setOf(
-            KeyEvent.KEYCODE_BACK,
-            KeyEvent.KEYCODE_HOME,
-            KeyEvent.KEYCODE_VOLUME_UP,
-            KeyEvent.KEYCODE_VOLUME_DOWN,
-        )
     }
 }

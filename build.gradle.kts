@@ -1,5 +1,7 @@
 plugins {
     alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.android.test) apply false
+    alias(libs.plugins.androidx.baselineprofile) apply false
     // Pins the Kotlin Gradle plugin version that AGP's built-in Kotlin uses.
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.kotlin.serialization) apply false
@@ -16,13 +18,15 @@ dependencies {
 
 // ── detekt: Kotlin static analysis ───────────────────────────────────────────
 // One root task (`./gradlew detekt`) analyses all Kotlin sources of the app
-// module. The config only lists differences from detekt's defaults; issues
+// and baselineprofile modules. The config only lists differences from detekt's defaults; issues
 // that existed when it was introduced are in detekt-baseline.xml, and new
 // code is held to the full rules.
 
 detekt {
     toolVersion = libs.versions.detekt.get()
-    source.setFrom(files("app/src/main/java", "app/src/test/java", "app/src/androidTest/java"))
+    source.setFrom(
+        files("app/src/main/java", "app/src/test/java", "app/src/androidTest/java", "baselineprofile/src/main/java"),
+    )
     config.setFrom(files("$rootDir/config/detekt/detekt.yml"))
     baseline = file("$rootDir/config/detekt/detekt-baseline.xml")
     buildUponDefaultConfig = true

@@ -19,3 +19,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "KonsoleSSH"
 include(":app")
+include(":baselineprofile")

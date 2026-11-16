@@ -16,33 +16,19 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
-import androidx.core.os.LocaleListCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Lifecycle
@@ -51,7 +37,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import hu.billman.konsolessh.R
 import hu.billman.konsolessh.service.SshForegroundService
-import hu.billman.konsolessh.session.TabState
 import hu.billman.konsolessh.terminal.TerminalView
 import hu.billman.konsolessh.ui.keybar.Keybar
 import hu.billman.konsolessh.ui.keybar.KeybarHost
@@ -75,13 +60,9 @@ class MainActivity : AppCompatActivity(), KeybarHost {
     private val viewModel: MainViewModel by viewModels { KonsoleViewModelFactory.from(this) }
     private val syncViewModel: SyncViewModel by viewModels { KonsoleViewModelFactory.from(this) }
     private lateinit var uploads: UploadController
-    private val toasts = ToastHostState()
+    private val overlay = MainOverlayState()
 
     private val focus = TerminalFocus()
-
-    /** The tab whose rename dialog is open. */
-    private var renaming by mutableStateOf<TabState?>(null)
-    private var pickingLanguage by mutableStateOf(false)
 
     private val pickFileForUpload = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) uploads.upload(focus.currentTabId(), uri)
@@ -167,13 +148,13 @@ class MainActivity : AppCompatActivity(), KeybarHost {
             actions = MainScreenActions(
                 onSelectPage = { index -> scope.launch { pagerState.animateScrollToPage(index) } },
                 onCloseTab = viewModel::requestCloseTab,
-                onRenameTab = { renaming = it },
+                onRenameTab = { overlay.renaming = it },
                 onNewTab = { pickingTab = true },
                 onZoom = ::zoom,
                 onCloseCurrentTab = { focus.currentTabId()?.let(viewModel::requestCloseTab) },
                 onManageConnections = { navigate(Route.Connections) },
                 onSync = { navigate(Route.Sync) },
-                onLanguage = { pickingLanguage = true },
+                onLanguage = { overlay.pickingLanguage = true },
                 onProblemReport = viewModel::shareLatestProblemReport,
                 onPrivacyPolicy = ::openPrivacyPolicy,
                 onExit = viewModel::requestCloseApp,
@@ -190,7 +171,7 @@ class MainActivity : AppCompatActivity(), KeybarHost {
                 Keybar(modifiers, host = this)
             },
         )
-        Overlay(state, navigate)
+        MainOverlays(state, overlay, viewModel, syncViewModel, onRestore = { navigate(Route.Sync) })
         if (pickingTab) TabPicker(pagerState, scope, onForm = { form = it }, onDismiss = { pickingTab = false })
         form?.let { request -> ConnectionForm(request, onClose = { form = null }) }
     }
@@ -228,126 +209,6 @@ class MainActivity : AppCompatActivity(), KeybarHost {
         )
     }
 
-    /**
-     * Dialogs and toasts over the screen. A session's question stays pending
-     * in the ViewModel, so a recreated activity asks it again.
-     */
-    @Composable
-    private fun Overlay(state: MainViewModel.UiState, navigate: (Route) -> Unit) {
-        state.activePrompt?.let { active ->
-            key(active.prompt.id) {
-                PromptDialog(active.prompt) { answer -> viewModel.answerPrompt(active.tabId, active.prompt.id, answer) }
-            }
-        }
-
-        state.problemReport?.let { file ->
-            ProblemReportDialog(
-                onShare = {
-                    ProblemReportUi.share(this, file)
-                    viewModel.onProblemReportHandled()
-                },
-                onDismiss = viewModel::onProblemReportHandled,
-            )
-        }
-
-        Confirmations(state.confirm)
-        Messages(state.message, state.connectErrors)
-        RestoreOffer(navigate)
-
-        UploadStatus(state.upload, toasts, onShown = viewModel::onUploadShown, onUndo = viewModel::undoUpload)
-
-        renaming?.let { tab ->
-            RenameTabDialog(tab.title, onRename = { viewModel.renameTab(tab.id, it) }, onDismiss = { renaming = null })
-        }
-        if (pickingLanguage) {
-            val current = AppCompatDelegate.getApplicationLocales()
-            LanguageDialog(
-                currentTag = if (current.isEmpty) "" else current[0]?.language.orEmpty(),
-                onPick = { tag ->
-                    val locales = if (tag.isEmpty()) {
-                        LocaleListCompat.getEmptyLocaleList()
-                    } else {
-                        LocaleListCompat.forLanguageTags(tag)
-                    }
-                    AppCompatDelegate.setApplicationLocales(locales)
-                },
-                onDismiss = { pickingLanguage = false },
-            )
-        }
-
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
-            ToastHost(toasts, modifier = Modifier.padding(bottom = TOAST_BOTTOM))
-        }
-    }
-
-    /** On a first start with nothing saved, offer to restore from Google Drive. */
-    @Composable
-    private fun RestoreOffer(navigate: (Route) -> Unit) {
-        val offer by syncViewModel.offerRestore.collectAsStateWithLifecycle()
-        if (!offer) return
-        AlertDialog(
-            onDismissRequest = syncViewModel::dismissOffer,
-            title = { Text(stringResource(R.string.sync_offer_title)) },
-            text = { Text(stringResource(R.string.sync_offer_text)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    syncViewModel.dismissOffer()
-                    navigate(Route.Sync)
-                }) { Text(stringResource(R.string.sync_restore)) }
-            },
-            dismissButton = {
-                TextButton(onClick = syncViewModel::dismissOffer) { Text(stringResource(R.string.sync_offer_later)) }
-            },
-        )
-    }
-
-    @Composable
-    private fun Confirmations(confirm: MainViewModel.Confirm?) {
-        var shown by remember { mutableStateOf<MainViewModel.Confirm?>(null) }
-        LaunchedEffect(confirm) {
-            confirm?.let {
-                shown = it
-                viewModel.onConfirmShown()
-            }
-        }
-        shown?.let { question ->
-            val text = when (question) {
-                is MainViewModel.Confirm.CloseTab -> stringResource(R.string.close_tab_confirm, question.title)
-                is MainViewModel.Confirm.CloseApp ->
-                    pluralStringResource(R.plurals.close_app_confirm, question.connected, question.connected)
-            }
-            ConfirmCloseDialog(text, onConfirm = { viewModel.confirmed(question) }, onDismiss = { shown = null })
-        }
-    }
-
-    // A failed connect closes its tab after the toast unless the user acts first.
-    @Composable
-    private fun Messages(message: MainViewModel.Message?, errors: List<MainViewModel.ConnectError>) {
-        val text = when (val m = message) {
-            null -> null
-            is MainViewModel.Message.Error -> SshErrorMessages.text(this, m.error)
-            MainViewModel.Message.NoProblemReport -> stringResource(R.string.report_none)
-            is MainViewModel.Message.UploadUndone -> stringResource(R.string.upload_undone, m.name)
-            is MainViewModel.Message.UndoFailed -> stringResource(R.string.upload_undo_failed, m.reason)
-        }
-        LaunchedEffect(message) {
-            if (text != null) {
-                toasts.show(text)
-                viewModel.onMessageShown()
-            }
-        }
-        val closeTab = stringResource(R.string.close_tab)
-        LaunchedEffect(errors) {
-            errors.forEach { failed ->
-                viewModel.onErrorShown(failed.tabId)
-                val text = SshErrorMessages.text(this@MainActivity, failed.error)
-                toasts.showAutoAction(text, closeTab, ERROR_TOAST_MS) {
-                    viewModel.closeTab(failed.tabId)
-                }
-            }
-        }
-    }
-
     // ── KeybarHost ────────────────────────────────────────────────────────────
 
     override fun currentTerminal(): TerminalView? = focus.currentTerminal()
@@ -379,7 +240,7 @@ class MainActivity : AppCompatActivity(), KeybarHost {
         }
     }
 
-    override fun showMessage(message: String) = toasts.show(message)
+    override fun showMessage(message: String) = overlay.toasts.show(message)
 
     private fun zoom(delta: Float) {
         val terminal = currentTerminal() ?: return
@@ -393,7 +254,7 @@ class MainActivity : AppCompatActivity(), KeybarHost {
         try {
             startActivity(page)
         } catch (e: ActivityNotFoundException) {
-            toasts.show(getString(R.string.err_no_browser))
+            overlay.toasts.show(getString(R.string.err_no_browser))
         }
     }
 
@@ -415,9 +276,4 @@ class MainActivity : AppCompatActivity(), KeybarHost {
     // ── Hardware keys ─────────────────────────────────────────────────────────
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean = focus.dispatchKey(event) || super.dispatchKeyEvent(event)
-
-    private companion object {
-        const val ERROR_TOAST_MS = 5000L
-        val TOAST_BOTTOM = 100.dp
-    }
 }

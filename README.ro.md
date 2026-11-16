@@ -138,6 +138,12 @@ GPL-3.0-or-later; vezi [LICENSE](LICENSE).
 
 ## Istoricul versiunilor
 
+- **2.2.0** — sincronizare opțională cu Google Drive: conexiunile salvate, cu
+  parolele și cheile lor, și cheile de host acceptate se sincronizează între
+  dispozitive printr-un dosar ascuns din propriul Google Drive al
+  utilizatorului, criptate end-to-end cu o frază pe care doar el o știe. La prima
+  pornire fără nimic salvat, aplicația oferă restaurarea lor. Politica de
+  confidențialitate descrie sincronizarea
 - **2.1.0** — după închiderea ultimei file apare din nou pagina de bun venit,
   nu o fițuică; o selecție începută cu o apăsare lungă rămâne când degetul este
   ridicat fără glisare; cu un font de sistem mare, terminalul urmează scalarea

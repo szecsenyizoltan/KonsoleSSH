@@ -138,6 +138,12 @@ GPL-3.0-or-later; lásd [LICENSE](LICENSE).
 
 ## Verziótörténet
 
+- **2.2.0** — bekapcsolható Google Drive szinkron: a mentett kapcsolatok a
+  jelszavaikkal és kulcsaikkal, valamint az elfogadott host keyek a felhasználó
+  saját Google Drive-jának rejtett mappáján át szinkronizálódnak az eszközök
+  között, végponttól végpontig titkosítva egy csak általa ismert jelszóval.
+  Üres alkalmazás első indításakor felajánlja a visszaállítást. Az adatvédelmi
+  irányelvek leírják a szinkront
 - **2.1.0** — az utolsó fül bezárása után ismét az üdvözlő oldal jelenik meg,
   nem egy puska; a hosszú nyomással indított kijelölés megmarad, ha az ujj
   húzás nélkül engedi fel; nagy rendszerbetűméretnél a terminál az Android 14

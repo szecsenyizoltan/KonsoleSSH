@@ -139,6 +139,11 @@ GPL-3.0-or-later; see [LICENSE](LICENSE).
 
 ## Release history
 
+- **2.2.0** — optional Google Drive sync: saved connections, with their
+  passwords and keys, and the accepted host keys sync between devices through
+  a hidden folder in the user's own Google Drive, end-to-end encrypted with a
+  passphrase only the user knows. On a first start with nothing saved, the
+  app offers to restore them. The privacy policy describes the sync
 - **2.1.0** — closing the last tab shows the welcome page again instead of a
   cheat sheet; a selection started with a long press stays when the finger is
   lifted without dragging; with a large system font the terminal follows

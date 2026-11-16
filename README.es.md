@@ -138,6 +138,12 @@ GPL-3.0-or-later; ver [LICENSE](LICENSE).
 
 ## Historial de versiones
 
+- **2.2.0** — sincronización opcional con Google Drive: las conexiones
+  guardadas, con sus contraseñas y claves, y las host keys aceptadas se
+  sincronizan entre dispositivos a través de una carpeta oculta del propio
+  Google Drive del usuario, cifradas de extremo a extremo con una frase que solo
+  él conoce. En el primer inicio sin nada guardado, la app ofrece restaurarlas.
+  La política de privacidad describe la sincronización
 - **2.1.0** — al cerrar la última pestaña vuelve a aparecer la página de
   bienvenida en lugar de una chuleta; una selección iniciada con una pulsación
   larga se mantiene al levantar el dedo sin arrastrar; con una fuente del

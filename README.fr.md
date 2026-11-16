@@ -138,6 +138,12 @@ GPL-3.0-or-later ; voir [LICENSE](LICENSE).
 
 ## Historique des versions
 
+- **2.2.0** — synchronisation Google Drive facultative : les connexions
+  enregistrées, avec leurs mots de passe et clés, et les host keys acceptées se
+  synchronisent entre appareils via un dossier caché du propre Google Drive de
+  l'utilisateur, chiffrées de bout en bout avec une phrase secrète qu'il est
+  seul à connaître. Au premier démarrage sans rien d'enregistré, l'app propose
+  de les restaurer. La politique de confidentialité décrit la synchronisation
 - **2.1.0** — après la fermeture du dernier onglet, la page d'accueil réapparaît
   au lieu d'un aide-mémoire ; une sélection commencée par un appui long reste
   en place quand le doigt est levé sans glisser ; avec une grande police

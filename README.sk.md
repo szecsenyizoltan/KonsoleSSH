@@ -138,6 +138,12 @@ GPL-3.0-or-later; pozri [LICENSE](LICENSE).
 
 ## História verzií
 
+- **2.2.0** — voliteľná synchronizácia cez Google Drive: uložené pripojenia s
+  heslami a kľúčmi a prijaté host kľúče sa synchronizujú medzi zariadeniami cez
+  skrytý priečinok vo vlastnom Google Drive používateľa, šifrované end-to-end
+  heslom, ktoré pozná len on. Pri prvom spustení bez uložených pripojení
+  aplikácia ponúkne ich obnovenie. Zásady ochrany súkromia opisujú
+  synchronizáciu
 - **2.1.0** — po zatvorení poslednej karty sa opäť zobrazí uvítacia stránka,
   nie ťahák; výber začatý dlhým stlačením zostane aj po zdvihnutí prsta bez
   ťahania; pri veľkom systémovom písme terminál nasleduje nelineárne škálovanie

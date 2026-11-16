@@ -139,6 +139,11 @@ GPL-3.0-or-later; see [LICENSE](LICENSE).
 
 ## Release history
 
+- **2.3.0** — the tab picker closes with a sideways swipe, left or right, or
+  with its new Back row, which replaces Exit there; leaving the app stays in
+  the main menu. With Google Drive sync on, the app also syncs whenever it
+  comes to the foreground, and a change still waiting to upload goes out at
+  once when the app goes to the background
 - **2.2.0** — optional Google Drive sync: saved connections, with their
   passwords and keys, and the accepted host keys sync between devices through
   a hidden folder in the user's own Google Drive, end-to-end encrypted with a

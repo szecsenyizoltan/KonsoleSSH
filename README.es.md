@@ -138,6 +138,11 @@ GPL-3.0-or-later; ver [LICENSE](LICENSE).
 
 ## Historial de versiones
 
+- **2.3.0** — el selector de pestañas se cierra deslizando hacia un lado, a la
+  izquierda o a la derecha, o con su nueva fila «Atrás», que sustituye ahí a
+  «Salir»; para salir de la app está el menú principal. Con la sincronización
+  de Google Drive activada, la app también sincroniza al pasar a primer plano,
+  y una subida pendiente se envía al instante cuando pasa a segundo plano
 - **2.2.0** — sincronización opcional con Google Drive: las conexiones
   guardadas, con sus contraseñas y claves, y las host keys aceptadas se
   sincronizan entre dispositivos a través de una carpeta oculta del propio

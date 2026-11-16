@@ -138,6 +138,11 @@ GPL-3.0-or-later; lásd [LICENSE](LICENSE).
 
 ## Verziótörténet
 
+- **2.3.0** — a fülválasztó oldalra (jobbra vagy balra) húzással, illetve az
+  új „Vissza” sorral záródik be, amely ott a „Kilépés” helyére került; az
+  alkalmazásból a főmenüből lehet kilépni. Bekapcsolt Google Drive szinkronnál
+  az alkalmazás akkor is szinkronizál, amikor előtérbe kerül, és háttérbe
+  tételkor a még várakozó feltöltés azonnal lefut
 - **2.2.0** — bekapcsolható Google Drive szinkron: a mentett kapcsolatok a
   jelszavaikkal és kulcsaikkal, valamint az elfogadott host keyek a felhasználó
   saját Google Drive-jának rejtett mappáján át szinkronizálódnak az eszközök

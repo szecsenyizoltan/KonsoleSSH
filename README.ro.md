@@ -138,6 +138,11 @@ GPL-3.0-or-later; vezi [LICENSE](LICENSE).
 
 ## Istoricul versiunilor
 
+- **2.3.0** — selectorul de file se închide glisând lateral, la stânga sau la
+  dreapta, sau cu noul rând „Înapoi", care înlocuiește acolo „Ieșire";
+  ieșirea din aplicație rămâne în meniul principal. Cu sincronizarea Google
+  Drive activată, aplicația sincronizează și când revine în prim-plan, iar o
+  încărcare încă în așteptare pleacă imediat când trece în fundal
 - **2.2.0** — sincronizare opțională cu Google Drive: conexiunile salvate, cu
   parolele și cheile lor, și cheile de host acceptate se sincronizează între
   dispozitive printr-un dosar ascuns din propriul Google Drive al

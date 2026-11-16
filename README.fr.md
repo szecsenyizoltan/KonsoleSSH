@@ -138,6 +138,12 @@ GPL-3.0-or-later ; voir [LICENSE](LICENSE).
 
 ## Historique des versions
 
+- **2.3.0** — le sélecteur d'onglets se ferme d'un balayage latéral, vers la
+  gauche ou la droite, ou avec sa nouvelle ligne « Retour », qui y remplace
+  « Quitter » ; on quitte l'app depuis le menu principal. Avec la
+  synchronisation Google Drive activée, l'app synchronise aussi dès qu'elle
+  revient au premier plan, et un envoi encore en attente part aussitôt quand
+  elle passe en arrière-plan
 - **2.2.0** — synchronisation Google Drive facultative : les connexions
   enregistrées, avec leurs mots de passe et clés, et les host keys acceptées se
   synchronisent entre appareils via un dossier caché du propre Google Drive de

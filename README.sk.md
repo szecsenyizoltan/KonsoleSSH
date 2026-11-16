@@ -138,6 +138,11 @@ GPL-3.0-or-later; pozri [LICENSE](LICENSE).
 
 ## História verzií
 
+- **2.3.0** — výber kariet sa zatvára potiahnutím do strany, doľava alebo
+  doprava, alebo novým riadkom „Späť", ktorý tam nahradil „Ukončiť";
+  aplikácia sa ukončuje z hlavnej ponuky. So zapnutou synchronizáciou cez
+  Google Drive aplikácia synchronizuje aj vždy, keď sa dostane do popredia, a
+  čakajúce nahrávanie sa pri prechode do pozadia odošle hneď
 - **2.2.0** — voliteľná synchronizácia cez Google Drive: uložené pripojenia s
   heslami a kľúčmi a prijaté host kľúče sa synchronizujú medzi zariadeniami cez
   skrytý priečinok vo vlastnom Google Drive používateľa, šifrované end-to-end

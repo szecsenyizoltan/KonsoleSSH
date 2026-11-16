@@ -138,6 +138,12 @@ GPL-3.0-or-later; siehe [LICENSE](LICENSE).
 
 ## Versionsgeschichte
 
+- **2.3.0** — die Tab-Auswahl schließt sich mit einem seitlichen Wischen,
+  nach links oder rechts, oder mit der neuen Zeile „Zurück", die dort
+  „Beenden" ersetzt; die App wird über das Hauptmenü beendet. Mit
+  eingeschalteter Google-Drive-Synchronisierung synchronisiert die App auch,
+  sobald sie in den Vordergrund kommt, und eine noch wartende Übertragung
+  läuft sofort, wenn sie in den Hintergrund geht
 - **2.2.0** — optionale Google-Drive-Synchronisierung: gespeicherte
   Verbindungen mit Passwörtern und Schlüsseln sowie die akzeptierten Host-Keys
   werden über einen versteckten Ordner im eigenen Google Drive zwischen Geräten

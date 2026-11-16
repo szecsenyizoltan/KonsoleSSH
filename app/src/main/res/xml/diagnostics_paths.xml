@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Only the problem report directory may be shared, never the connection store. -->
-<paths>
-    <files-path name="diagnostics" path="diagnostics/" />
-</paths>

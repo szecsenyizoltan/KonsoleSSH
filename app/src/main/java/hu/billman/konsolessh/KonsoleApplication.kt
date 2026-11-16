@@ -3,7 +3,6 @@ package hu.billman.konsolessh
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
-import hu.billman.konsolessh.diagnostics.CrashRecorder
 
 /**
  * Creates the [AppContainer], the hand-written dependency graph.
@@ -19,7 +18,7 @@ open class KonsoleApplication : android.app.Application() {
     override fun onCreate() {
         super.onCreate()
         container = createContainer()
-        CrashRecorder.install(container.crashFile)
+        container.deleteLeftovers()
         // The whole app, not one activity: switching between its screens is neither.
         ProcessLifecycleOwner.get().lifecycle.addObserver(
             object : DefaultLifecycleObserver {

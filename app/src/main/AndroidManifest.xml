@@ -51,16 +51,6 @@
                 android:value="Keeps user-opened interactive SSH terminal sessions connected while the app is in the background" />
         </service>
 
-        <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.diagnostics"
-            android:exported="false"
-            android:grantUriPermissions="true">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/diagnostics_paths" />
-        </provider>
-
     </application>
 
 </manifest>

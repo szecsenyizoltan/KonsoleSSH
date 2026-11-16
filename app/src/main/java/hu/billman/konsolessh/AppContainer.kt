@@ -6,9 +6,8 @@ import hu.billman.konsolessh.data.ConnectionRepository
 import hu.billman.konsolessh.data.CryptoBox
 import hu.billman.konsolessh.data.CryptoBoxConnectionRepository
 import hu.billman.konsolessh.data.DataStoreSettingsRepository
+import hu.billman.konsolessh.data.ProblemReportLeftovers
 import hu.billman.konsolessh.data.SettingsRepository
-import hu.billman.konsolessh.diagnostics.AndroidProblemReports
-import hu.billman.konsolessh.diagnostics.ProblemReports
 import hu.billman.konsolessh.session.SessionManager
 import hu.billman.konsolessh.session.TerminalMessages
 import hu.billman.konsolessh.ssh.HostKeyStore
@@ -37,7 +36,6 @@ class AppContainer(
     context: Context,
     /** For instrumented tests: sessions without a network. */
     sessionFactoryOverride: TerminalSessionFactory? = null,
-    problemReportsOverride: ProblemReports? = null,
 ) {
 
     private val appContext: Context = context.applicationContext
@@ -98,11 +96,10 @@ class AppContainer(
 
     val keyProvisioner: SshKeyProvisioner by lazy { SshKeyProvisioner(hostKeyStore) }
 
-    private val androidProblemReports by lazy { AndroidProblemReports(appContext) }
-    val problemReports: ProblemReports = problemReportsOverride ?: androidProblemReports
-
-    /** Where the [hu.billman.konsolessh.diagnostics.CrashRecorder] writes an uncaught exception. */
-    val crashFile: File get() = androidProblemReports.crashFile
+    /** Removes what older versions left on the device and no version reads any more. */
+    fun deleteLeftovers() {
+        ioScope.launch { ProblemReportLeftovers.delete(appContext) }
+    }
 
     private val terminalMessages: TerminalMessages by lazy { AndroidTerminalMessages(appContext) }
 

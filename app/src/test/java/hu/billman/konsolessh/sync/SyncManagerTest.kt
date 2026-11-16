@@ -19,7 +19,7 @@ import java.nio.file.Files
 /** Two devices syncing through one shared, in-memory Drive file. */
 class SyncManagerTest {
 
-    private inner class Device {
+    private inner class Device(delayMs: Long = 3_000L) {
         val repo = FakeConnectionRepository(clock = { now })
         val hostKeys = HostKeyStore(File(Files.createTempDirectory("sync").toFile(), "known_hosts"), clock = { now })
         val keys = MemoryKeys()
@@ -31,6 +31,7 @@ class SyncManagerTest {
             scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined),
             clock = { now },
             iterations = 1_000,
+            delayMs = delayMs,
         )
 
         suspend fun names() = repo.load().map { it.name }
@@ -107,6 +108,23 @@ class SyncManagerTest {
         }
         assertNull(second.keys.key)
         assertEquals(SyncManager.Status.Off, second.sync.status.value)
+    }
+
+    @Test
+    fun `a waiting sync runs at once when flushed, and an immediate request does not wait`() = runBlocking {
+        val device = Device(delayMs = 60_000L)
+        device.sync.enable("pass".toCharArray())
+        val writes = drive.writes
+
+        device.repo.saveOne(conn("a", "Alpha", 1))
+        device.sync.requestSync()
+        assertEquals("still waiting", writes, drive.writes)
+        device.sync.flush()
+        assertEquals("flushed", writes + 1, drive.writes)
+
+        device.repo.saveOne(conn("b", "Bravo", 1))
+        device.sync.requestSync(now = true)
+        assertEquals("no wait", writes + 2, drive.writes)
     }
 
     @Test

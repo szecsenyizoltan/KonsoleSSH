@@ -1,5 +1,8 @@
 package hu.billman.konsolessh
 
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ProcessLifecycleOwner
 import hu.billman.konsolessh.diagnostics.CrashRecorder
 
 /**
@@ -17,7 +20,14 @@ open class KonsoleApplication : android.app.Application() {
         super.onCreate()
         container = createContainer()
         CrashRecorder.install(container.crashFile)
-        container.startSync()
+        // The whole app, not one activity: switching between its screens is neither.
+        ProcessLifecycleOwner.get().lifecycle.addObserver(
+            object : DefaultLifecycleObserver {
+                override fun onStart(owner: LifecycleOwner) = container.onAppForeground()
+
+                override fun onStop(owner: LifecycleOwner) = container.onAppBackground()
+            },
+        )
     }
 
     /** Instrumented tests replace dependencies here, e.g. with fake sessions. */

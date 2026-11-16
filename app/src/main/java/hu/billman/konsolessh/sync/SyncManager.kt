@@ -86,13 +86,19 @@ class SyncManager(
         _status.value = Status.Off
     }
 
-    fun requestSync() {
+    /** Asks for a sync after a short wait, so a burst of changes becomes one upload; [now] skips the wait. */
+    fun requestSync(now: Boolean = false) {
         if (_status.value == Status.Off) return
         pending?.cancel()
         pending = scope.launch {
-            delay(delayMs)
+            if (!now) delay(delayMs)
             runCatching { syncNow() }
         }
+    }
+
+    /** Runs a sync that is still waiting at once, e.g. as the app goes to the background. */
+    fun flush() {
+        if (pending?.isActive == true) requestSync(now = true)
     }
 
     /** Syncs at once. Failures are reported in [status] and rethrown. */

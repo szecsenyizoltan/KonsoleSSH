@@ -78,15 +78,21 @@ class AppContainer(
         )
     }
 
-    /** At start: if sync is on, one round, so this device catches up with the others. */
-    fun startSync() {
+    /**
+     * The app came to the foreground, at start too: if sync is on, one round
+     * at once, so changes made on the other devices meanwhile arrive.
+     */
+    fun onAppForeground() {
         ioScope.launch {
             runCatching {
                 syncManager.start()
-                syncManager.requestSync()
+                syncManager.requestSync(now = true)
             }
         }
     }
+
+    /** The app went to the background: a change still waiting to upload goes now. */
+    fun onAppBackground() = syncManager.flush()
 
     val keyProvisioner: SshKeyProvisioner by lazy { SshKeyProvisioner(hostKeyStore) }
 

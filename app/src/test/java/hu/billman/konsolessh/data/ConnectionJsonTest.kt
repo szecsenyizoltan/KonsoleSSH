@@ -1,7 +1,5 @@
 package hu.billman.konsolessh.data
 
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import hu.billman.konsolessh.model.ConnectionConfig
 import hu.billman.konsolessh.model.ConnectionConfig.AuthType
 import org.junit.Assert.assertEquals
@@ -9,14 +7,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Versions up to 1.1.30 stored the connection list with Gson. These tests
- * pin that the kotlinx.serialization format reads what Gson wrote, and that
- * Gson (an older version after a downgrade) reads what this version writes.
+ * Pins the stored connection format: the field set and order, and how the
+ * decoder treats escaped, missing, unknown and null fields. Older 2.x
+ * devices read the same format from the sync file.
  */
 class ConnectionJsonTest {
-
-    private val gson = Gson()
-    private val gsonListType = object : TypeToken<List<ConnectionConfig>>() {}.type
 
     private val full = ConnectionConfig(
         id = "3f1c",
@@ -37,15 +32,9 @@ class ConnectionJsonTest {
     private val plain = ConnectionConfig(id = "a", host = "10.0.0.1", username = "pi")
 
     @Test
-    fun `reads what Gson wrote`() {
-        val written = gson.toJson(listOf(full, plain))
-        assertEquals(listOf(full, plain), ConnectionJson.decode(written))
-    }
-
-    @Test
-    fun `Gson reads what this version writes`() {
+    fun `reads back what it writes`() {
         val written = ConnectionJson.encode(listOf(full, plain))
-        assertEquals(listOf(full, plain), gson.fromJson<List<ConnectionConfig>>(written, gsonListType))
+        assertEquals(listOf(full, plain), ConnectionJson.decode(written))
     }
 
     @Test

@@ -159,8 +159,7 @@ dependencies {
     // Unit tests (JVM + Robolectric for Android classes)
     testImplementation(libs.junit4)
     testImplementation(libs.robolectric)
-    // Writes JSON the way versions up to 1.1.30 did, for the compatibility tests;
-    // also parses the terminal conformance fixtures.
+    // Parses the terminal conformance fixtures.
     testImplementation(libs.gson)
     testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines.test)

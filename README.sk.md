@@ -47,7 +47,7 @@ SSH terminál s kartami pre Android, inšpirovaný KDE Konsole.
 
 ## Architektúra
 
-- **Rozhranie:** Jetpack Compose s Material 3, jedna aktivita na obrazovku (hlavná obrazovka, uložené pripojenia).
+- **Rozhranie:** Jetpack Compose s Material 3 v jedinej aktivite; obrazovky (hlavná obrazovka, uložené pripojenia, synchronizácia) sú ciele Navigation 3.
   Samotný terminál je pohľad kresliaci na Canvas (`TerminalView`), vložený do Compose.
 - **Stav:** jediný `SessionManager`, ktorý žije tak dlho ako aplikácia, vlastní karty, ich relácie, výstup a čakajúce
   otázky. Rozhranie sleduje jeho stav cez ViewModely a posiela príkazy; otázka na heslo alebo host kľúč je stav,

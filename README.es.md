@@ -47,7 +47,7 @@ Terminal SSH con pestañas para Android, inspirado en KDE Konsole.
 
 ## Arquitectura
 
-- **Interfaz:** Jetpack Compose con Material 3, una actividad por pantalla (principal, conexiones guardadas).
+- **Interfaz:** Jetpack Compose con Material 3 en una sola actividad; las pantallas (principal, conexiones guardadas, sincronización) son destinos de Navigation 3.
   El terminal en sí es una vista que dibuja sobre Canvas (`TerminalView`), integrada en Compose.
 - **Estado:** un único `SessionManager`, que vive tanto como la aplicación, es dueño de las pestañas, sus sesiones,
   la salida y las preguntas pendientes. La interfaz observa su estado a través de ViewModels y envía órdenes;

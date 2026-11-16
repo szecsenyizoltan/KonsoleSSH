@@ -47,7 +47,7 @@ Terminal SSH à onglets pour Android, inspiré de KDE Konsole.
 
 ## Architecture
 
-- **Interface :** Jetpack Compose avec Material 3, une activité par écran (écran principal, connexions enregistrées).
+- **Interface :** Jetpack Compose avec Material 3 dans une seule activité ; les écrans (écran principal, connexions enregistrées, synchronisation) sont des destinations Navigation 3.
   Le terminal lui-même est une vue dessinant sur Canvas (`TerminalView`), intégrée à Compose.
 - **État :** un `SessionManager` unique, qui vit aussi longtemps que l'application, possède les onglets, leurs sessions,
   la sortie et les questions en attente. L'interface observe son état via des ViewModels et envoie des commandes ;

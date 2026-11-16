@@ -47,7 +47,7 @@ Többfüles SSH-terminál Androidra, a KDE Konsole mintájára.
 
 ## Architektúra
 
-- **Felület:** Jetpack Compose, Material 3; képernyőnként egy activity (főképernyő, mentett kapcsolatok).
+- **Felület:** Jetpack Compose, Material 3, egyetlen activityben; a képernyők (főképernyő, mentett kapcsolatok, szinkron) Navigation 3 célpontok.
   Maga a terminál Canvasra rajzoló nézet (`TerminalView`), Compose-ba ágyazva.
 - **Állapot:** egyetlen, az alkalmazással együtt élő `SessionManager` birtokolja a füleket, a munkameneteket,
   a kimenetet és a függő kérdéseket. A felület ViewModeleken át figyeli az állapotát és parancsokat küld;

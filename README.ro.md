@@ -47,7 +47,7 @@ Terminal SSH cu file pentru Android, inspirat de KDE Konsole.
 
 ## Arhitectură
 
-- **Interfață:** Jetpack Compose cu Material 3, o activitate pe ecran (ecranul principal, conexiuni salvate).
+- **Interfață:** Jetpack Compose cu Material 3, într-o singură activitate; ecranele (ecranul principal, conexiuni salvate, sincronizare) sunt destinații Navigation 3.
   Terminalul însuși este o vizualizare care desenează pe Canvas (`TerminalView`), integrată în Compose.
 - **Stare:** un singur `SessionManager`, care trăiește cât aplicația, deține filele, sesiunile lor, ieșirea și
   întrebările în așteptare. Interfața îi urmărește starea prin ViewModel-uri și trimite comenzi; o întrebare

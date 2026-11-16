@@ -47,7 +47,7 @@ Multi-tab SSH terminal for Android, inspired by KDE Konsole.
 
 ## Architecture
 
-- **UI:** Jetpack Compose with Material 3, one activity per screen (main screen, saved connections).
+- **UI:** Jetpack Compose with Material 3 in a single activity; the screens (main screen, saved connections, sync) are Navigation 3 destinations.
   The terminal itself is a Canvas-based view (`TerminalView`) hosted in Compose.
 - **State:** a single `SessionManager`, living as long as the application, owns the tabs, their
   sessions, output and pending questions. The UI observes its state through ViewModels and sends

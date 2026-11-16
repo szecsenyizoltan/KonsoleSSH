@@ -47,7 +47,7 @@ SSH-Terminal mit mehreren Tabs für Android, nach dem Vorbild von KDE Konsole.
 
 ## Architektur
 
-- **Oberfläche:** Jetpack Compose mit Material 3, eine Activity pro Bildschirm (Hauptbildschirm, gespeicherte Verbindungen).
+- **Oberfläche:** Jetpack Compose mit Material 3 in einer einzigen Activity; die Bildschirme (Hauptbildschirm, gespeicherte Verbindungen, Synchronisierung) sind Navigation-3-Ziele.
   Das Terminal selbst ist eine auf Canvas zeichnende View (`TerminalView`), in Compose eingebettet.
 - **Zustand:** ein einziger `SessionManager`, der so lange lebt wie die App, besitzt die Tabs, ihre Sitzungen,
   die Ausgabe und offene Rückfragen. Die Oberfläche beobachtet seinen Zustand über ViewModels und sendet Befehle;

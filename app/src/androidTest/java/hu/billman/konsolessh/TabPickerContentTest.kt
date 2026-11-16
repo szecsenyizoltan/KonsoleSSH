@@ -45,7 +45,7 @@ class TabPickerContentTest {
                     onEdit = { events += "edit:${it.id}" },
                     onDelete = { events += "delete:${it.id}" },
                     onToggleGroup = { events += "toggle:$it" },
-                    onExit = { events += "exit" },
+                    onBack = { events += "back" },
                 ),
             )
         }
@@ -84,10 +84,10 @@ class TabPickerContentTest {
     }
 
     @Test
-    fun newConnectionAndExitAreReported() {
+    fun newConnectionAndBackAreReported() {
         show()
         compose.onNodeWithText(context.getString(R.string.new_connection_dots)).performClick()
-        compose.onNodeWithText(context.getString(R.string.exit)).performClick()
-        assertEquals(listOf("new", "exit"), events)
+        compose.onNodeWithText(context.getString(R.string.picker_back)).performClick()
+        assertEquals(listOf("new", "back"), events)
     }
 }

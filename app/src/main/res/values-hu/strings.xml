@@ -9,6 +9,7 @@
     <string name="action_language">Nyelv</string>
     <string name="language_system_default">Rendszer alapértelmezett</string>
     <string name="exit">Kilépés</string>
+    <string name="picker_back">Vissza</string>
     <string name="action_ok">OK</string>
     <string name="action_cancel">Mégse</string>
     <string name="action_delete">Törlés</string>
@@ -96,7 +97,6 @@
     <string name="content_desc_more">További lehetőségek</string>
     <string name="content_desc_show_password">Jelszó megjelenítése</string>
     <string name="content_desc_hide_password">Jelszó elrejtése</string>
-    <string name="content_desc_exit">Kilépés</string>
 
     <!-- Status bar / terminal messages -->
     <string name="status_no_connection">Nincs kapcsolat</string>

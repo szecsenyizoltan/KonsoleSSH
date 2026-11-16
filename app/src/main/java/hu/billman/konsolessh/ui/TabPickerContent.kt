@@ -2,18 +2,15 @@ package hu.billman.konsolessh.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -40,7 +37,7 @@ import hu.billman.konsolessh.ui.theme.Monospace
 
 /**
  * The tab picker: a new-connection entry, the open tabs, the saved
- * connections grouped by name prefix, and exit. Draws [PickerRows] as they
+ * connections grouped by name prefix, and a way back. Draws [PickerRows] as they
  * are; deleting asks first.
  */
 @Composable
@@ -52,13 +49,6 @@ internal fun TabPickerContent(
     var pendingDelete by rememberSaveable { mutableStateOf<String?>(null) }
 
     Column(modifier = Modifier.fillMaxHeight().background(KonsoleColors.Surface)) {
-        Box(
-            modifier = Modifier
-                .padding(top = 8.dp)
-                .align(Alignment.CenterHorizontally)
-                .size(width = 32.dp, height = 4.dp)
-                .background(Color(0xFF555555), RoundedCornerShape(2.dp)),
-        )
         EntryRow(stringResource(R.string.new_connection_dots), KonsoleColors.Accent, actions.onNewConnection) {
             Text(stringResource(R.string.sym_plus), color = KonsoleColors.Accent, fontSize = 24.sp)
         }
@@ -86,10 +76,10 @@ internal fun TabPickerContent(
             }
         }
         HorizontalDivider(color = Color(0xFF333333))
-        EntryRow(stringResource(R.string.exit), Color(0xFF888888), actions.onExit) {
+        EntryRow(stringResource(R.string.picker_back), Color(0xFF888888), actions.onBack) {
             Icon(
-                painter = painterResource(R.drawable.ic_exit),
-                contentDescription = stringResource(R.string.content_desc_exit),
+                painter = painterResource(R.drawable.ic_arrow_back),
+                contentDescription = null,
                 tint = Color(0xFF888888),
             )
         }

@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -54,11 +55,14 @@ fun TabPickerSheet(
         }
     }
 
+    // Closed by a sideways swipe, the back row or the system back; not by dragging down.
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
+        sheetGesturesEnabled = false,
         containerColor = KonsoleColors.Surface,
         dragHandle = null,
+        modifier = Modifier.swipeToDismissHorizontally(onDismiss),
     ) {
         TabPickerContent(
             openTabs = PickerRows.openTabs(sessions.tabs, currentPage),
@@ -70,7 +74,7 @@ fun TabPickerSheet(
                 onEdit = { connection -> close { choices.onEdit(connection) } },
                 onDelete = { connections.delete(it.id) },
                 onToggleGroup = mainViewModel::togglePickerGroup,
-                onExit = { close(choices.onExit) },
+                onBack = { close {} },
             ),
         )
     }

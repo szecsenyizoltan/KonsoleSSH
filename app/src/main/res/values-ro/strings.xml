@@ -9,6 +9,7 @@
     <string name="action_language">Limbă</string>
     <string name="language_system_default">Implicit sistem</string>
     <string name="exit">Ieșire</string>
+    <string name="picker_back">Înapoi</string>
     <string name="action_ok">OK</string>
     <string name="action_cancel">Anulare</string>
     <string name="action_delete">Șterge</string>
@@ -96,7 +97,6 @@
     <string name="content_desc_more">Mai multe opțiuni</string>
     <string name="content_desc_show_password">Afișează parola</string>
     <string name="content_desc_hide_password">Ascunde parola</string>
-    <string name="content_desc_exit">Ieșire</string>
 
     <!-- Status bar / terminal messages -->
     <string name="status_no_connection">Neconectat</string>

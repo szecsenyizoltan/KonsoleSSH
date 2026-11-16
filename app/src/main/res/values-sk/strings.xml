@@ -9,6 +9,7 @@
     <string name="action_language">Jazyk</string>
     <string name="language_system_default">Predvolené systémom</string>
     <string name="exit">Ukončiť</string>
+    <string name="picker_back">Späť</string>
     <string name="action_ok">OK</string>
     <string name="action_cancel">Zrušiť</string>
     <string name="action_delete">Odstrániť</string>
@@ -96,7 +97,6 @@
     <string name="content_desc_more">Ďalšie možnosti</string>
     <string name="content_desc_show_password">Zobraziť heslo</string>
     <string name="content_desc_hide_password">Skryť heslo</string>
-    <string name="content_desc_exit">Ukončiť</string>
 
     <!-- Status bar / terminal messages -->
     <string name="status_no_connection">Nepripojené</string>

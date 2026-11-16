@@ -9,6 +9,7 @@
     <string name="action_language">Idioma</string>
     <string name="language_system_default">Predeterminado del sistema</string>
     <string name="exit">Salir</string>
+    <string name="picker_back">Atrás</string>
     <string name="action_ok">Aceptar</string>
     <string name="action_cancel">Cancelar</string>
     <string name="action_delete">Eliminar</string>
@@ -96,7 +97,6 @@
     <string name="content_desc_more">Más opciones</string>
     <string name="content_desc_show_password">Mostrar contraseña</string>
     <string name="content_desc_hide_password">Ocultar contraseña</string>
-    <string name="content_desc_exit">Salir</string>
 
     <!-- Status bar / terminal messages -->
     <string name="status_no_connection">Sin conexión</string>

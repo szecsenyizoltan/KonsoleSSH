@@ -10,7 +10,8 @@ data class TabPickerActions(
     val onEdit: (ConnectionConfig) -> Unit,
     val onDelete: (ConnectionConfig) -> Unit,
     val onToggleGroup: (path: String) -> Unit,
-    val onExit: () -> Unit,
+    /** Closes the picker; leaving the app is in the main menu. */
+    val onBack: () -> Unit,
 )
 
 /** What the user picked in the [TabPickerSheet]; each choice also closes it. */
@@ -19,5 +20,4 @@ data class TabPickerChoices(
     val onSelectTab: (index: Int) -> Unit,
     val onOpen: (ConnectionConfig) -> Unit,
     val onEdit: (ConnectionConfig) -> Unit,
-    val onExit: () -> Unit,
 )

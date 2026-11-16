@@ -215,7 +215,6 @@ class MainActivity : AppCompatActivity(), KeybarHost {
                 onSelectTab = { index -> scope.launch { pagerState.animateScrollToPage(index + 1) } },
                 onOpen = { viewModel.openTab(it.id) },
                 onEdit = { onForm(FormRequest(editId = it.id, openTab = false)) },
-                onExit = viewModel::requestCloseApp,
             ),
             onDismiss = onDismiss,
         )

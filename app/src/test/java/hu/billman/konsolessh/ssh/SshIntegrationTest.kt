@@ -1,5 +1,6 @@
 package hu.billman.konsolessh.ssh
 
+import com.jcraft.jsch.JSch
 import hu.billman.konsolessh.model.ConnectionConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -218,6 +219,25 @@ class SshIntegrationTest {
     }
 
     @Test
+    fun `a generated Ed25519 key logs in`() {
+        val key = SshKeyGenerator.generateEd25519(comment = "konsolessh:test")
+        File(servers.dir, "authorized_keys").appendText(key.publicLine + "\n")
+        // On Android JSch signs Ed25519 with Bouncy Castle; on this JVM it would
+        // pick the JDK's EdDSA, so the Android implementation is set explicitly.
+        val previous = JSch.getConfig(ED25519)
+        JSch.setConfig(ED25519, "com.jcraft.jsch.bc.SignatureEd25519")
+        try {
+            val s = session(servers.config("vm").copy(privateKey = key.privatePem), prompter = Prompter())
+            connect(s)
+            assertTrue(readUntil(s, SshTestServers.MARKER).contains(SshTestServers.MARKER))
+            s.disconnect()
+        } finally {
+            JSch.setConfig(ED25519, previous)
+        }
+        assertNothingLeft()
+    }
+
+    @Test
     fun `an unknown client key is an authentication failure`() {
         val other = File(servers.dir, "other_key")
         ProcessBuilder("ssh-keygen", "-q", "-t", "rsa", "-b", "2048", "-m", "PEM", "-N", "", "-f", other.path)
@@ -231,6 +251,7 @@ class SshIntegrationTest {
     }
 
     private companion object {
+        const val ED25519 = "ssh-ed25519"
         const val COLS = 80
         const val ROWS = 24
         const val BUFFER = 4096

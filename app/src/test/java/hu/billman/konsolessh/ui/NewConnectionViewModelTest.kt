@@ -225,6 +225,19 @@ class NewConnectionViewModelTest {
 
         assertTrue(vm.form.value.status is Status.UploadFailed)
         assertTrue(vm.form.value.canGenerateKey)
+        assertTrue(vm.keyDialog.value!!.publicLine.startsWith("ssh-ed25519 "))
+    }
+
+    @Test
+    fun `a MikroTik server gets an RSA key`() {
+        coEvery { provisioner.testConnection(any(), any(), any()) } returns
+            SshKeyProvisioner.TestOutcome("SSH-2.0-ROSSSH", ServerType.MIKROTIK)
+        coEvery { provisioner.uploadPublicKey(any(), any(), any(), any()) } returns ServerType.MIKROTIK
+        val vm = vm().apply { start(null) }
+        vm.fill()
+        vm.test()
+        vm.generateKey()
+
         assertTrue(vm.keyDialog.value!!.publicLine.startsWith("ssh-rsa "))
     }
 

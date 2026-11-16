@@ -92,6 +92,8 @@ class NewConnectionViewModel(
         val status: Status = Status.None,
         val busy: Boolean = false,
         val testedCredentials: Credentials? = null,
+        /** The banner of the last successful password test; it picks the type of the key to upload. */
+        val testedServerVersion: String = "",
     ) {
         val usesKey: Boolean get() = authType == AuthType.PRIVATE_KEY
         val hasKey: Boolean get() = privateKey.isNotBlank()
@@ -233,8 +235,11 @@ class NewConnectionViewModel(
             val status = testConnection(probe)
             _form.update {
                 when (status) {
-                    is Status.TestSucceeded ->
-                        it.copy(status = status, testedCredentials = tested.takeIf { passwordTest })
+                    is Status.TestSucceeded -> it.copy(
+                        status = status,
+                        testedCredentials = tested.takeIf { passwordTest },
+                        testedServerVersion = status.serverVersion,
+                    )
                     else -> it.copy(status = status, testedCredentials = null)
                 }
             }
@@ -251,7 +256,7 @@ class NewConnectionViewModel(
         val previousStatus = form.status
         val tested = form.testedCredentials
         runOperation(Status.Uploading) {
-            when (val result = generateAndUploadKey(config)) {
+            when (val result = generateAndUploadKey(config, form.testedServerVersion)) {
                 is UploadResult.KeyGenerationFailure -> {
                     _form.update { it.copy(status = previousStatus) }
                     _message.value = Message.KeyGenerationFailed(result.error)
@@ -368,10 +373,10 @@ class NewConnectionViewModel(
         data class UploadFailure(val error: SshError, val publicLine: String) : UploadResult
     }
 
-    /** A local RSA-3072 key pair, its public half appended to authorized_keys. */
-    private suspend fun generateAndUploadKey(config: ConnectionConfig): UploadResult {
+    /** A local key pair for the tested server, its public half appended to authorized_keys. */
+    private suspend fun generateAndUploadKey(config: ConnectionConfig, serverVersion: String): UploadResult {
         val generated = try {
-            SshKeyGenerator.generateRsa3072(comment = "konsolessh:${config.username}@${config.host}")
+            SshKeyGenerator.generateFor(serverVersion, comment = "konsolessh:${config.username}@${config.host}")
         } catch (e: com.jcraft.jsch.JSchException) {
             return UploadResult.KeyGenerationFailure(SshErrorClassifier.classify(e))
         }

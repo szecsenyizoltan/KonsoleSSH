@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import hu.billman.konsolessh.data.ConnectionRepository
 import hu.billman.konsolessh.data.ConnectionStoreException
 import hu.billman.konsolessh.data.SettingsRepository
-import hu.billman.konsolessh.diagnostics.ProblemReports
 import hu.billman.konsolessh.session.ConnectionStatus
 import hu.billman.konsolessh.session.OutputChunk
 import hu.billman.konsolessh.session.PendingPrompt
@@ -24,7 +23,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
 import java.io.InputStream
 
 /**
@@ -38,7 +36,6 @@ class MainViewModel(
     private val sessions: SessionManager,
     private val repository: ConnectionRepository,
     private val settings: SettingsRepository,
-    private val problemReports: ProblemReports,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : ViewModel() {
 
@@ -53,7 +50,6 @@ class MainViewModel(
     /** Short one-time notices. */
     sealed interface Message {
         data class Error(val error: SshError) : Message
-        data object NoProblemReport : Message
         data class UploadUndone(val name: String) : Message
         data class UndoFailed(val reason: String) : Message
     }
@@ -86,13 +82,9 @@ class MainViewModel(
         val selectTab: String? = null,
         val confirm: Confirm? = null,
         val message: Message? = null,
-        /** A problem report the user asked to share. */
-        val reportToShare: File? = null,
         val upload: Upload? = null,
         /** All sessions are closed; the screen should finish the app. */
         val exit: Boolean = false,
-        /** The last run's ANR or crash report, until the user decides about it. */
-        val problemReport: File? = null,
         /** Group paths open in the tab picker, kept so reopening the picker keeps them. */
         val pickerExpanded: Set<String> = emptySet(),
         /** Saved terminal font size in sp; 0 until loaded, or when none was saved. */
@@ -118,27 +110,7 @@ class MainViewModel(
     init {
         viewModelScope.launch { sessions.state.collect { tabs -> _state.update { it.copy(sessions = tabs) } } }
         viewModelScope.launch { settings.fontSizeSp.collect { sp -> _state.update { it.copy(fontSizeSp = sp) } } }
-        viewModelScope.launch {
-            val report = problemReports.collectNew()
-            _state.update { it.copy(problemReport = report) }
-        }
     }
-
-    fun onProblemReportHandled() {
-        _state.update { it.copy(problemReport = null) }
-        viewModelScope.launch { problemReports.markSeen() }
-    }
-
-    fun shareLatestProblemReport() {
-        viewModelScope.launch {
-            val report = problemReports.latest()
-            _state.update {
-                if (report == null) it.copy(message = Message.NoProblemReport) else it.copy(reportToShare = report)
-            }
-        }
-    }
-
-    fun onReportShared() = _state.update { it.copy(reportToShare = null) }
 
     fun onMessageShown() = _state.update { it.copy(message = null) }
 

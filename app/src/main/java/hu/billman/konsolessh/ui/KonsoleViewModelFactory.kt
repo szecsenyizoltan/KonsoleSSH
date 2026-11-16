@@ -20,7 +20,6 @@ object KonsoleViewModelFactory {
                 container.sessionManager,
                 container.connectionRepository,
                 container.settingsRepository,
-                container.problemReports,
             )
         }
         initializer { ConnectionsViewModel(container.connectionRepository) }

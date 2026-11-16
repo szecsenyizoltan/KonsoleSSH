@@ -13,7 +13,6 @@ data class MainScreenActions(
     val onManageConnections: () -> Unit,
     val onSync: () -> Unit,
     val onLanguage: () -> Unit,
-    val onProblemReport: () -> Unit,
     val onPrivacyPolicy: () -> Unit,
     val onExit: () -> Unit,
 )

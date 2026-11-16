@@ -1,6 +1,5 @@
 package hu.billman.konsolessh.ui
 
-import androidx.activity.compose.LocalActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -41,17 +40,6 @@ fun MainOverlays(
         key(active.prompt.id) {
             PromptDialog(active.prompt) { answer -> viewModel.answerPrompt(active.tabId, active.prompt.id, answer) }
         }
-    }
-
-    val activity = LocalActivity.current
-    state.problemReport?.let { file ->
-        ProblemReportDialog(
-            onShare = {
-                activity?.let { ProblemReportUi.share(it, file) }
-                viewModel.onProblemReportHandled()
-            },
-            onDismiss = viewModel::onProblemReportHandled,
-        )
     }
 
     Confirmations(state.confirm, viewModel)
@@ -143,7 +131,6 @@ private fun Messages(
     val text = when (message) {
         null -> null
         is MainViewModel.Message.Error -> SshErrorMessages.text(context, message.error)
-        MainViewModel.Message.NoProblemReport -> stringResource(R.string.report_none)
         is MainViewModel.Message.UploadUndone -> stringResource(R.string.upload_undone, message.name)
         is MainViewModel.Message.UndoFailed -> stringResource(R.string.upload_undo_failed, message.reason)
     }

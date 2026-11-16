@@ -195,19 +195,6 @@ fun LanguageDialog(currentTag: String, onPick: (String) -> Unit, onDismiss: () -
     )
 }
 
-/** Offers the report of a crash or freeze from the last run, once. */
-@Composable
-fun ProblemReportDialog(onShare: () -> Unit, onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = {},
-        properties = Unanswerable,
-        title = { Text(stringResource(R.string.report_title)) },
-        text = { Text(stringResource(R.string.report_message)) },
-        confirmButton = { TextButton(onClick = onShare) { Text(stringResource(R.string.report_share)) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.report_dismiss)) } },
-    )
-}
-
 /** Progress of a running upload; [progress] is null while the size is unknown. */
 @Composable
 fun UploadProgressDialog(name: String, status: String, progress: Float?) {

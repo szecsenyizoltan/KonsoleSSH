@@ -85,7 +85,6 @@ fun MainRoute(
             onManageConnections = { navigate(Route.Connections) },
             onSync = { navigate(Route.Sync) },
             onLanguage = { overlay.pickingLanguage = true },
-            onProblemReport = viewModel::shareLatestProblemReport,
             onPrivacyPolicy = { openPrivacyPolicy(context, overlay.toasts) },
             onExit = viewModel::requestCloseApp,
         ),
@@ -156,13 +155,6 @@ private fun MainEffects(viewModel: MainViewModel) {
             launch {
                 viewModel.state.map { it.serviceNeeded }.distinctUntilChanged().collect { needed ->
                     if (needed) SshForegroundService.start(activity)
-                }
-            }
-            launch {
-                viewModel.state.map { it.reportToShare }.distinctUntilChanged().collect { report ->
-                    report ?: return@collect
-                    ProblemReportUi.share(activity, report)
-                    viewModel.onReportShared()
                 }
             }
             launch { viewModel.state.first { it.exit }.also { finishApp(activity) } }

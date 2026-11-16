@@ -2,7 +2,6 @@ package hu.billman.konsolessh.ui
 
 import hu.billman.konsolessh.data.FakeConnectionRepository
 import hu.billman.konsolessh.data.SettingsRepository
-import hu.billman.konsolessh.diagnostics.ProblemReports
 import hu.billman.konsolessh.session.ConnectionStatus
 import hu.billman.konsolessh.session.PendingPrompt
 import hu.billman.konsolessh.session.SessionManager
@@ -32,7 +31,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.io.ByteArrayInputStream
-import java.io.File
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class MainViewModelTest {
@@ -45,12 +43,6 @@ class MainViewModelTest {
         override val syncOfferDismissed = flowOf(false)
         override suspend fun dismissSyncOffer() = Unit
     }
-    private var latestReport: File? = null
-    private val reports = object : ProblemReports {
-        override suspend fun collectNew(): File? = null
-        override suspend fun latest(): File? = latestReport
-        override suspend fun markSeen() = Unit
-    }
 
     @Before
     fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())
@@ -62,7 +54,6 @@ class MainViewModelTest {
         sessions,
         FakeConnectionRepository(),
         settings,
-        reports,
         ioDispatcher = UnconfinedTestDispatcher(),
     )
 
@@ -218,20 +209,7 @@ class MainViewModelTest {
         gate.complete(Unit)
     }
 
-    // ── Problem reports and messages ──────────────────────────────────────────
-
-    @Test
-    fun `sharing the problem report offers the latest one, or says there is none`() {
-        val vm = vm()
-        vm.shareLatestProblemReport()
-        assertEquals(Message.NoProblemReport, vm.state.value.message)
-
-        latestReport = File("report.txt")
-        vm.shareLatestProblemReport()
-        assertEquals(latestReport, vm.state.value.reportToShare)
-        vm.onReportShared()
-        assertNull(vm.state.value.reportToShare)
-    }
+    // ── Messages ──────────────────────────────────────────────────────────────
 
     @Test
     fun `opening a connection that is gone is reported`() {

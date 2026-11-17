@@ -1,9 +1,14 @@
 package hu.billman.konsolessh.terminal
 
-import com.google.gson.JsonArray
-import com.google.gson.JsonElement
-import com.google.gson.JsonObject
-import com.google.gson.JsonParser
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.fail
 import org.junit.Test
 
@@ -34,17 +39,17 @@ class TerminalConformanceTest {
 
     private fun replay(name: String) {
         val bytes = resource("$name.bin").readBytes()
-        val fixture = JsonParser.parseString(resource("$name.json").readText()).asJsonObject
-        val buf = TerminalBuffer(fixture["cols"].asInt, fixture["rows"].asInt)
+        val fixture = Json.parseToJsonElement(resource("$name.json").readText()).jsonObject
+        val buf = TerminalBuffer(fixture.int("cols"), fixture.int("rows"))
         val problems = mutableListOf<String>()
         var pos = 0
-        for (cp in fixture["checkpoints"].asJsonArray.map { it.asJsonObject }) {
-            val offset = cp["offset"].asInt
+        for (cp in fixture.getValue("checkpoints").jsonArray.map { it.jsonObject }) {
+            val offset = cp.int("offset")
             if (offset > pos) buf.write(bytes.copyOfRange(pos, offset), respond = false)
             pos = offset
-            when (cp["type"].asString) {
-                "resize" -> buf.resize(cp["cols"].asInt, cp["rows"].asInt)
-                else -> problems += compare(buf, cp).map { "[${cp["label"].asString}] $it" }
+            when (cp.string("type")) {
+                "resize" -> buf.resize(cp.int("cols"), cp.int("rows"))
+                else -> problems += compare(buf, cp).map { "[${cp.string("label")}] $it" }
             }
         }
         if (problems.isNotEmpty()) {
@@ -54,14 +59,15 @@ class TerminalConformanceTest {
 
     private fun compare(buf: TerminalBuffer, cp: JsonObject): List<String> {
         val problems = mutableListOf<String>()
-        val (x, y) = cp["cursor"].asJsonArray.map { it.asInt }
+        val (x, y) = cp.getValue("cursor").jsonArray.map { it.jsonPrimitive.int }
         val col = minOf(buf.cursorCol, buf.cols - 1)
         if (col != x || buf.cursorRow != y) problems += "cursor ${buf.cursorRow},$col, expected $y,$x"
-        if (buf.altScreenActive != cp["alternate"].asBoolean) {
-            problems += "alternate screen ${buf.altScreenActive}, expected ${cp["alternate"].asBoolean}"
+        val alternate = cp.getValue("alternate").jsonPrimitive.boolean
+        if (buf.altScreenActive != alternate) {
+            problems += "alternate screen ${buf.altScreenActive}, expected $alternate"
         }
-        cp["screen"].asJsonArray.forEachIndexed { r, row ->
-            val expected = row.asJsonArray.map(::expectedCell)
+        cp.getValue("screen").jsonArray.forEachIndexed { r, row ->
+            val expected = row.jsonArray.map(::expectedCell)
             val actual = actualRow(buf, r)
             val text = { cells: List<Cell> -> cells.joinToString("") { it.ch } }
             if (text(expected) != text(actual)) {
@@ -106,22 +112,26 @@ class TerminalConformanceTest {
     private fun Cell.isDefaultBlank() = ch == " " && bg == TermColor.DEFAULT_BG && "reverse" !in flags
 
     private fun expectedCell(json: JsonElement): Cell {
-        val a = json.asJsonArray
+        val a = json.jsonArray
         return Cell(
-            a[0].asString,
+            a[0].jsonPrimitive.content,
             color(a[1], TermColor.DEFAULT_FG),
             color(a[2], TermColor.DEFAULT_BG),
-            (a[3] as JsonArray).map { it.asString }.toSet(),
+            a[3].jsonArray.map { it.jsonPrimitive.content }.toSet(),
         )
     }
 
     private fun color(json: JsonElement, default: TermColor): TermColor = when {
-        json.isJsonNull -> default
-        json.asJsonPrimitive.isNumber -> SgrPalette.xterm256(json.asInt)
-        else -> json.asString.removePrefix("#").toInt(HEX).let {
+        json is JsonNull -> default
+        !json.jsonPrimitive.isString -> SgrPalette.xterm256(json.jsonPrimitive.int)
+        else -> json.jsonPrimitive.content.removePrefix("#").toInt(HEX).let {
             TermColor.rgb(it shr BYTE_2 and BYTE_MASK, it shr BYTE_1 and BYTE_MASK, it and BYTE_MASK)
         }
     }
+
+    private fun JsonObject.int(key: String) = getValue(key).jsonPrimitive.int
+
+    private fun JsonObject.string(key: String) = getValue(key).jsonPrimitive.content
 
     private fun hex(c: TermColor) = "#%06x".format(c.argb and RGB_MASK)
 

@@ -159,8 +159,6 @@ dependencies {
     // Unit tests (JVM + Robolectric for Android classes)
     testImplementation(libs.junit4)
     testImplementation(libs.robolectric)
-    // Parses the terminal conformance fixtures.
-    testImplementation(libs.gson)
     testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.androidx.test.core)

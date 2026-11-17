@@ -20,7 +20,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
-import android.view.inputmethod.BaseInputConnection
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
 import android.view.inputmethod.InputMethodManager
@@ -63,9 +62,6 @@ class TerminalView @JvmOverloads constructor(
         private val SELECTION_BG = Color.argb(160, 70, 130, 220)
         private const val MIN_COLS = 80
         private const val LONG_PRESS_MS = 400L
-
-        /** Kept at the start of the IME buffer, so a backspace always has something to delete. */
-        private const val SENTINEL = " "
         private const val CURSOR_ON_MS = 600L
         private const val CURSOR_OFF_MS = 300L
         private const val MIN_FONT_SP = 6f
@@ -758,51 +754,14 @@ class TerminalView @JvmOverloads constructor(
     override fun onCreateInputConnection(outAttrs: EditorInfo): InputConnection {
         outAttrs.inputType = InputType.TYPE_NULL
         outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN or EditorInfo.IME_FLAG_NO_EXTRACT_UI
-        return TerminalInputConnection().also { it.resetToSentinel() }
+        return TerminalInputConnection(
+            view = this,
+            send = { bytes -> onKeyInput?.invoke(bytes) },
+            bracketedPaste = { buffer.bracketedPasteMode },
+            keyBytes = ::keyBytes,
+        ).also { it.resetToSentinel() }
     }
 
     private fun keyBytes(event: KeyEvent): ByteArray? =
         KeyEncoder.key(event.keyCode, event.unicodeChar, buffer.appCursorKeys)
-
-    private inner class TerminalInputConnection : BaseInputConnection(this@TerminalView, true) {
-
-        internal fun resetToSentinel() {
-            val e = editable ?: return
-            e.replace(0, e.length, SENTINEL)
-            android.text.Selection.setSelection(e, SENTINEL.length)
-        }
-
-        override fun commitText(text: CharSequence?, newCursorPosition: Int): Boolean {
-            super.commitText(text, newCursorPosition)
-            val str = editable?.toString()?.removePrefix(SENTINEL) ?: return true
-            if (str.isNotEmpty()) onKeyInput?.invoke(KeyEncoder.text(str, buffer.bracketedPasteMode))
-            resetToSentinel()
-            return true
-        }
-
-        override fun finishComposingText(): Boolean {
-            super.finishComposingText()
-            val str = editable?.toString()?.removePrefix(SENTINEL) ?: return true
-            if (str.isNotEmpty()) onKeyInput?.invoke(KeyEncoder.text(str, buffer.bracketedPasteMode))
-            resetToSentinel()
-            return true
-        }
-
-        override fun deleteSurroundingText(beforeLength: Int, afterLength: Int): Boolean {
-            repeat(beforeLength.coerceIn(0, 16)) { onKeyInput?.invoke(KeyEncoder.backspace()) }
-            resetToSentinel()
-            return true
-        }
-
-        override fun sendKeyEvent(event: KeyEvent): Boolean {
-            if (event.action == KeyEvent.ACTION_DOWN) {
-                val bytes = keyBytes(event)
-                if (bytes != null) {
-                    onKeyInput?.invoke(bytes)
-                    return true
-                }
-            }
-            return super.sendKeyEvent(event)
-        }
-    }
 }

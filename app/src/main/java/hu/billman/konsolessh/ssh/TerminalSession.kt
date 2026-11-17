@@ -1,7 +1,6 @@
 package hu.billman.konsolessh.ssh
 
 import hu.billman.konsolessh.model.ConnectionConfig
-import java.io.InputStream
 
 /**
  * An interactive shell session. [SshSession] is the real one; the
@@ -20,14 +19,8 @@ interface TerminalSession {
 
     fun resize(cols: Int, rows: Int)
 
-    suspend fun upload(
-        input: InputStream,
-        remoteName: String,
-        size: Long,
-        onProgress: (transferred: Long, total: Long) -> Unit,
-    )
-
-    suspend fun deleteRemote(path: String)
+    /** File transfer over the same connection; null if this session has none. */
+    val fileTransfer: FileTransfer? get() = null
 
     fun disconnect()
 }

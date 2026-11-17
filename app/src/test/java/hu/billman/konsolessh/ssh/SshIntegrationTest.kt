@@ -208,11 +208,12 @@ class SshIntegrationTest {
         connect(s)
         val payload = ByteArray(PAYLOAD_SIZE) { (it % 251).toByte() }
         val progress = CopyOnWriteArrayList<Long>()
-        s.upload(ByteArrayInputStream(payload), "payload.bin", payload.size.toLong()) { done, _ -> progress += done }
+        val upload = ByteArrayInputStream(payload)
+        s.fileTransfer.upload(upload, "payload.bin", payload.size.toLong()) { done, _ -> progress += done }
         val stored = File(servers.uploadDir, "payload.bin")
         assertTrue(stored.readBytes().contentEquals(payload))
         assertEquals(payload.size.toLong(), progress.last())
-        s.deleteRemote("payload.bin")
+        s.fileTransfer.deleteRemote("payload.bin")
         assertFalse(stored.exists())
         s.disconnect()
         assertNothingLeft()

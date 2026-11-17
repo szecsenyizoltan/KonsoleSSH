@@ -1,9 +1,7 @@
 package hu.billman.konsolessh.ssh
 
-import com.jcraft.jsch.ChannelSftp
 import com.jcraft.jsch.ChannelShell
 import com.jcraft.jsch.Session
-import com.jcraft.jsch.SftpProgressMonitor
 import com.jcraft.jsch.UIKeyboardInteractive
 import com.jcraft.jsch.UserInfo
 import hu.billman.konsolessh.model.ConnectionConfig
@@ -77,6 +75,8 @@ class SshSession(
     private val writer: ExecutorService = Executors.newSingleThreadExecutor { r ->
         Thread(r, "ssh-write").apply { isDaemon = true }
     }
+
+    override val fileTransfer: FileTransfer = SftpTransfer { jschSession }
 
     override val isConnected: Boolean
         get() = jschSession?.isConnected == true && shellChannel?.isConnected == true
@@ -153,51 +153,6 @@ class SshSession(
         if (writer.isShutdown) return
         writer.execute {
             runCatching { shellChannel?.setPtySize(cols, rows, cols * CELL_W_PX, rows * CELL_H_PX) }
-        }
-    }
-
-    /**
-     * Upload a file over SFTP into the user's home directory. [size] scales the
-     * progress when the server does not report the length; negative = unknown.
-     */
-    override suspend fun upload(
-        input: InputStream,
-        remoteName: String,
-        size: Long,
-        onProgress: (transferred: Long, total: Long) -> Unit,
-    ) = withSftp { sftp ->
-        val monitor = object : SftpProgressMonitor {
-            private var total: Long = size.coerceAtLeast(0L)
-            private var transferred: Long = 0L
-            override fun init(op: Int, src: String?, dest: String?, max: Long) {
-                if (max > 0) total = max
-                transferred = 0L
-                onProgress(transferred, total)
-            }
-            override fun count(count: Long): Boolean {
-                transferred += count
-                onProgress(transferred, total)
-                return true
-            }
-            override fun end() {
-                if (total <= 0L) total = transferred
-                onProgress(total, total)
-            }
-        }
-        sftp.put(input, remoteName, monitor, ChannelSftp.OVERWRITE)
-    }
-
-    /** Delete a file on the remote side via SFTP; the path is relative to the SFTP home. */
-    override suspend fun deleteRemote(path: String) = withSftp { it.rm(path) }
-
-    private suspend fun withSftp(block: (ChannelSftp) -> Unit) = withContext(Dispatchers.IO) {
-        val session = jschSession ?: error("SSH session is not connected")
-        val sftp = session.openChannel("sftp") as ChannelSftp
-        sftp.connect(SHELL_CONNECT_TIMEOUT_MS)
-        try {
-            block(sftp)
-        } finally {
-            runCatching { sftp.disconnect() }
         }
     }
 

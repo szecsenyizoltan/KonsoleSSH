@@ -1,6 +1,7 @@
 package hu.billman.konsolessh
 
 import com.jcraft.jsch.JSchException
+import hu.billman.konsolessh.ssh.FileTransfer
 import hu.billman.konsolessh.ssh.HostKeyPrompt
 import hu.billman.konsolessh.ssh.SessionPrompter
 import hu.billman.konsolessh.ssh.TerminalSession
@@ -51,13 +52,20 @@ class FakeTerminalSession(private val prompter: SessionPrompter) : TerminalSessi
 
     override fun resize(cols: Int, rows: Int) = Unit
 
-    override suspend fun upload(input: InputStream, remoteName: String, size: Long, onProgress: (Long, Long) -> Unit) {
-        onProgress(0, size)
-        uploadGate?.await()
-        uploaded.add(remoteName)
-    }
+    override val fileTransfer: FileTransfer = object : FileTransfer {
+        override suspend fun upload(
+            input: InputStream,
+            remoteName: String,
+            size: Long,
+            onProgress: (Long, Long) -> Unit,
+        ) {
+            onProgress(0, size)
+            uploadGate?.await()
+            uploaded.add(remoteName)
+        }
 
-    override suspend fun deleteRemote(path: String) = Unit
+        override suspend fun deleteRemote(path: String) = Unit
+    }
 
     override fun disconnect() {
         closed = true

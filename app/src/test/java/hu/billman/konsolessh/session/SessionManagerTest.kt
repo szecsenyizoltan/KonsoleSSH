@@ -17,7 +17,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.io.InputStream
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 
@@ -69,13 +68,6 @@ class SessionManagerTest {
         }
 
         override fun resize(cols: Int, rows: Int) = Unit
-        override suspend fun upload(
-            input: InputStream,
-            remoteName: String,
-            size: Long,
-            onProgress: (Long, Long) -> Unit,
-        ) = Unit
-        override suspend fun deleteRemote(path: String) = Unit
 
         override fun disconnect() {
             disconnected = true

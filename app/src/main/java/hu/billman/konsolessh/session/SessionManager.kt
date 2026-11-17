@@ -2,6 +2,7 @@ package hu.billman.konsolessh.session
 
 import hu.billman.konsolessh.data.ConnectionRepository
 import hu.billman.konsolessh.model.ConnectionConfig
+import hu.billman.konsolessh.ssh.FileTransfer
 import hu.billman.konsolessh.ssh.JumpChain
 import hu.billman.konsolessh.ssh.SshError
 import hu.billman.konsolessh.ssh.SshErrorClassifier
@@ -176,13 +177,14 @@ class SessionManager(
         remoteName: String,
         size: Long,
         onProgress: (transferred: Long, total: Long) -> Unit,
-    ) = connectedSession(tabId).upload(input, remoteName, size, onProgress)
+    ) = fileTransfer(tabId).upload(input, remoteName, size, onProgress)
 
-    suspend fun deleteRemote(tabId: String, path: String) = connectedSession(tabId).deleteRemote(path)
+    suspend fun deleteRemote(tabId: String, path: String) = fileTransfer(tabId).deleteRemote(path)
 
-    private fun connectedSession(tabId: String): TerminalSession =
-        runtimes[tabId]?.session?.takeIf { it.isConnected }
-            ?: error("tab $tabId is not connected")
+    private fun fileTransfer(tabId: String): FileTransfer {
+        val session = runtimes[tabId]?.session?.takeIf { it.isConnected } ?: error("tab $tabId is not connected")
+        return session.fileTransfer ?: error("tab $tabId has no file transfer")
+    }
 
     // Append and emit under one lock, so chunk positions reach collectors in order.
     private fun emit(runtime: Runtime, text: String) = emit(runtime, text.toByteArray(Charsets.UTF_8))

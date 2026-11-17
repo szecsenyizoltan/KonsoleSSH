@@ -1,5 +1,6 @@
 package hu.billman.konsolessh.sync
 
+import hu.billman.konsolessh.data.StoredConnectionSerializer
 import hu.billman.konsolessh.model.ConnectionConfig
 import kotlinx.serialization.json.Json
 
@@ -42,7 +43,7 @@ object SyncMerge {
 
     private val json = Json { encodeDefaults = true }
 
-    private fun canonical(c: ConnectionConfig): String = json.encodeToString(ConnectionConfig.serializer(), c)
+    private fun canonical(c: ConnectionConfig): String = json.encodeToString(StoredConnectionSerializer, c)
 
     private fun newerKey(x: SyncedHostKey, y: SyncedHostKey): SyncedHostKey = when {
         y.at > x.at -> y

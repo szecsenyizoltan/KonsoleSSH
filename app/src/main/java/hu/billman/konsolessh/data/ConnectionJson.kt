@@ -27,7 +27,7 @@ internal object ConnectionJson {
         encodeDefaults = true
     }
 
-    private val listSerializer = ListSerializer(ConnectionConfig.serializer())
+    private val listSerializer = ListSerializer(StoredConnectionSerializer)
 
     fun encode(connections: List<ConnectionConfig>): String = json.encodeToString(listSerializer, connections)
 

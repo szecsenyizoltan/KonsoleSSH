@@ -1,7 +1,12 @@
+// The connections are written in the store's own format.
+@file:UseSerializers(StoredConnectionSerializer::class)
+
 package hu.billman.konsolessh.sync
 
+import hu.billman.konsolessh.data.StoredConnectionSerializer
 import hu.billman.konsolessh.model.ConnectionConfig
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
 import kotlinx.serialization.json.Json
 
 /**

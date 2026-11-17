@@ -136,6 +136,17 @@ GPL-3.0-or-later; siehe [LICENSE](LICENSE).
 
 ## Versionsgeschichte
 
+- **3.1.0** — der Schlüssel-Upload erzeugt einen Ed25519-Schlüssel, wenn der
+  Server ihn akzeptiert (OpenSSH 6.5 oder neuer, Dropbear 2020.79 oder neuer),
+  sonst RSA-3072, und der Bildschirm friert beim Erzeugen des Schlüssels nicht
+  mehr ein. Eine Verbindung meldet sich nur noch mit der für sie gewählten
+  Anmeldemethode an, und das Formular speichert nur deren Geheimnis;
+  bestehende Verbindungen funktionieren weiter. Fehlgeschlagene Uploads und
+  Rückgängig-Aktionen sowie unlesbare oder zu große Schlüsseldateien werden in
+  der Sprache der App gemeldet. Host-Keys und der Synchronisierungsschlüssel
+  werden so geschrieben, dass ein Stromausfall keine leere Datei hinterlassen
+  kann, und eine aus einem Cloud-Speicher gewählte Schlüsseldatei geht nicht
+  mehr verloren, wenn das Gerät während des Ladens gedreht wird
 - **3.0.0** — eine Hauptversion, weil zwei Dinge entfernt sind. Die
   Verbindungsspeicher von 1.x werden nicht mehr gelesen: Wer von 1.x direkt
   auf 3.0.0 aktualisiert, muss die Verbindungen neu eingeben; die alten

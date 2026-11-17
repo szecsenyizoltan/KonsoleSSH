@@ -136,6 +136,17 @@ GPL-3.0-or-later ; voir [LICENSE](LICENSE).
 
 ## Historique des versions
 
+- **3.1.0** — l'envoi de clé génère une clé Ed25519 quand le serveur l'accepte
+  (OpenSSH 6.5 ou plus récent, Dropbear 2020.79 ou plus récent), sinon une clé
+  RSA-3072, et l'écran ne se fige plus pendant la génération de la clé. Une
+  connexion ne s'authentifie plus qu'avec la méthode choisie pour elle, et le
+  formulaire n'enregistre que le secret de cette méthode ; les connexions
+  existantes continuent de fonctionner. Les envois et annulations qui
+  échouent, ainsi que les fichiers de clé illisibles ou trop volumineux, sont
+  signalés dans la langue de l'app. Les clés d'hôte et la clé de
+  synchronisation sont écrites de sorte qu'une coupure de courant ne puisse
+  pas laisser un fichier vide, et un fichier de clé choisi dans un stockage en
+  ligne n'est plus perdu si l'appareil est tourné pendant son chargement
 - **3.0.0** — une version majeure, car deux choses sont retirées. Les
   stockages de connexions de la 1.x ne sont plus lus : en passant directement
   de la 1.x à la 3.0.0, il faut saisir de nouveau ses connexions, et les

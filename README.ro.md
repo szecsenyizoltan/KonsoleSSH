@@ -136,6 +136,17 @@ GPL-3.0-or-later; vezi [LICENSE](LICENSE).
 
 ## Istoricul versiunilor
 
+- **3.1.0** — încărcarea cheii generează o cheie Ed25519 când serverul o
+  acceptă (OpenSSH 6.5 sau mai nou, Dropbear 2020.79 sau mai nou), altfel
+  RSA-3072, iar ecranul nu mai îngheață cât timp se generează cheia. O
+  conexiune se autentifică doar cu metoda aleasă pentru ea, iar formularul
+  salvează doar secretul acelei metode; conexiunile existente funcționează în
+  continuare. Încărcările și anulările eșuate, precum și fișierele de cheie
+  care nu pot fi citite sau sunt prea mari, sunt semnalate în limba
+  aplicației. Cheile de gazdă și cheia de sincronizare sunt scrise astfel
+  încât o pană de curent să nu poată lăsa un fișier gol, iar un fișier de
+  cheie ales dintr-un spațiu de stocare în cloud nu se mai pierde dacă
+  dispozitivul este rotit în timpul încărcării
 - **3.0.0** — o versiune majoră, pentru că două lucruri sunt eliminate.
   Depozitele de conexiuni din 1.x nu mai sunt citite: cine actualizează direct
   de la 1.x la 3.0.0 trebuie să-și introducă din nou conexiunile, iar

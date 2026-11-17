@@ -136,6 +136,17 @@ GPL-3.0-or-later; ver [LICENSE](LICENSE).
 
 ## Historial de versiones
 
+- **3.1.0** — la subida de claves genera una clave Ed25519 cuando el servidor
+  la acepta (OpenSSH 6.5 o posterior, Dropbear 2020.79 o posterior) y RSA-3072
+  en los demás casos, y la pantalla ya no se congela mientras se genera la
+  clave. Una conexión inicia sesión solo con el método de autenticación
+  elegido para ella, y el formulario guarda solo el secreto de ese método; las
+  conexiones existentes siguen funcionando. Las subidas y los deshacer
+  fallidos, y los archivos de clave ilegibles o demasiado grandes, se
+  notifican en el idioma de la app. Las claves de host y la clave de
+  sincronización se escriben de modo que un corte de luz no pueda dejar un
+  archivo vacío, y un archivo de clave elegido desde el almacenamiento en la
+  nube ya no se pierde si se gira el dispositivo mientras se carga
 - **3.0.0** — una versión mayor, porque se eliminan dos cosas. Los almacenes
   de conexiones de 1.x ya no se leen: quien actualiza de 1.x directamente a
   3.0.0 tiene que volver a introducir sus conexiones, y los archivos antiguos

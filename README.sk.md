@@ -136,6 +136,15 @@ GPL-3.0-or-later; pozri [LICENSE](LICENSE).
 
 ## História verzií
 
+- **3.1.0** — nahratie kľúča vygeneruje kľúč Ed25519, ak ho server prijíma
+  (OpenSSH 6.5 alebo novší, Dropbear 2020.79 alebo novší), inak RSA-3072, a
+  obrazovka počas generovania kľúča už nezamrzne. Pripojenie sa prihlasuje už
+  len metódou overenia, ktorá je preň zvolená, a formulár ukladá len tajomstvo
+  tejto metódy; existujúce pripojenia fungujú ďalej. Neúspešné nahratie a jeho
+  vrátenie, ako aj nečitateľné alebo príliš veľké súbory kľúčov, sa hlásia v
+  jazyku aplikácie. Kľúče hostiteľa a kľúč synchronizácie sa zapisujú tak, aby
+  výpadok prúdu nemohol zanechať prázdny súbor, a súbor kľúča vybraný z
+  cloudového úložiska sa už nestratí, ak sa zariadenie počas načítania otočí
 - **3.0.0** — hlavná verzia, pretože sa odstraňujú dve veci. Úložiská
   pripojení z 1.x sa už nečítajú: kto aktualizuje z 1.x priamo na 3.0.0, musí
   pripojenia zadať znova a staré súbory sa odstránia. Dialóg hlásenia o chybe

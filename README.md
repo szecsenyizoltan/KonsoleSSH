@@ -137,6 +137,15 @@ GPL-3.0-or-later; see [LICENSE](LICENSE).
 
 ## Release history
 
+- **3.1.0** — key upload generates an Ed25519 key when the server accepts it
+  (OpenSSH 6.5 or later, Dropbear 2020.79 or later) and RSA-3072 otherwise,
+  and the screen no longer freezes while the key is generated. A connection
+  now logs in only with the authentication method chosen for it, and the form
+  saves only that method's secret; existing connections keep working. Failed
+  uploads and undos, and key files that cannot be read or are too large, are
+  reported in the app's language. Host keys and the sync key are written so
+  that a power cut cannot leave an empty file, and a key file picked from
+  cloud storage is no longer lost if the device is rotated while it loads
 - **3.0.0** — a major release, because two things are removed. The connection
   stores of 1.x are no longer read: updating from 1.x straight to 3.0.0 means
   entering the connections again, and the old files are deleted. The problem

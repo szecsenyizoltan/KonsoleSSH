@@ -136,6 +136,15 @@ GPL-3.0-or-later; lásd [LICENSE](LICENSE).
 
 ## Verziótörténet
 
+- **3.1.0** — a kulcsfeltöltés Ed25519 kulcsot generál, ha a szerver elfogadja
+  (OpenSSH 6.5 vagy újabb, Dropbear 2020.79 vagy újabb), egyébként RSA-3072-t,
+  és a kulcs generálása közben már nem fagy meg a képernyő. A kapcsolat már
+  csak a hozzá választott hitelesítési móddal lép be, és az űrlap csak annak a
+  módnak a titkát menti; a meglévő kapcsolatok változatlanul működnek. A
+  sikertelen feltöltést és visszavonást, valamint az olvashatatlan vagy túl
+  nagy kulcsfájlt az alkalmazás nyelvén jelzi. A host keyek és a szinkronkulcs
+  írása áramszünet esetén sem hagy üres fájlt, és a felhőtárhelyről választott
+  kulcsfájl nem vész el, ha betöltés közben elforgatják a készüléket
 - **3.0.0** — főverzió, mert két dolog kikerült. Az 1.x verziók
   kapcsolattárait az alkalmazás már nem olvassa: aki 1.x-ről közvetlenül a
   3.0.0-ra frissít, annak újra fel kell vennie a kapcsolatait, a régi fájlokat

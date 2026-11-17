@@ -18,6 +18,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import hu.billman.konsolessh.ui.NewConnectionViewModel.KeyFileProblem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -93,18 +94,18 @@ private suspend fun readKeyFile(resolver: ContentResolver, uri: Uri, viewModel: 
     if (uri.path.orEmpty().lowercase().endsWith(".pub")) viewModel.publicKeyPicked()
     try {
         // A document provider (e.g. a cloud drive) may block, so the read runs off the main thread.
-        val content = withContext(Dispatchers.IO) {
-            resolver.openInputStream(uri)?.use { stream ->
-                val bytes = stream.readAtMost(MAX_KEY_FILE_BYTES + 1)
-                if (bytes.size > MAX_KEY_FILE_BYTES) throw IOException("file is too large for a key")
-                String(bytes, Charsets.UTF_8)
-            }
+        val bytes = withContext(Dispatchers.IO) {
+            resolver.openInputStream(uri)?.use { it.readAtMost(MAX_KEY_FILE_BYTES + 1) }
         }
-        if (content != null) viewModel.setPrivateKey(content)
+        when {
+            bytes == null -> Unit
+            bytes.size > MAX_KEY_FILE_BYTES -> viewModel.keyFileUnreadable(KeyFileProblem.TOO_LARGE)
+            else -> viewModel.setPrivateKey(String(bytes, Charsets.UTF_8))
+        }
     } catch (e: IOException) {
-        viewModel.keyFileUnreadable(e.message.orEmpty())
+        viewModel.keyFileUnreadable(KeyFileProblem.UNREADABLE)
     } catch (e: SecurityException) {
-        viewModel.keyFileUnreadable(e.message.orEmpty())
+        viewModel.keyFileUnreadable(KeyFileProblem.UNREADABLE)
     }
 }
 

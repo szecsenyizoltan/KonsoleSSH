@@ -59,7 +59,8 @@
 
     <!-- Validation / warnings -->
     <string name="warning_public_key">Atenție: aceasta este o cheie publică (.pub). Este necesară cheia privată.</string>
-    <string name="error_read_file">Nu s-a putut citi: %1$s</string>
+    <string name="error_key_file_unreadable">Fișierul cheii nu a putut fi citit.</string>
+    <string name="error_key_file_too_large">Fișierul este prea mare pentru a fi o cheie privată.</string>
     <string name="error_host_required">Adresa serverului este necesară</string>
     <string name="error_username_required">Numele de utilizator este necesar</string>
 

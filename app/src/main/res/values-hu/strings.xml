@@ -59,7 +59,8 @@
 
     <!-- Validation / warnings -->
     <string name="warning_public_key">Figyelem: Ez egy nyilvános kulcs (.pub). A privát kulcsra van szükség.</string>
-    <string name="error_read_file">Nem sikerült beolvasni: %1$s</string>
+    <string name="error_key_file_unreadable">A kulcsfájl nem olvasható.</string>
+    <string name="error_key_file_too_large">A fájl túl nagy ahhoz, hogy privát kulcs legyen.</string>
     <string name="error_host_required">Szerver cím szükséges</string>
     <string name="error_username_required">Felhasználónév szükséges</string>
 

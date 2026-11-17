@@ -60,6 +60,7 @@ import hu.billman.konsolessh.ssh.SshError
 import hu.billman.konsolessh.ui.NewConnectionViewModel.FormState
 import hu.billman.konsolessh.ui.NewConnectionViewModel.InvalidReason
 import hu.billman.konsolessh.ui.NewConnectionViewModel.KeyDialog
+import hu.billman.konsolessh.ui.NewConnectionViewModel.KeyFileProblem
 import hu.billman.konsolessh.ui.NewConnectionViewModel.Message
 import hu.billman.konsolessh.ui.NewConnectionViewModel.Status
 import hu.billman.konsolessh.ui.theme.KonsoleColors
@@ -343,7 +344,12 @@ private fun messageText(message: Message, errorText: (SshError) -> String): Stri
     Message.StoreWriteFailed -> stringResource(R.string.err_store_write)
     Message.NeedsTest -> stringResource(R.string.generate_needs_test)
     is Message.KeyGenerationFailed -> stringResource(R.string.error_generic, errorText(message.error))
-    is Message.KeyFileUnreadable -> stringResource(R.string.error_read_file, message.reason)
+    is Message.KeyFileUnreadable -> stringResource(
+        when (message.problem) {
+            KeyFileProblem.UNREADABLE -> R.string.error_key_file_unreadable
+            KeyFileProblem.TOO_LARGE -> R.string.error_key_file_too_large
+        },
+    )
     Message.PublicKeyPicked -> stringResource(R.string.warning_public_key)
 }
 

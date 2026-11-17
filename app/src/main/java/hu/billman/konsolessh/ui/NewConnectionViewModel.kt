@@ -59,6 +59,8 @@ class NewConnectionViewModel(
         data object StoreUnreadable : Status
     }
 
+    enum class KeyFileProblem { UNREADABLE, TOO_LARGE }
+
     enum class InvalidReason { NEEDS_HOST_AND_USER, NEEDS_PRIVATE_KEY, NEEDS_PASSWORD }
 
     /** Short one-time notices. */
@@ -68,7 +70,7 @@ class NewConnectionViewModel(
         data object StoreWriteFailed : Message
         data object NeedsTest : Message
         data class KeyGenerationFailed(val error: SshError) : Message
-        data class KeyFileUnreadable(val reason: String) : Message
+        data class KeyFileUnreadable(val problem: KeyFileProblem) : Message
 
         /** The picked file looks like a public key, which cannot log in. */
         data object PublicKeyPicked : Message
@@ -193,8 +195,8 @@ class NewConnectionViewModel(
 
     fun setPrivateKey(value: String) = _form.update { it.copy(privateKey = value) }
 
-    fun keyFileUnreadable(reason: String) {
-        _message.value = Message.KeyFileUnreadable(reason)
+    fun keyFileUnreadable(problem: KeyFileProblem) {
+        _message.value = Message.KeyFileUnreadable(problem)
     }
 
     fun publicKeyPicked() {

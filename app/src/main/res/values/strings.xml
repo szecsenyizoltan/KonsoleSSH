@@ -59,7 +59,8 @@
 
     <!-- Validation / warnings -->
     <string name="warning_public_key">Warning: this is a public key (.pub). A private key is required.</string>
-    <string name="error_read_file">Could not read: %1$s</string>
+    <string name="error_key_file_unreadable">The key file could not be read.</string>
+    <string name="error_key_file_too_large">The file is too large to be a private key.</string>
     <string name="error_host_required">Server address required</string>
     <string name="error_username_required">Username required</string>
 

@@ -59,7 +59,8 @@
 
     <!-- Validation / warnings -->
     <string name="warning_public_key">Achtung: Dies ist ein öffentlicher Schlüssel (.pub). Benötigt wird der private Schlüssel.</string>
-    <string name="error_read_file">Konnte nicht gelesen werden: %1$s</string>
+    <string name="error_key_file_unreadable">Die Schlüsseldatei konnte nicht gelesen werden.</string>
+    <string name="error_key_file_too_large">Die Datei ist zu groß für einen privaten Schlüssel.</string>
     <string name="error_host_required">Server-Adresse erforderlich</string>
     <string name="error_username_required">Benutzername erforderlich</string>
 

@@ -59,7 +59,8 @@
 
     <!-- Validation / warnings -->
     <string name="warning_public_key">Pozor: toto je verejný kľúč (.pub). Potrebný je súkromný kľúč.</string>
-    <string name="error_read_file">Nedá sa prečítať: %1$s</string>
+    <string name="error_key_file_unreadable">Súbor s kľúčom sa nedá prečítať.</string>
+    <string name="error_key_file_too_large">Súbor je príliš veľký na súkromný kľúč.</string>
     <string name="error_host_required">Adresa servera je povinná</string>
     <string name="error_username_required">Meno používateľa je povinné</string>
 

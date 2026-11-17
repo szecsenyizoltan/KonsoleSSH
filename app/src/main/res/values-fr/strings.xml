@@ -59,7 +59,8 @@
 
     <!-- Validation / warnings -->
     <string name="warning_public_key">Attention : il s\'agit d\'une clé publique (.pub). La clé privée est requise.</string>
-    <string name="error_read_file">Lecture impossible : %1$s</string>
+    <string name="error_key_file_unreadable">Le fichier de clé est illisible.</string>
+    <string name="error_key_file_too_large">Le fichier est trop volumineux pour être une clé privée.</string>
     <string name="error_host_required">Adresse du serveur requise</string>
     <string name="error_username_required">Nom d\'utilisateur requis</string>
 

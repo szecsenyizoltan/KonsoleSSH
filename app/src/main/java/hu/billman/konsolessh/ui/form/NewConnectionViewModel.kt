@@ -10,13 +10,9 @@ import hu.billman.konsolessh.model.ConnectionConfig.Jump
 import hu.billman.konsolessh.session.PendingPrompt
 import hu.billman.konsolessh.session.PromptAnswer
 import hu.billman.konsolessh.session.PromptBroker
-import hu.billman.konsolessh.ssh.JumpChain
-import hu.billman.konsolessh.ssh.KeyGenerationException
+import hu.billman.konsolessh.ssh.ConnectionSetup
 import hu.billman.konsolessh.ssh.SshError
-import hu.billman.konsolessh.ssh.SshErrorClassifier
-import hu.billman.konsolessh.ssh.SshKeyFactory
 import hu.billman.konsolessh.ssh.SshKeyProvisioner
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,8 +37,7 @@ import java.util.UUID
  */
 class NewConnectionViewModel(
     private val repository: ConnectionRepository,
-    private val provisioner: SshKeyProvisioner,
-    private val keyFactory: SshKeyFactory,
+    private val setup: ConnectionSetup,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : ViewModel() {
 
@@ -274,7 +269,10 @@ class NewConnectionViewModel(
         val tested = form.credentials()
         val isPasswordTest = !form.usesKey
         runOperation(Status.Testing) {
-            val status = testConnection(config)
+            val status = when (val result = setup.test(config, broker)) {
+                is ConnectionSetup.TestResult.Succeeded -> Status.TestSucceeded(result.serverVersion)
+                is ConnectionSetup.TestResult.Failed -> Status.TestFailed(result.error)
+            }
             _form.update {
                 when (status) {
                     is Status.TestSucceeded -> it.copy(
@@ -298,12 +296,12 @@ class NewConnectionViewModel(
         val config = form.copy(authType = AuthMethod.PASSWORD).toConfig()
         val previousStatus = form.status
         runOperation(Status.Uploading) {
-            when (val result = generateAndUploadKey(config, tested.serverVersion)) {
-                is UploadResult.KeyGenerationFailure -> {
+            when (val result = setup.installNewKey(config, tested.serverVersion, broker)) {
+                is ConnectionSetup.KeyResult.GenerationFailed -> {
                     _form.update { it.copy(status = previousStatus) }
                     _message.value = Message.KeyGenerationFailed(result.error)
                 }
-                is UploadResult.Success -> {
+                is ConnectionSetup.KeyResult.Installed -> {
                     // The password is replaced by the key, so the earlier test no longer applies.
                     _form.update {
                         it.copy(
@@ -316,7 +314,7 @@ class NewConnectionViewModel(
                     }
                     _keyDialog.value = KeyDialog.Uploaded(result.publicLine)
                 }
-                is UploadResult.UploadFailure -> {
+                is ConnectionSetup.KeyResult.UploadFailed -> {
                     // The test still holds, so the user can retry.
                     _form.update { it.copy(status = Status.UploadFailed(result.error), passwordTest = tested) }
                     _keyDialog.value = KeyDialog.ManualFallback(result.publicLine)
@@ -385,48 +383,6 @@ class NewConnectionViewModel(
             true
         } catch (e: ConnectionStoreException) {
             false
-        }
-    }
-
-    private suspend fun testConnection(config: ConnectionConfig): Status = try {
-        val jumps = JumpChain.resolve(config, repository)
-        val outcome = provisioner.testConnection(config, jumps, broker)
-        Status.TestSucceeded(outcome.serverVersion)
-    } catch (e: CancellationException) {
-        throw e
-    } catch (e: Exception) {
-        Status.TestFailed(SshErrorClassifier.classify(e))
-    }
-
-    private sealed interface UploadResult {
-        data class Success(
-            val serverType: SshKeyProvisioner.ServerType,
-            val privatePem: String,
-            val publicLine: String,
-        ) : UploadResult
-
-        /** Generating the key failed; nothing was uploaded. */
-        data class KeyGenerationFailure(val error: SshError) : UploadResult
-
-        /** The key exists but the upload failed; the public line is offered for a manual install. */
-        data class UploadFailure(val error: SshError, val publicLine: String) : UploadResult
-    }
-
-    /** A local key pair for the tested server, its public half appended to authorized_keys. */
-    private suspend fun generateAndUploadKey(config: ConnectionConfig, serverVersion: String): UploadResult {
-        val generated = try {
-            keyFactory.generateFor(serverVersion, comment = "konsolessh:${config.username}@${config.host}")
-        } catch (e: KeyGenerationException) {
-            return UploadResult.KeyGenerationFailure(SshErrorClassifier.classify(e))
-        }
-        return try {
-            val jumps = JumpChain.resolve(config, repository)
-            val serverType = provisioner.uploadPublicKey(config, jumps, generated.publicLine, broker)
-            UploadResult.Success(serverType, generated.privatePem, generated.publicLine)
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            UploadResult.UploadFailure(SshErrorClassifier.classify(e), generated.publicLine)
         }
     }
 

@@ -4,6 +4,7 @@ import hu.billman.konsolessh.data.FakeConnectionRepository
 import hu.billman.konsolessh.model.ConnectionConfig
 import hu.billman.konsolessh.model.ConnectionConfig.Auth
 import hu.billman.konsolessh.model.ConnectionConfig.Jump
+import hu.billman.konsolessh.ssh.ConnectionSetup
 import hu.billman.konsolessh.ssh.GeneratedKey
 import hu.billman.konsolessh.ssh.KeyGenerationException
 import hu.billman.konsolessh.ssh.SshKeyFactory
@@ -53,7 +54,7 @@ class NewConnectionViewModelTest {
     private fun vm(
         vararg stored: ConnectionConfig,
         repo: FakeConnectionRepository = FakeConnectionRepository(stored.toList()),
-    ) = NewConnectionViewModel(repo, provisioner, keyFactory, UnconfinedTestDispatcher())
+    ) = NewConnectionViewModel(repo, ConnectionSetup(repo, provisioner, keyFactory), UnconfinedTestDispatcher())
 
     private fun NewConnectionViewModel.fill(host: String = "203.0.113.5", password: String = "pw") {
         setHost(host)

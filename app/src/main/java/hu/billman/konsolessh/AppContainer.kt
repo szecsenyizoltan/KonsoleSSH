@@ -10,7 +10,9 @@ import hu.billman.konsolessh.data.ProblemReportLeftovers
 import hu.billman.konsolessh.data.SettingsRepository
 import hu.billman.konsolessh.session.SessionManager
 import hu.billman.konsolessh.session.TerminalMessages
+import hu.billman.konsolessh.ssh.ConnectionSetup
 import hu.billman.konsolessh.ssh.HostKeyStore
+import hu.billman.konsolessh.ssh.SshKeyGenerator
 import hu.billman.konsolessh.ssh.SshKeyProvisioner
 import hu.billman.konsolessh.ssh.SshSession
 import hu.billman.konsolessh.ssh.TerminalSessionFactory
@@ -94,7 +96,9 @@ class AppContainer(
     /** The app went to the background: a change still waiting to upload goes now. */
     fun onAppBackground() = syncManager.flush()
 
-    val keyProvisioner: SshKeyProvisioner by lazy { SshKeyProvisioner(hostKeyStore) }
+    val connectionSetup: ConnectionSetup by lazy {
+        ConnectionSetup(connectionRepository, SshKeyProvisioner(hostKeyStore), SshKeyGenerator)
+    }
 
     /** Removes what older versions left on the device and no version reads any more. */
     fun deleteLeftovers() {

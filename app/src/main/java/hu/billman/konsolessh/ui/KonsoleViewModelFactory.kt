@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import hu.billman.konsolessh.AppContainer
-import hu.billman.konsolessh.ssh.SshKeyGenerator
 import hu.billman.konsolessh.ui.connections.ConnectionsViewModel
 import hu.billman.konsolessh.ui.form.NewConnectionViewModel
 import hu.billman.konsolessh.ui.main.MainViewModel
@@ -28,9 +27,7 @@ object KonsoleViewModelFactory {
             )
         }
         initializer { ConnectionsViewModel(container.connectionRepository) }
-        initializer {
-            NewConnectionViewModel(container.connectionRepository, container.keyProvisioner, SshKeyGenerator)
-        }
+        initializer { NewConnectionViewModel(container.connectionRepository, container.connectionSetup) }
         initializer {
             SyncViewModel(container.syncManager, container.settingsRepository, container.connectionRepository)
         }

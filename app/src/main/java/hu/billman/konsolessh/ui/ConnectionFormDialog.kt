@@ -1,7 +1,5 @@
 package hu.billman.konsolessh.ui
 
-import android.content.ContentResolver
-import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
@@ -11,25 +9,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import hu.billman.konsolessh.ui.NewConnectionViewModel.KeyFileProblem
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.io.ByteArrayOutputStream
-import java.io.IOException
-import java.io.InputStream
 
 /**
  * The connection form in a dialog. The form's state and rules live in
- * [NewConnectionViewModel], scoped to this dialog; this function only reads
- * key files and reports the saved connection's id through [onSaved].
+ * [NewConnectionViewModel], scoped to this dialog; this function only opens
+ * the picked key file and reports the saved connection's id through [onSaved].
  */
 @Composable
 fun ConnectionFormDialog(request: FormRequest, onSaved: (String) -> Unit, onDismiss: () -> Unit) {
@@ -43,9 +33,10 @@ fun ConnectionFormDialog(request: FormRequest, onSaved: (String) -> Unit, onDism
     val saved by viewModel.savedId.collectAsStateWithLifecycle()
     LaunchedEffect(saved) { saved?.let(onSaved) }
 
-    val scope = rememberCoroutineScope()
+    // The application's resolver: the ViewModel may still read after the activity is recreated.
+    val resolver = context.applicationContext.contentResolver
     val pickKeyFile = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) scope.launch { readKeyFile(context.contentResolver, uri, viewModel) }
+        if (uri != null) viewModel.loadKeyFile(uri.path.orEmpty()) { resolver.openInputStream(uri) }
     }
 
     // Not fitted to the system windows, so the form can move above the keyboard.
@@ -89,37 +80,3 @@ fun ConnectionFormDialog(request: FormRequest, onSaved: (String) -> Unit, onDism
         }
     }
 }
-
-private suspend fun readKeyFile(resolver: ContentResolver, uri: Uri, viewModel: NewConnectionViewModel) {
-    if (uri.path.orEmpty().lowercase().endsWith(".pub")) viewModel.publicKeyPicked()
-    try {
-        // A document provider (e.g. a cloud drive) may block, so the read runs off the main thread.
-        val bytes = withContext(Dispatchers.IO) {
-            resolver.openInputStream(uri)?.use { it.readAtMost(MAX_KEY_FILE_BYTES + 1) }
-        }
-        when {
-            bytes == null -> Unit
-            bytes.size > MAX_KEY_FILE_BYTES -> viewModel.keyFileUnreadable(KeyFileProblem.TOO_LARGE)
-            else -> viewModel.setPrivateKey(String(bytes, Charsets.UTF_8))
-        }
-    } catch (e: IOException) {
-        viewModel.keyFileUnreadable(KeyFileProblem.UNREADABLE)
-    } catch (e: SecurityException) {
-        viewModel.keyFileUnreadable(KeyFileProblem.UNREADABLE)
-    }
-}
-
-private fun InputStream.readAtMost(limit: Int): ByteArray {
-    val out = ByteArrayOutputStream()
-    val buf = ByteArray(READ_CHUNK)
-    while (out.size() < limit) {
-        val n = read(buf, 0, minOf(buf.size, limit - out.size()))
-        if (n < 0) break
-        out.write(buf, 0, n)
-    }
-    return out.toByteArray()
-}
-
-/** A private key is a few KB; a larger file is certainly not one. */
-private const val MAX_KEY_FILE_BYTES = 64 * 1024
-private const val READ_CHUNK = 8192

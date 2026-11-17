@@ -10,6 +10,7 @@ import hu.billman.konsolessh.ssh.SshKeyProvisioner
 import hu.billman.konsolessh.ssh.SshKeyProvisioner.ServerType
 import hu.billman.konsolessh.ui.NewConnectionViewModel.InvalidReason
 import hu.billman.konsolessh.ui.NewConnectionViewModel.KeyDialog
+import hu.billman.konsolessh.ui.NewConnectionViewModel.KeyFileProblem
 import hu.billman.konsolessh.ui.NewConnectionViewModel.Message
 import hu.billman.konsolessh.ui.NewConnectionViewModel.Status
 import io.mockk.coEvery
@@ -51,7 +52,7 @@ class NewConnectionViewModelTest {
     private fun vm(
         vararg stored: ConnectionConfig,
         repo: FakeConnectionRepository = FakeConnectionRepository(stored.toList()),
-    ) = NewConnectionViewModel(repo, provisioner, keyFactory)
+    ) = NewConnectionViewModel(repo, provisioner, keyFactory, UnconfinedTestDispatcher())
 
     private fun NewConnectionViewModel.fill(host: String = "203.0.113.5", password: String = "pw") {
         setHost(host)
@@ -267,6 +268,35 @@ class NewConnectionViewModelTest {
         vm.generateKey()
 
         assertEquals(listOf("SSH-2.0-ROSSSH"), generatedFor)
+    }
+
+    // ── Key files ─────────────────────────────────────────────────────────────
+
+    @Test
+    fun `a picked key file fills the private key`() {
+        val vm = vm().apply { start(null) }
+        vm.loadKeyFile("/keys/id_ed25519") { FAKE_PRIVATE_KEY.byteInputStream() }
+        assertEquals(FAKE_PRIVATE_KEY, vm.form.value.privateKey)
+        assertNull(vm.message.value)
+    }
+
+    @Test
+    fun `an oversized or unreadable key file is reported, not loaded`() {
+        val vm = vm().apply { start(null) }
+        vm.loadKeyFile("/big") { ByteArray(64 * 1024 + 1).inputStream() }
+        assertEquals(Message.KeyFileUnreadable(KeyFileProblem.TOO_LARGE), vm.message.value)
+
+        vm.loadKeyFile("/denied") { throw SecurityException("no permission") }
+        assertEquals(Message.KeyFileUnreadable(KeyFileProblem.UNREADABLE), vm.message.value)
+        assertEquals("", vm.form.value.privateKey)
+    }
+
+    @Test
+    fun `a public key file is loaded with a warning`() {
+        val vm = vm().apply { start(null) }
+        vm.loadKeyFile("/keys/id_ed25519.PUB") { "ssh-ed25519 AAAA".byteInputStream() }
+        assertEquals(Message.PublicKeyPicked, vm.message.value)
+        assertEquals("ssh-ed25519 AAAA", vm.form.value.privateKey)
     }
 
     // ── Saving ────────────────────────────────────────────────────────────────

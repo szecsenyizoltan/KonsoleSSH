@@ -16,11 +16,17 @@ import hu.billman.konsolessh.ssh.SshErrorClassifier
 import hu.billman.konsolessh.ssh.SshKeyFactory
 import hu.billman.konsolessh.ssh.SshKeyProvisioner
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.io.InputStream
 import java.util.UUID
 
 /**
@@ -36,6 +42,7 @@ class NewConnectionViewModel(
     private val repository: ConnectionRepository,
     private val provisioner: SshKeyProvisioner,
     private val keyFactory: SshKeyFactory,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : ViewModel() {
 
     data class JumpOption(val id: String, val label: String)
@@ -197,12 +204,40 @@ class NewConnectionViewModel(
 
     fun setPrivateKey(value: String) = _form.update { it.copy(privateKey = value) }
 
-    fun keyFileUnreadable(problem: KeyFileProblem) {
-        _message.value = Message.KeyFileUnreadable(problem)
+    /**
+     * Reads a picked key file into the form. [open] runs on an I/O thread,
+     * since a document provider such as a cloud drive may block; it must not
+     * hold on to an activity. [path] only serves to recognise a public key.
+     */
+    fun loadKeyFile(path: String, open: () -> InputStream?) {
+        if (path.lowercase().endsWith(".pub")) _message.value = Message.PublicKeyPicked
+        viewModelScope.launch {
+            val bytes = try {
+                withContext(ioDispatcher) { open()?.use { it.readAtMost(MAX_KEY_FILE_BYTES + 1) } }
+            } catch (e: IOException) {
+                _message.value = Message.KeyFileUnreadable(KeyFileProblem.UNREADABLE)
+                return@launch
+            } catch (e: SecurityException) {
+                _message.value = Message.KeyFileUnreadable(KeyFileProblem.UNREADABLE)
+                return@launch
+            }
+            when {
+                bytes == null -> Unit
+                bytes.size > MAX_KEY_FILE_BYTES -> _message.value = Message.KeyFileUnreadable(KeyFileProblem.TOO_LARGE)
+                else -> setPrivateKey(String(bytes, Charsets.UTF_8))
+            }
+        }
     }
 
-    fun publicKeyPicked() {
-        _message.value = Message.PublicKeyPicked
+    private fun InputStream.readAtMost(limit: Int): ByteArray {
+        val out = ByteArrayOutputStream()
+        val buf = ByteArray(READ_CHUNK)
+        while (out.size() < limit) {
+            val n = read(buf, 0, minOf(buf.size, limit - out.size()))
+            if (n < 0) break
+            out.write(buf, 0, n)
+        }
+        return out.toByteArray()
     }
 
     fun selectJump(id: String?) = _form.update { it.copy(jumpId = id) }
@@ -405,5 +440,9 @@ class NewConnectionViewModel(
     private companion object {
         const val DEFAULT_PORT = 22
         const val MAX_PORT = 65535
+
+        /** A private key is a few KB; a larger file is certainly not one. */
+        const val MAX_KEY_FILE_BYTES = 64 * 1024
+        const val READ_CHUNK = 8192
     }
 }

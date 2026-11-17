@@ -133,11 +133,7 @@ class TerminalView @JvmOverloads constructor(
 
     // ── Text selection ───────────────────────────────────────────────────────
 
-    private var selActive = false
-    private var selStartLine = 0
-    private var selStartCol = 0
-    private var selEndLine = 0
-    private var selEndCol = 0
+    private val selection = TerminalSelection()
     private var selActionMode: ActionMode? = null
 
     private var lpX = 0f
@@ -278,7 +274,7 @@ class TerminalView @JvmOverloads constructor(
             cursorRow = buffer.cursorRow,
             cursorCol = buffer.cursorCol,
             showCursor = !buffer.cursorHidden && scrollRowOff == 0 && cursorOn,
-            selection = if (selActive) normalizedSel() else null,
+            selection = if (selection.active) selection.bounds() else null,
         )
         val firstLine = computeFirstLine()
         for (r in 0 until buffer.rows) {
@@ -313,7 +309,7 @@ class TerminalView @JvmOverloads constructor(
         val fg = (if (cell.reverse) cell.bg.argb else cell.fg.argb).let { if (cell.dim) halfway(it, bg) else it }
         val isCursor = c == cursorCol
         val effectiveBg = when {
-            selection != null && isInSelection(selection, lineIdx, c) -> SELECTION_BG
+            selection != null && TerminalSelection.contains(selection, lineIdx, c) -> SELECTION_BG
             isCursor -> fg
             else -> bg
         }
@@ -473,11 +469,7 @@ class TerminalView @JvmOverloads constructor(
 
     private fun startSelectionAt(x: Float, y: Float) {
         val (line, col) = touchToLineCol(x, y)
-        selStartLine = line
-        selStartCol = col
-        selEndLine = line
-        selEndCol = col
-        selActive = true
+        selection.start(line, col)
         parent?.requestDisallowInterceptTouchEvent(true)
         invalidate()
         selActionMode?.finish()
@@ -485,56 +477,11 @@ class TerminalView @JvmOverloads constructor(
     }
 
     private fun clearSelection() {
-        selActive = false
+        selection.clear()
         invalidate()
     }
 
-    private fun normalizedSel(): IntArray {
-        val fwd = selStartLine < selEndLine ||
-            (selStartLine == selEndLine && selStartCol <= selEndCol)
-        return if (fwd) {
-            intArrayOf(selStartLine, selStartCol, selEndLine, selEndCol)
-        } else {
-            intArrayOf(selEndLine, selEndCol, selStartLine, selStartCol)
-        }
-    }
-
-    private fun isInSelection(ns: IntArray, lineIdx: Int, col: Int): Boolean {
-        val sl = ns[0]
-        val sc = ns[1]
-        val el = ns[2]
-        val ec = ns[3]
-        return when {
-            lineIdx < sl || lineIdx > el -> false
-            lineIdx == sl && lineIdx == el -> col in sc..ec
-            lineIdx == sl -> col >= sc
-            lineIdx == el -> col <= ec
-            else -> true
-        }
-    }
-
-    private fun buildSelectedText(): String = buffer.withLock { selectedTextLocked() }
-
-    private fun selectedTextLocked(): String {
-        if (!selActive) return ""
-        val ns = normalizedSel()
-        val sl = ns[0]
-        val sc = ns[1]
-        val el = ns[2]
-        val ec = ns[3]
-        val sb = StringBuilder()
-        val cols = buffer.cols
-        for (li in sl..el) {
-            val row = buffer.lineAt(li) ?: continue
-            val from = if (li == sl) sc else 0
-            val to = if (li == el) ec else cols - 1
-            var line = ""
-            for (c in from..to.coerceAtMost(row.size - 1)) line += row[c].ch // WIDE_TAIL is ""
-            sb.append(line.trimEnd())
-            if (li < el) sb.append('\n')
-        }
-        return sb.toString()
-    }
+    private fun buildSelectedText(): String = buffer.withLock { selection.text(buffer.cols, buffer::lineAt) }
 
     private fun copyToClipboard() {
         val text = buildSelectedText()
@@ -598,8 +545,8 @@ class TerminalView @JvmOverloads constructor(
 
         override fun onGetContentRect(mode: ActionMode, view: View, outRect: Rect) {
             val fl = computeFirstLine()
-            val r1 = (selStartLine - fl).coerceIn(0, buffer.rows - 1)
-            val r2 = (selEndLine - fl).coerceIn(0, buffer.rows - 1)
+            val r1 = (selection.startLine - fl).coerceIn(0, buffer.rows - 1)
+            val r2 = (selection.endLine - fl).coerceIn(0, buffer.rows - 1)
             outRect.set(
                 0,
                 (min(r1, r2) * cellH).toInt(),
@@ -649,13 +596,12 @@ class TerminalView @JvmOverloads constructor(
                 if (!touchMoved && (abs(ev.x - touchX0) > 8f || abs(ev.y - touchY0) > 8f)) {
                     touchMoved = true
                     removeCallbacks(longPressRunnable)
-                    if (!selActive) claimGestureIfOwn(ev.x - touchX0, ev.y - touchY0)
+                    if (!selection.active) claimGestureIfOwn(ev.x - touchX0, ev.y - touchY0)
                 }
-                if (selActive) {
+                if (selection.active) {
                     ownsGesture = true
                     val (line, col) = touchToLineCol(ev.x, ev.y)
-                    selEndLine = line
-                    selEndCol = col
+                    selection.extendTo(line, col)
                     invalidate()
                     selActionMode?.invalidateContentRect()
                 } else if (touchMoved) {
@@ -681,8 +627,8 @@ class TerminalView @JvmOverloads constructor(
             MotionEvent.ACTION_UP -> {
                 removeCallbacks(longPressRunnable)
                 when {
-                    selActive && !touchMoved && !selectionFromThisPress -> selActionMode?.finish()
-                    !touchMoved && !selActive -> performClick()
+                    selection.active && !touchMoved && !selectionFromThisPress -> selActionMode?.finish()
+                    !touchMoved && !selection.active -> performClick()
                 }
             }
         }

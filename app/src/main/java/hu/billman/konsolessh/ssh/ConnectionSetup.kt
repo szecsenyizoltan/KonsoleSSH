@@ -51,9 +51,9 @@ class ConnectionSetup(
     }
 
     /**
-     * Generates a key pair of a type the server accepts ([serverVersion] is
-     * its banner from the test, D15) and appends the public half to the
-     * server's authorized keys. [config] must log in with a password.
+     * Generates a key pair of a type the server accepts, judged from
+     * [serverVersion], its banner from the test, and appends the public half
+     * to the server's authorized keys. [config] must log in with a password.
      */
     suspend fun installNewKey(config: ConnectionConfig, serverVersion: String, prompter: SessionPrompter): KeyResult {
         val generated = try {

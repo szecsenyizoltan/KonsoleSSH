@@ -136,6 +136,8 @@
     <string name="err_jump_not_found">La connexion du jump host est introuvable parmi les connexions enregistrées.</string>
     <string name="err_connection_missing">Cette connexion enregistrée n\'existe plus.</string>
     <string name="err_store_unreadable">Les connexions enregistrées sont illisibles. Rien n\'a été écrasé ; redémarre l\'application.</string>
+    <string name="err_remote_permission_denied">Le serveur ne l\'autorise pas (permission refusée).</string>
+    <string name="err_remote_file_missing">Le fichier ou le dossier n\'existe pas sur le serveur.</string>
     <string name="err_store_write">Échec de l\'enregistrement : la liste des connexions n\'a pas pu être chiffrée. Rien n\'a été écrit.</string>
     <string name="err_no_route">Serveur inaccessible — vérifie le réseau et l\'adresse IP.</string>
     <string name="err_network_unreachable">Le réseau est inaccessible.</string>

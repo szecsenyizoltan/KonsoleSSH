@@ -136,6 +136,8 @@
     <string name="err_jump_not_found">Conexiunea jump host nu a fost găsită printre conexiunile salvate.</string>
     <string name="err_connection_missing">Această conexiune salvată nu mai există.</string>
     <string name="err_store_unreadable">Conexiunile salvate nu pot fi citite. Nimic nu a fost suprascris; repornește aplicația.</string>
+    <string name="err_remote_permission_denied">Serverul nu permite acest lucru (permisiune refuzată).</string>
+    <string name="err_remote_file_missing">Fișierul sau dosarul nu există pe server.</string>
     <string name="err_store_write">Salvarea a eșuat: lista de conexiuni nu a putut fi criptată. Nu s-a scris nimic.</string>
     <string name="err_no_route">Server inaccesibil — verifică rețeaua și adresa IP.</string>
     <string name="err_network_unreachable">Rețeaua este inaccesibilă.</string>

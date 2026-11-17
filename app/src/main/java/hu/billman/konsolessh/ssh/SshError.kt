@@ -1,5 +1,8 @@
 package hu.billman.konsolessh.ssh
 
+import com.jcraft.jsch.ChannelSftp
+import com.jcraft.jsch.SftpException
+
 /**
  * A typed SSH error, which the UI turns into text. What a JSch exception
  * means is decided in one place, so the terminal, the connection test and
@@ -33,6 +36,12 @@ sealed interface SshError {
 
     /** The saved connections' store cannot be read. */
     data object StoreUnreadable : SshError
+
+    /** SFTP: the server refused the file operation. */
+    data object RemotePermissionDenied : SshError
+
+    /** SFTP: the remote file or directory does not exist. */
+    data object RemoteFileMissing : SshError
     data class Other(val detail: String) : SshError
 }
 
@@ -61,19 +70,28 @@ object SshErrorClassifier {
         listOf("channel") to SshError.Channel,
     )
 
-    fun classify(error: Throwable): SshError {
-        if (error is JumpChainException) {
-            return if (error.reason == JumpChainException.Reason.NOT_FOUND) {
-                SshError.JumpNotFound
-            } else {
-                SshError.JumpChainInvalid
-            }
-        }
+    fun classify(error: Throwable): SshError = jumpChainError(error) ?: sftpError(error) ?: byMessage(error)
+
+    private fun jumpChainError(error: Throwable): SshError? = when {
+        error !is JumpChainException -> null
+        error.reason == JumpChainException.Reason.NOT_FOUND -> SshError.JumpNotFound
+        else -> SshError.JumpChainInvalid
+    }
+
+    private fun byMessage(error: Throwable): SshError {
         val messages = generateSequence(error) { it.cause }.mapNotNull { it.message }.toList()
         val text = messages.joinToString(" ").lowercase()
         return RULES.firstOrNull { (markers, _) -> markers.any { it in text } }?.second
             ?: SshError.Other(detail(messages.firstOrNull() ?: error.javaClass.simpleName))
     }
+
+    // SFTP reports a status code; its message is the server's own text, often English or empty.
+    private fun sftpError(error: Throwable): SshError? =
+        when (generateSequence(error) { it.cause }.filterIsInstance<SftpException>().firstOrNull()?.id) {
+            ChannelSftp.SSH_FX_PERMISSION_DENIED -> SshError.RemotePermissionDenied
+            ChannelSftp.SSH_FX_NO_SUCH_FILE -> SshError.RemoteFileMissing
+            else -> null
+        }
 
     /**
      * Strips the JSch and Java class prefixes from the raw message; they can

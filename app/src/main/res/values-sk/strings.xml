@@ -136,6 +136,8 @@
     <string name="err_jump_not_found">Pripojenie jump hostu sa nenašlo medzi uloženými pripojeniami.</string>
     <string name="err_connection_missing">Toto uložené pripojenie už neexistuje.</string>
     <string name="err_store_unreadable">Uložené pripojenia sa nedajú prečítať. Nič sa neprepísalo; reštartuj aplikáciu.</string>
+    <string name="err_remote_permission_denied">Server to nepovoľuje (prístup zamietnutý).</string>
+    <string name="err_remote_file_missing">Súbor alebo priečinok na serveri neexistuje.</string>
     <string name="err_store_write">Uloženie zlyhalo: zoznam pripojení sa nepodarilo zašifrovať. Nič sa nezapísalo.</string>
     <string name="err_no_route">Server je nedostupný — skontroluj sieť a IP adresu.</string>
     <string name="err_network_unreachable">Sieť je nedostupná.</string>

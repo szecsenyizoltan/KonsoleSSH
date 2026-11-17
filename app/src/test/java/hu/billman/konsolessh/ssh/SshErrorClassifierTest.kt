@@ -1,6 +1,8 @@
 package hu.billman.konsolessh.ssh
 
+import com.jcraft.jsch.ChannelSftp
 import com.jcraft.jsch.JSchException
+import com.jcraft.jsch.SftpException
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.io.IOException
@@ -28,6 +30,16 @@ class SshErrorClassifierTest {
         assertEquals(SshError.NetworkUnreachable, classify("Network is unreachable"))
         assertEquals(SshError.UnknownHost, classify("java.net.UnknownHostException: Unable to resolve host"))
         assertEquals(SshError.UnknownHost, classify("java.net.UnknownHostException: nosuch.example"))
+    }
+
+    @Test
+    fun `SFTP status codes decide, not the server's text`() {
+        val denied = SftpException(ChannelSftp.SSH_FX_PERMISSION_DENIED, "Permission denied")
+        assertEquals(SshError.RemotePermissionDenied, SshErrorClassifier.classify(denied))
+        val missing = SftpException(ChannelSftp.SSH_FX_NO_SUCH_FILE, "")
+        assertEquals(SshError.RemoteFileMissing, SshErrorClassifier.classify(IOException("wrapped", missing)))
+        val other = SftpException(ChannelSftp.SSH_FX_FAILURE, "Failure")
+        assertEquals(SshError.Other("Failure"), SshErrorClassifier.classify(other))
     }
 
     @Test

@@ -5,6 +5,7 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import hu.billman.konsolessh.R
 import java.io.IOException
@@ -68,7 +69,8 @@ fun UploadStatus(
             val text = when (upload) {
                 MainViewModel.Upload.NotConnected ->
                     stringResource(R.string.upload_failed, stringResource(R.string.upload_not_connected))
-                is MainViewModel.Upload.Failed -> stringResource(R.string.upload_failed, upload.reason)
+                is MainViewModel.Upload.Failed ->
+                    stringResource(R.string.upload_failed, SshErrorMessages.text(LocalContext.current, upload.error))
                 is MainViewModel.Upload.Done -> stringResource(R.string.upload_done, HOME_DIR, upload.name)
             }
             val undo = stringResource(R.string.undo)

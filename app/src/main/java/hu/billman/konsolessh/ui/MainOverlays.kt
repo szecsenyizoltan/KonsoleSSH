@@ -132,7 +132,8 @@ private fun Messages(
         null -> null
         is MainViewModel.Message.Error -> SshErrorMessages.text(context, message.error)
         is MainViewModel.Message.UploadUndone -> stringResource(R.string.upload_undone, message.name)
-        is MainViewModel.Message.UndoFailed -> stringResource(R.string.upload_undo_failed, message.reason)
+        is MainViewModel.Message.UndoFailed ->
+            stringResource(R.string.upload_undo_failed, SshErrorMessages.text(context, message.error))
     }
     LaunchedEffect(message) {
         if (text != null) {

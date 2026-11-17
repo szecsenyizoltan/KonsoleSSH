@@ -188,13 +188,14 @@ class MainViewModelTest {
     fun `a failed upload reports why, and a failed undo too`() {
         state.value = SessionsState(listOf(tab("a", ConnectionStatus.CONNECTED)))
         coEvery { sessions.upload(any(), any(), any(), any(), any()) } throws java.io.IOException("disk full")
-        coEvery { sessions.deleteRemote(any(), any()) } throws java.io.IOException("gone")
+        coEvery { sessions.deleteRemote(any(), any()) } throws
+            com.jcraft.jsch.SftpException(com.jcraft.jsch.ChannelSftp.SSH_FX_NO_SUCH_FILE, "No such file")
         val vm = vm()
         vm.startUpload("a", "f", 1) { ByteArrayInputStream(ByteArray(1)) }
-        assertEquals(MainViewModel.Upload.Failed("disk full"), vm.state.value.upload)
+        assertEquals(MainViewModel.Upload.Failed(SshError.Other("disk full")), vm.state.value.upload)
 
         vm.undoUpload(MainViewModel.Upload.Done("a", "f"))
-        assertEquals(Message.UndoFailed("gone"), vm.state.value.message)
+        assertEquals(Message.UndoFailed(SshError.RemoteFileMissing), vm.state.value.message)
     }
 
     @Test

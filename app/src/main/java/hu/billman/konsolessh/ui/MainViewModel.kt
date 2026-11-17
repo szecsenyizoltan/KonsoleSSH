@@ -12,6 +12,7 @@ import hu.billman.konsolessh.session.PromptAnswer
 import hu.billman.konsolessh.session.SessionManager
 import hu.billman.konsolessh.session.SessionsState
 import hu.billman.konsolessh.ssh.SshError
+import hu.billman.konsolessh.ssh.SshErrorClassifier
 import hu.billman.konsolessh.terminal.KeyModifiers
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -51,7 +52,7 @@ class MainViewModel(
     sealed interface Message {
         data class Error(val error: SshError) : Message
         data class UploadUndone(val name: String) : Message
-        data class UndoFailed(val reason: String) : Message
+        data class UndoFailed(val error: SshError) : Message
     }
 
     /**
@@ -61,7 +62,7 @@ class MainViewModel(
     sealed interface Upload {
         data class Running(val name: String, val done: Long, val total: Long) : Upload
         data class Done(val tabId: String, val name: String) : Upload
-        data class Failed(val reason: String) : Upload
+        data class Failed(val error: SshError) : Upload
         data object NotConnected : Upload
     }
 
@@ -229,7 +230,7 @@ class MainViewModel(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                Upload.Failed(e.message ?: e.javaClass.simpleName)
+                Upload.Failed(SshErrorClassifier.classify(e))
             }
             setUpload(outcome)
         }
@@ -249,7 +250,7 @@ class MainViewModel(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                Message.UndoFailed(e.message ?: e.javaClass.simpleName)
+                Message.UndoFailed(SshErrorClassifier.classify(e))
             }
             show(outcome)
         }

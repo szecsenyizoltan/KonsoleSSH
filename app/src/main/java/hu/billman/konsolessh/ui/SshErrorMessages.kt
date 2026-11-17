@@ -42,6 +42,8 @@ object SshErrorMessages {
         SshError.JumpChainInvalid -> R.string.err_jump_chain_invalid
         SshError.ConnectionMissing -> R.string.err_connection_missing
         SshError.StoreUnreadable -> R.string.err_store_unreadable
+        SshError.RemotePermissionDenied -> R.string.err_remote_permission_denied
+        SshError.RemoteFileMissing -> R.string.err_remote_file_missing
         is SshError.Other -> null
     }
 }

@@ -136,6 +136,8 @@
     <string name="err_jump_not_found">No se encontró la conexión del jump host entre las conexiones guardadas.</string>
     <string name="err_connection_missing">Esta conexión guardada ya no existe.</string>
     <string name="err_store_unreadable">No se pudieron leer las conexiones guardadas. No se sobrescribió nada; reinicia la aplicación.</string>
+    <string name="err_remote_permission_denied">El servidor no lo permite (permiso denegado).</string>
+    <string name="err_remote_file_missing">El archivo o la carpeta no existe en el servidor.</string>
     <string name="err_store_write">Error al guardar: no se pudo cifrar la lista de conexiones. No se escribió nada.</string>
     <string name="err_no_route">Servidor inalcanzable — comprueba la red y la dirección IP.</string>
     <string name="err_network_unreachable">La red no está disponible.</string>

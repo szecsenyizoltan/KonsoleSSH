@@ -139,6 +139,8 @@
     <string name="err_jump_not_found">The jump host connection was not found among saved connections.</string>
     <string name="err_connection_missing">This saved connection no longer exists.</string>
     <string name="err_store_unreadable">The saved connections could not be read. Nothing was overwritten; try restarting the app.</string>
+    <string name="err_remote_permission_denied">The server does not allow this (permission denied).</string>
+    <string name="err_remote_file_missing">The file or folder does not exist on the server.</string>
     <string name="err_store_write">Saving failed: the connection list could not be encrypted. Nothing was written.</string>
     <string name="err_no_route">Server unreachable — check the network and the IP address.</string>
     <string name="err_network_unreachable">The network is unreachable.</string>

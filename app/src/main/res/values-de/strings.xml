@@ -136,6 +136,8 @@
     <string name="err_jump_not_found">Die Jump-Host-Verbindung wurde unter den gespeicherten Verbindungen nicht gefunden.</string>
     <string name="err_connection_missing">Diese gespeicherte Verbindung existiert nicht mehr.</string>
     <string name="err_store_unreadable">Die gespeicherten Verbindungen konnten nicht gelesen werden. Nichts wurde überschrieben; starte die App neu.</string>
+    <string name="err_remote_permission_denied">Der Server erlaubt das nicht (Zugriff verweigert).</string>
+    <string name="err_remote_file_missing">Die Datei oder der Ordner existiert auf dem Server nicht.</string>
     <string name="err_store_write">Speichern fehlgeschlagen: Die Verbindungsliste konnte nicht verschlüsselt werden. Es wurde nichts geschrieben.</string>
     <string name="err_no_route">Server nicht erreichbar — prüfe Netzwerk und IP-Adresse.</string>
     <string name="err_network_unreachable">Das Netzwerk ist nicht erreichbar.</string>

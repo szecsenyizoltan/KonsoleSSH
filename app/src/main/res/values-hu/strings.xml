@@ -136,6 +136,8 @@
     <string name="err_jump_not_found">A jump host kapcsolat nem található a mentett kapcsolatok között.</string>
     <string name="err_connection_missing">Ez a mentett kapcsolat már nem létezik.</string>
     <string name="err_store_unreadable">A mentett kapcsolatok nem olvashatók. Semmi nem íródott felül; próbáld újraindítani az alkalmazást.</string>
+    <string name="err_remote_permission_denied">A szerver ezt nem engedi (hozzáférés megtagadva).</string>
+    <string name="err_remote_file_missing">A fájl vagy mappa nem létezik a szerveren.</string>
     <string name="err_store_write">A mentés nem sikerült: a kapcsolatlista nem titkosítható. Semmi nem íródott ki.</string>
     <string name="err_no_route">Nem érhető el a szerver — ellenőrizd a hálózatot és az IP-t.</string>
     <string name="err_network_unreachable">A hálózat nem érhető el.</string>

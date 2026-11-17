@@ -54,7 +54,11 @@ class NewConnectionViewModelTest {
     private fun vm(
         vararg stored: ConnectionConfig,
         repo: FakeConnectionRepository = FakeConnectionRepository(stored.toList()),
-    ) = NewConnectionViewModel(repo, ConnectionSetup(repo, provisioner, keyFactory), UnconfinedTestDispatcher())
+    ) = NewConnectionViewModel(
+        repo,
+        ConnectionSetup(repo, provisioner, keyFactory, UnconfinedTestDispatcher()),
+        UnconfinedTestDispatcher(),
+    )
 
     private fun NewConnectionViewModel.fill(host: String = "203.0.113.5", password: String = "pw") {
         setHost(host)

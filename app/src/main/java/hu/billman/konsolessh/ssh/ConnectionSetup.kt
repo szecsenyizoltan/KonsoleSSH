@@ -3,6 +3,9 @@ package hu.billman.konsolessh.ssh
 import hu.billman.konsolessh.data.ConnectionRepository
 import hu.billman.konsolessh.model.ConnectionConfig
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * The server-side steps of setting up a connection: testing that it works,
@@ -15,6 +18,8 @@ class ConnectionSetup(
     private val repository: ConnectionRepository,
     private val provisioner: SshKeyProvisioner,
     private val keyFactory: SshKeyFactory,
+    /** Key generation is CPU work: an RSA-3072 key can take seconds on a phone. */
+    private val computeDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) {
 
     sealed interface TestResult {
@@ -52,7 +57,9 @@ class ConnectionSetup(
      */
     suspend fun installNewKey(config: ConnectionConfig, serverVersion: String, prompter: SessionPrompter): KeyResult {
         val generated = try {
-            keyFactory.generateFor(serverVersion, comment = "konsolessh:${config.username}@${config.host}")
+            withContext(computeDispatcher) {
+                keyFactory.generateFor(serverVersion, comment = "konsolessh:${config.username}@${config.host}")
+            }
         } catch (e: KeyGenerationException) {
             return KeyResult.GenerationFailed(SshErrorClassifier.classify(e))
         }

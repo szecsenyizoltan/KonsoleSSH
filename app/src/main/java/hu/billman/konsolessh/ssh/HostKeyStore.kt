@@ -1,5 +1,6 @@
 package hu.billman.konsolessh.ssh
 
+import hu.billman.konsolessh.data.writeAtomically
 import java.io.File
 
 /**
@@ -125,23 +126,14 @@ class HostKeyStore(
 
     private fun saveTimes() {
         val lines = loadTimes().values.joinToString("") { "${it.host} ${it.type} ${it.at} ${it.key ?: REMOVED}\n" }
-        writeAtomically(timesFile, lines)
+        timesFile.writeAtomically(lines.toByteArray(Charsets.UTF_8))
     }
 
+    // The cache follows the file only after a successful write, so a failed
+    // write cannot leave a key trusted in memory that the disk does not have.
     private fun save(list: MutableList<Entry>) {
+        file.writeAtomically(list.joinToString("") { "${it.host} ${it.type} ${it.key}\n" }.toByteArray(Charsets.UTF_8))
         cache = list
-        writeAtomically(file, list.joinToString("") { "${it.host} ${it.type} ${it.key}\n" })
-    }
-
-    // Written through a rename, so an interrupted write leaves no truncated file.
-    private fun writeAtomically(target: File, text: String) {
-        target.parentFile?.mkdirs()
-        val tmp = File(target.path + ".tmp")
-        tmp.writeText(text)
-        if (!tmp.renameTo(target)) {
-            target.writeText(tmp.readText())
-            tmp.delete()
-        }
     }
 
     private companion object {

@@ -1,6 +1,7 @@
 package hu.billman.konsolessh.sync
 
 import hu.billman.konsolessh.data.CryptoBox
+import hu.billman.konsolessh.data.writeAtomically
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -53,13 +54,7 @@ class CryptoBoxSyncKeyStorage(
         }
         val stored = Stored(encode(key.secret), encode(key.params.salt), key.params.iterations, key.lastSyncAt)
         val bytes = cryptoBox.encrypt(json.encodeToString(Stored.serializer(), stored).toByteArray(Charsets.UTF_8))
-        file.parentFile?.mkdirs()
-        val tmp = File(file.path + ".tmp")
-        tmp.writeBytes(bytes)
-        if (!tmp.renameTo(file)) {
-            file.writeBytes(bytes)
-            tmp.delete()
-        }
+        file.writeAtomically(bytes)
     }
 
     private fun encode(bytes: ByteArray) = Base64.getEncoder().encodeToString(bytes)

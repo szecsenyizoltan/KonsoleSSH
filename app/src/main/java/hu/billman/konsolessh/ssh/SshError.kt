@@ -2,6 +2,7 @@ package hu.billman.konsolessh.ssh
 
 import com.jcraft.jsch.ChannelSftp
 import com.jcraft.jsch.SftpException
+import hu.billman.konsolessh.data.ConnectionStoreException
 
 /**
  * A typed SSH error, which the UI turns into text. What a JSch exception
@@ -70,7 +71,12 @@ object SshErrorClassifier {
         listOf("channel") to SshError.Channel,
     )
 
-    fun classify(error: Throwable): SshError = jumpChainError(error) ?: sftpError(error) ?: byMessage(error)
+    fun classify(error: Throwable): SshError =
+        storeError(error) ?: jumpChainError(error) ?: sftpError(error) ?: byMessage(error)
+
+    // Resolving the jump chain reads the store, so any connection attempt can meet this.
+    private fun storeError(error: Throwable): SshError? =
+        if (error is ConnectionStoreException) SshError.StoreUnreadable else null
 
     private fun jumpChainError(error: Throwable): SshError? = when {
         error !is JumpChainException -> null

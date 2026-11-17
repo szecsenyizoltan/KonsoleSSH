@@ -1,7 +1,6 @@
 package hu.billman.konsolessh.session
 
 import hu.billman.konsolessh.data.ConnectionRepository
-import hu.billman.konsolessh.data.ConnectionStoreException
 import hu.billman.konsolessh.model.ConnectionConfig
 import hu.billman.konsolessh.ssh.JumpChain
 import hu.billman.konsolessh.ssh.SshError
@@ -97,8 +96,6 @@ class SessionManager(
                 null
             } catch (e: CancellationException) {
                 throw e
-            } catch (e: ConnectionStoreException) {
-                SshError.StoreUnreadable
             } catch (e: MissingConnectionException) {
                 SshError.ConnectionMissing
             } catch (e: Exception) {
@@ -117,7 +114,7 @@ class SessionManager(
         isReconnect: Boolean,
     ) {
         val config = repository.get(connectionId) ?: throw MissingConnectionException()
-        val jumps = JumpChain.resolve(config, repository.load())
+        val jumps = JumpChain.resolve(config, repository)
         if (!isReconnect && jumps.isEmpty()) emit(runtime, messages.connecting(config.host, config.port))
         val session = sessionFactory.create(config, jumps, runtime.broker)
         runtime.session = session

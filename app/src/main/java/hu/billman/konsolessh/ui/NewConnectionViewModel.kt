@@ -355,13 +355,13 @@ class NewConnectionViewModel(
     }
 
     private suspend fun testConnection(config: ConnectionConfig): Status = try {
-        val jumps = JumpChain.resolve(config, repository.load())
+        val jumps = JumpChain.resolve(config, repository)
         val outcome = provisioner.testConnection(config, jumps, broker)
         Status.TestSucceeded(outcome.serverVersion)
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
-        Status.TestFailed(classify(e))
+        Status.TestFailed(SshErrorClassifier.classify(e))
     }
 
     private sealed interface UploadResult {
@@ -386,18 +386,15 @@ class NewConnectionViewModel(
             return UploadResult.KeyGenerationFailure(SshErrorClassifier.classify(e))
         }
         return try {
-            val jumps = JumpChain.resolve(config, repository.load())
+            val jumps = JumpChain.resolve(config, repository)
             val serverType = provisioner.uploadPublicKey(config, jumps, generated.publicLine, broker)
             UploadResult.Success(serverType, generated.privatePem, generated.publicLine)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            UploadResult.UploadFailure(classify(e), generated.publicLine)
+            UploadResult.UploadFailure(SshErrorClassifier.classify(e), generated.publicLine)
         }
     }
-
-    private fun classify(e: Exception): SshError =
-        if (e is ConnectionStoreException) SshError.StoreUnreadable else SshErrorClassifier.classify(e)
 
     override fun onCleared() {
         broker.cancel()

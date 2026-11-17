@@ -3,6 +3,7 @@ package hu.billman.konsolessh.ssh
 import com.jcraft.jsch.ChannelSftp
 import com.jcraft.jsch.JSchException
 import com.jcraft.jsch.SftpException
+import hu.billman.konsolessh.data.ConnectionStoreException
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.io.IOException
@@ -30,6 +31,12 @@ class SshErrorClassifierTest {
         assertEquals(SshError.NetworkUnreachable, classify("Network is unreachable"))
         assertEquals(SshError.UnknownHost, classify("java.net.UnknownHostException: Unable to resolve host"))
         assertEquals(SshError.UnknownHost, classify("java.net.UnknownHostException: nosuch.example"))
+    }
+
+    @Test
+    fun `an unreadable connection store is its own error, whatever its message`() {
+        val error = ConnectionStoreException("decrypt failed: connection refused")
+        assertEquals(SshError.StoreUnreadable, SshErrorClassifier.classify(error))
     }
 
     @Test

@@ -1,6 +1,7 @@
 package hu.billman.konsolessh.ssh
 
 import com.jcraft.jsch.Session
+import hu.billman.konsolessh.data.ConnectionRepository
 import hu.billman.konsolessh.model.ConnectionConfig
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -34,6 +35,13 @@ object JumpChain {
         }
         return chain.toList()
     }
+
+    /**
+     * The hops for [target], looked up among all saved connections: a jump
+     * host may be any saved connection, not only one the caller has loaded.
+     */
+    suspend fun resolve(target: ConnectionConfig, repository: ConnectionRepository): List<ConnectionConfig> =
+        resolve(target, repository.load())
 
     private fun nextHop(cfg: ConnectionConfig, saved: List<ConnectionConfig>): ConnectionConfig? = when {
         cfg.jumpConnectionId.isNotBlank() ->

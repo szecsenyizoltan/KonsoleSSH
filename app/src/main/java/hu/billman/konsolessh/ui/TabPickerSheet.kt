@@ -16,6 +16,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import hu.billman.konsolessh.R
 import hu.billman.konsolessh.ui.common.rememberDialogScope
 import hu.billman.konsolessh.ui.common.swipeToDismissHorizontally
+import hu.billman.konsolessh.ui.connections.ConnectionsViewModel
 import hu.billman.konsolessh.ui.theme.KonsoleColors
 import kotlinx.coroutines.launch
 

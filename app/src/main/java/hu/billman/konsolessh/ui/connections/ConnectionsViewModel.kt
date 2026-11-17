@@ -1,4 +1,4 @@
-package hu.billman.konsolessh.ui
+package hu.billman.konsolessh.ui.connections
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

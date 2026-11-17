@@ -8,8 +8,8 @@ import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import hu.billman.konsolessh.model.ConnectionConfig
-import hu.billman.konsolessh.ui.ConnectionListScreen
-import hu.billman.konsolessh.ui.ConnectionsViewModel
+import hu.billman.konsolessh.ui.connections.ConnectionListScreen
+import hu.billman.konsolessh.ui.connections.ConnectionsViewModel
 import hu.billman.konsolessh.ui.theme.KonsoleTheme
 import org.junit.Assert.assertEquals
 import org.junit.Rule

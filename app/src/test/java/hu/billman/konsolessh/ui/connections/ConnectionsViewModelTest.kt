@@ -1,4 +1,4 @@
-package hu.billman.konsolessh.ui
+package hu.billman.konsolessh.ui.connections
 
 import hu.billman.konsolessh.data.FakeConnectionRepository
 import hu.billman.konsolessh.model.ConnectionConfig

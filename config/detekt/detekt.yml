@@ -16,7 +16,7 @@ complexity:
     threshold: 25        # the ANSI state machine and handleCSI
   LargeClass:
     active: true
-    threshold: 900       # TerminalView is allowed to be large
+    threshold: 900       # TerminalBuffer (parser and screen together) is still this large
 
 style:
   MagicNumber:

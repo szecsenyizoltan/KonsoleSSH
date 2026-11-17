@@ -5,10 +5,7 @@ import android.content.ClipDescription
 import android.content.ClipboardManager
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
 import android.graphics.Rect
-import android.graphics.RectF
 import android.graphics.Typeface
 import android.os.Build
 import android.os.PersistableBundle
@@ -58,8 +55,6 @@ class TerminalView @JvmOverloads constructor(
     val currentRows get() = buffer.rows
 
     companion object {
-        private val DEFAULT_BG = Color.BLACK
-        private val SELECTION_BG = Color.argb(160, 70, 130, 220)
         private const val MIN_COLS = 80
         private const val LONG_PRESS_MS = 400L
         private const val CURSOR_ON_MS = 600L
@@ -68,28 +63,6 @@ class TerminalView @JvmOverloads constructor(
         private const val MAX_FONT_SP = 40f
         private const val ID_COPY = 1
         private const val ID_PASTE = 2
-        private const val OPAQUE = 0xFF shl 24
-        private const val LOW_24 = 0xFFFFFFL
-        private const val LOW_32 = 0xFFFFFFFFL
-        private const val BG_SHIFT = 4
-        private const val FG_SHIFT = 36
-        private const val LOOK_BOLD = 1L
-        private const val LOOK_UNDERLINE = 2L
-        private const val LOOK_ITALIC = 4L
-        private const val LOOK_STRIKE = 8L
-
-        /** Synthetic slant: the bundled Nerd Font has no italic variant. */
-        private const val ITALIC_SKEW = -0.2f
-
-        /** The faint (SGR 2) colour: halfway between foreground and background. */
-        private fun halfway(fg: Int, bg: Int): Int {
-            fun mix(shift: Int) = (((fg ushr shift) and 0xFF) + ((bg ushr shift) and 0xFF)) / 2
-            return (0xFF shl 24) or (mix(16) shl 16) or (mix(8) shl 8) or mix(0)
-        }
-
-        /** Up to this code point (Latin-1, Latin Extended-A/B), text is drawn in runs where possible. */
-        private const val FIXED_ADVANCE_LIMIT = 0x250
-        private const val ADVANCE_TOLERANCE = 0.05f
     }
 
     // ── Logical state: all of it in the buffer ────────────────────────────────
@@ -105,22 +78,9 @@ class TerminalView @JvmOverloads constructor(
 
     private var fontSizeSp = 12f
     private var firstLayout = true
-    private val bgPaint = Paint()
-    private val normPaint = Paint().apply {
-        typeface = loadTypeface(context)
-        isAntiAlias = true
-    }
-    private val boldPaint = Paint().apply {
-        typeface = Typeface.create(loadTypeface(context), Typeface.BOLD)
-        isAntiAlias = true
-    }
-    private var runChars = CharArray(MIN_COLS)
-    private val normAdvance = ByteArray(FIXED_ADVANCE_LIMIT)
-    private val boldAdvance = ByteArray(FIXED_ADVANCE_LIMIT)
-    private var cellW = 1f
-    private var cellH = 1f
-    private var cellBase = 0f
-    private val cellRect = RectF()
+    private val renderer = TerminalRenderer(loadTypeface(context))
+    private val cellW get() = renderer.cellWidth
+    private val cellH get() = renderer.cellHeight
 
     // ── View scrolling ───────────────────────────────────────────────────────
 
@@ -174,7 +134,7 @@ class TerminalView @JvmOverloads constructor(
     private var ownsGesture = false
 
     init {
-        setBackgroundColor(DEFAULT_BG)
+        setBackgroundColor(TerminalRenderer.BACKGROUND)
         isFocusable = true
         isFocusableInTouchMode = true
         applyFontMetrics()
@@ -195,15 +155,7 @@ class TerminalView @JvmOverloads constructor(
     }
 
     private fun applyFontMetrics() {
-        val px = FontScaling.spToPx(fontSizeSp, resources.displayMetrics)
-        normPaint.textSize = px
-        boldPaint.textSize = px
-        val fm = normPaint.fontMetrics
-        cellH = fm.descent - fm.ascent
-        cellBase = -fm.ascent
-        cellW = normPaint.measureText("M")
-        normAdvance.fill(0)
-        boldAdvance.fill(0)
+        renderer.setTextSize(FontScaling.spToPx(fontSizeSp, resources.displayMetrics))
     }
 
     /**
@@ -231,7 +183,7 @@ class TerminalView @JvmOverloads constructor(
         if (firstLayout) {
             firstLayout = false
             val wantedCellW = w.toFloat() / MIN_COLS
-            val ratio = cellW / normPaint.textSize
+            val ratio = cellW / renderer.textSize
             fontSizeSp = FontScaling.pxToSp(wantedCellW / ratio, resources.displayMetrics)
                 .coerceIn(MIN_FONT_SP, MAX_FONT_SP)
             applyFontMetrics()
@@ -251,138 +203,21 @@ class TerminalView @JvmOverloads constructor(
     // ── Drawing ──────────────────────────────────────────────────────────────
 
     override fun onDraw(canvas: Canvas) {
-        canvas.drawColor(DEFAULT_BG)
+        canvas.drawColor(TerminalRenderer.BACKGROUND)
         if (followOutput) {
             followOutput = false
             scrollRowOff = 0
         }
-        buffer.withLock { drawCells(canvas) }
-    }
-
-    /** What stays fixed during one draw; the selection bounds are computed once. */
-    private class Frame(
-        val scrollbackSize: Int,
-        val cursorRow: Int,
-        val cursorCol: Int,
-        val showCursor: Boolean,
-        val selection: IntArray?,
-    )
-
-    private fun drawCells(canvas: Canvas) {
-        val frame = Frame(
-            scrollbackSize = buffer.scrollbackSize,
-            cursorRow = buffer.cursorRow,
-            cursorCol = buffer.cursorCol,
-            showCursor = !buffer.cursorHidden && scrollRowOff == 0 && cursorOn,
-            selection = if (selection.active) selection.bounds() else null,
-        )
-        val firstLine = computeFirstLine()
-        for (r in 0 until buffer.rows) {
-            val lineIdx = firstLine + r
-            val row = if (lineIdx < 0) null else buffer.lineAt(lineIdx)
-            if (row != null) drawRow(canvas, row, lineIdx, r * cellH, frame)
+        buffer.withLock {
+            renderer.draw(
+                canvas,
+                buffer,
+                firstLine = computeFirstLine(),
+                firstCol = scrollColOff,
+                showCursor = !buffer.cursorHidden && scrollRowOff == 0 && cursorOn,
+                selection = if (selection.active) selection.bounds() else null,
+            )
         }
-    }
-
-    // Adjacent cells with the same look form a run: one background rectangle
-    // and, for fixed-advance glyphs, one drawText call instead of one per cell.
-    private fun drawRow(canvas: Canvas, row: TermLine, lineIdx: Int, y: Float, frame: Frame) {
-        val cursorCol = if (frame.showCursor && lineIdx - frame.scrollbackSize == frame.cursorRow) frame.cursorCol else -1
-        val cTo = min(row.size, scrollColOff + buffer.cols + 1)
-        var c = scrollColOff
-        while (c < cTo) {
-            val look = lookAt(row, lineIdx, c, cursorCol, frame.selection)
-            var end = c + 1
-            while (end < cTo && lookAt(row, lineIdx, end, cursorCol, frame.selection) == look) end++
-            drawRun(canvas, row, c, end, y, look)
-            c = end
-        }
-    }
-
-    /**
-     * A cell's look packed into one Long: foreground (RGB, always opaque),
-     * background (ARGB, translucent for the selection), bold, underline.
-     */
-    private fun lookAt(row: TermLine, lineIdx: Int, c: Int, cursorCol: Int, selection: IntArray?): Long {
-        val cell = row[c]
-        val bg = if (cell.reverse) cell.fg.argb else cell.bg.argb
-        val fg = (if (cell.reverse) cell.bg.argb else cell.fg.argb).let { if (cell.dim) halfway(it, bg) else it }
-        val isCursor = c == cursorCol
-        val effectiveBg = when {
-            selection != null && TerminalSelection.contains(selection, lineIdx, c) -> SELECTION_BG
-            isCursor -> fg
-            else -> bg
-        }
-        val effectiveFg = if (isCursor) bg else fg
-        val flags = (if (cell.bold) LOOK_BOLD else 0L) or
-            (if (cell.underline) LOOK_UNDERLINE else 0L) or
-            (if (cell.italic) LOOK_ITALIC else 0L) or
-            (if (cell.strikethrough) LOOK_STRIKE else 0L)
-        return ((effectiveFg.toLong() and LOW_24) shl FG_SHIFT) or
-            ((effectiveBg.toLong() and LOW_32) shl BG_SHIFT) or flags
-    }
-
-    private fun drawRun(canvas: Canvas, row: TermLine, from: Int, to: Int, y: Float, look: Long) {
-        val x = (from - scrollColOff) * cellW
-        val width = (to - from) * cellW
-        val bg = ((look ushr BG_SHIFT) and LOW_32).toInt()
-        if (bg != DEFAULT_BG) {
-            bgPaint.color = bg
-            cellRect.set(x, y, x + width, y + cellH)
-            canvas.drawRect(cellRect, bgPaint)
-        }
-        val paint = if (look and LOOK_BOLD != 0L) boldPaint else normPaint
-        paint.color = OPAQUE or ((look ushr FG_SHIFT) and LOW_24).toInt()
-        paint.textSkewX = if (look and LOOK_ITALIC != 0L) ITALIC_SKEW else 0f
-        if (!drawFixedAdvanceRun(canvas, row, from, to, x, y, paint)) {
-            for (c in from until to) {
-                val ch = row[c].ch
-                if (ch != " " && ch != TerminalBuffer.WIDE_TAIL) {
-                    canvas.drawText(ch, (c - scrollColOff) * cellW, y + cellBase, paint)
-                }
-            }
-        }
-        if (look and LOOK_UNDERLINE != 0L) {
-            canvas.drawLine(x, y + cellH - 1f, x + width, y + cellH - 1f, paint)
-        }
-        if (look and LOOK_STRIKE != 0L) {
-            val mid = y + cellH / 2f
-            canvas.drawLine(x, mid, x + width, mid, paint)
-        }
-        paint.textSkewX = 0f
-    }
-
-    /** Draws the run in one call if each of its characters is exactly one cell wide. */
-    private fun drawFixedAdvanceRun(
-        canvas: Canvas,
-        row: TermLine,
-        from: Int,
-        to: Int,
-        x: Float,
-        y: Float,
-        paint: Paint,
-    ): Boolean {
-        val n = to - from
-        if (runChars.size < n) runChars = CharArray(n)
-        var blank = true
-        for (i in 0 until n) {
-            val ch = row[from + i].ch
-            if (ch.length != 1 || !hasCellAdvance(ch[0], paint)) return false
-            runChars[i] = ch[0]
-            if (ch[0] != ' ') blank = false
-        }
-        if (!blank) canvas.drawText(runChars, 0, n, x, y + cellBase, paint)
-        return true
-    }
-
-    // Cached per paint: 0 = not measured yet, 1 = exactly one cell wide, 2 = not.
-    private fun hasCellAdvance(ch: Char, paint: Paint): Boolean {
-        if (ch.code >= FIXED_ADVANCE_LIMIT) return false
-        val cache = if (paint === boldPaint) boldAdvance else normAdvance
-        if (cache[ch.code] == 0.toByte()) {
-            cache[ch.code] = if (abs(paint.measureText(ch.toString()) - cellW) < ADVANCE_TOLERANCE) 1 else 2
-        }
-        return cache[ch.code] == 1.toByte()
     }
 
     // ── Public API ───────────────────────────────────────────────────────────

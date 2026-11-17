@@ -12,7 +12,7 @@ import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.test.swipeRight
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import hu.billman.konsolessh.ui.swipeToDismissHorizontally
+import hu.billman.konsolessh.ui.common.swipeToDismissHorizontally
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test

@@ -1,4 +1,4 @@
-package hu.billman.konsolessh.ui
+package hu.billman.konsolessh.ui.common
 
 import android.content.Context
 import hu.billman.konsolessh.R

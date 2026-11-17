@@ -1,4 +1,4 @@
-package hu.billman.konsolessh.ui
+package hu.billman.konsolessh.ui.common
 
 import org.junit.Assert.assertEquals
 import org.junit.Test

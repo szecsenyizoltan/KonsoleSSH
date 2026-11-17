@@ -8,6 +8,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import hu.billman.konsolessh.R
+import hu.billman.konsolessh.ui.common.SshErrorMessages
+import hu.billman.konsolessh.ui.common.ToastHostState
 import java.io.IOException
 import java.util.Locale
 

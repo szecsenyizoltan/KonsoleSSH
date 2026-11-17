@@ -1,4 +1,4 @@
-package hu.billman.konsolessh.ui
+package hu.billman.konsolessh.ui.common
 
 import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.Composable

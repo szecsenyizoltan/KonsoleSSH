@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import hu.billman.konsolessh.session.TabState
+import hu.billman.konsolessh.ui.common.ToastHostState
 
 /**
  * What the main screen's own menus opened and its toasts: state that belongs

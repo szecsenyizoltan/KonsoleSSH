@@ -27,6 +27,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import hu.billman.konsolessh.R
 import hu.billman.konsolessh.service.SshForegroundService
 import hu.billman.konsolessh.terminal.TerminalView
+import hu.billman.konsolessh.ui.common.ToastHostState
 import hu.billman.konsolessh.ui.keybar.Keybar
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.distinctUntilChanged

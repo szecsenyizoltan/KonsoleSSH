@@ -23,6 +23,10 @@ import androidx.compose.ui.unit.dp
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import hu.billman.konsolessh.R
+import hu.billman.konsolessh.ui.common.PromptDialog
+import hu.billman.konsolessh.ui.common.SshErrorMessages
+import hu.billman.konsolessh.ui.common.ToastHost
+import hu.billman.konsolessh.ui.common.ToastHostState
 
 /**
  * Dialogs and toasts over the main screen. A session's question stays pending

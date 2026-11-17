@@ -15,6 +15,9 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import hu.billman.konsolessh.ui.common.PromptDialog
+import hu.billman.konsolessh.ui.common.SshErrorMessages
+import hu.billman.konsolessh.ui.common.rememberDialogScope
 
 /**
  * The connection form in a dialog. The form's state and rules live in

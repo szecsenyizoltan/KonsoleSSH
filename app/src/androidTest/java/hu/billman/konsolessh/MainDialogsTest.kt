@@ -11,8 +11,8 @@ import androidx.test.platform.app.InstrumentationRegistry
 import hu.billman.konsolessh.session.PendingPrompt
 import hu.billman.konsolessh.session.PromptAnswer
 import hu.billman.konsolessh.ssh.HostKeyPrompt
-import hu.billman.konsolessh.ui.PromptDialog
 import hu.billman.konsolessh.ui.RenameTabDialog
+import hu.billman.konsolessh.ui.common.PromptDialog
 import hu.billman.konsolessh.ui.theme.KonsoleTheme
 import org.junit.Assert.assertEquals
 import org.junit.Rule

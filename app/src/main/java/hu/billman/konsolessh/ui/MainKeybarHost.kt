@@ -6,6 +6,7 @@ import androidx.core.content.getSystemService
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import hu.billman.konsolessh.terminal.TerminalView
+import hu.billman.konsolessh.ui.common.ToastHostState
 import hu.billman.konsolessh.ui.keybar.KeybarHost
 import hu.billman.konsolessh.terminal.Modifier as Key
 

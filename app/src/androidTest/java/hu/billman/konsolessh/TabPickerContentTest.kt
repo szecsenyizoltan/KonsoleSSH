@@ -9,9 +9,9 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import hu.billman.konsolessh.model.ConnectionConfig
 import hu.billman.konsolessh.session.ConnectionStatus
-import hu.billman.konsolessh.ui.PickerRows
-import hu.billman.konsolessh.ui.TabPickerActions
-import hu.billman.konsolessh.ui.TabPickerContent
+import hu.billman.konsolessh.ui.main.PickerRows
+import hu.billman.konsolessh.ui.main.TabPickerActions
+import hu.billman.konsolessh.ui.main.TabPickerContent
 import hu.billman.konsolessh.ui.theme.KonsoleTheme
 import org.junit.Assert.assertEquals
 import org.junit.Rule

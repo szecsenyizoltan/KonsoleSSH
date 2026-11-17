@@ -1,4 +1,4 @@
-package hu.billman.konsolessh.ui
+package hu.billman.konsolessh.ui.main
 
 /** The pages of the pager: the welcome page, one per SSH tab, then two cheat sheets. */
 sealed interface PageKey {

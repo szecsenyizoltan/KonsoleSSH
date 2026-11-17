@@ -1,4 +1,4 @@
-package hu.billman.konsolessh.ui
+package hu.billman.konsolessh.ui.main
 
 import android.app.Activity
 import android.content.ActivityNotFoundException
@@ -27,6 +27,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import hu.billman.konsolessh.R
 import hu.billman.konsolessh.service.SshForegroundService
 import hu.billman.konsolessh.terminal.TerminalView
+import hu.billman.konsolessh.ui.Route
 import hu.billman.konsolessh.ui.common.ToastHostState
 import hu.billman.konsolessh.ui.form.ConnectionFormDialog
 import hu.billman.konsolessh.ui.form.FormRequest

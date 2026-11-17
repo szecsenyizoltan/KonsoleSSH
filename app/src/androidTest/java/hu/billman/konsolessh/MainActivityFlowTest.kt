@@ -21,7 +21,7 @@ import hu.billman.konsolessh.model.ConnectionConfig
 import hu.billman.konsolessh.session.ConnectionStatus
 import hu.billman.konsolessh.ui.KonsoleViewModelFactory
 import hu.billman.konsolessh.ui.MainActivity
-import hu.billman.konsolessh.ui.MainViewModel
+import hu.billman.konsolessh.ui.main.MainViewModel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import org.junit.After

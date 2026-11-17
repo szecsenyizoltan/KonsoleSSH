@@ -1,4 +1,4 @@
-package hu.billman.konsolessh.ui
+package hu.billman.konsolessh.ui.main
 
 import android.view.KeyEvent
 import androidx.compose.foundation.pager.PagerState

@@ -1,4 +1,4 @@
-package hu.billman.konsolessh.ui
+package hu.billman.konsolessh.ui.main
 
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue

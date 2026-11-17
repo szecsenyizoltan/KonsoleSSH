@@ -1,9 +1,9 @@
-package hu.billman.konsolessh.ui
+package hu.billman.konsolessh.ui.main
 
 import hu.billman.konsolessh.model.ConnectionConfig
 import hu.billman.konsolessh.session.ConnectionStatus
 import hu.billman.konsolessh.session.TabState
-import hu.billman.konsolessh.ui.PickerRows.Saved
+import hu.billman.konsolessh.ui.main.PickerRows.Saved
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

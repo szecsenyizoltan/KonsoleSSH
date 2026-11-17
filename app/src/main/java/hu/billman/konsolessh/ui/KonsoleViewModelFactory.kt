@@ -8,6 +8,7 @@ import hu.billman.konsolessh.AppContainer
 import hu.billman.konsolessh.ssh.SshKeyGenerator
 import hu.billman.konsolessh.ui.connections.ConnectionsViewModel
 import hu.billman.konsolessh.ui.form.NewConnectionViewModel
+import hu.billman.konsolessh.ui.main.MainViewModel
 import hu.billman.konsolessh.ui.sync.SyncViewModel
 
 /**

@@ -1,4 +1,4 @@
-package hu.billman.konsolessh.ui
+package hu.billman.konsolessh.ui.main
 
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.Box

@@ -1,4 +1,4 @@
-package hu.billman.konsolessh.ui
+package hu.billman.konsolessh.ui.main
 
 import hu.billman.konsolessh.model.ConnectionConfig
 

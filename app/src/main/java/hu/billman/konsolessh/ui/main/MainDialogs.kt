@@ -1,4 +1,4 @@
-package hu.billman.konsolessh.ui
+package hu.billman.konsolessh.ui.main
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row

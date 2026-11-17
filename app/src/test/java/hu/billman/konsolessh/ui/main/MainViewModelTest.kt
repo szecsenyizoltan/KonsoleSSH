@@ -1,4 +1,4 @@
-package hu.billman.konsolessh.ui
+package hu.billman.konsolessh.ui.main
 
 import hu.billman.konsolessh.data.FakeConnectionRepository
 import hu.billman.konsolessh.data.SettingsRepository
@@ -8,8 +8,8 @@ import hu.billman.konsolessh.session.SessionManager
 import hu.billman.konsolessh.session.SessionsState
 import hu.billman.konsolessh.session.TabState
 import hu.billman.konsolessh.ssh.SshError
-import hu.billman.konsolessh.ui.MainViewModel.Confirm
-import hu.billman.konsolessh.ui.MainViewModel.Message
+import hu.billman.konsolessh.ui.main.MainViewModel.Confirm
+import hu.billman.konsolessh.ui.main.MainViewModel.Message
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

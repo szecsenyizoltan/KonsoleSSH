@@ -465,11 +465,7 @@ class TerminalView @JvmOverloads constructor(
         }
     }
 
-    fun cursorKeyBytes(dir: Char): ByteArray = if (buffer.appCursorKeys) {
-        byteArrayOf(27, 'O'.code.toByte(), dir.code.toByte())
-    } else {
-        byteArrayOf(27, '['.code.toByte(), dir.code.toByte())
-    }
+    fun cursorKeyBytes(dir: Char): ByteArray = KeyEncoder.cursorKey(dir, buffer.appCursorKeys)
 
     // ── Text selection ───────────────────────────────────────────────────────
 
@@ -568,12 +564,7 @@ class TerminalView @JvmOverloads constructor(
     }
 
     fun pasteText(text: String) {
-        val out = if (buffer.bracketedPasteMode) {
-            ("\u001B[200~" + text.replace("\n", "\r") + "\u001B[201~").toByteArray(Charsets.UTF_8)
-        } else {
-            text.replace("\n", "\r").toByteArray(Charsets.UTF_8)
-        }
-        onKeyInput?.invoke(out)
+        onKeyInput?.invoke(KeyEncoder.text(text, buffer.bracketedPasteMode))
     }
 
     fun getSelectedText(): String = buildSelectedText()
@@ -729,7 +720,7 @@ class TerminalView @JvmOverloads constructor(
                     }
                 }
             }
-            val bytes = keyCodeToBytes(event.keyCode, event)
+            val bytes = keyBytes(event)
             if (bytes != null) {
                 onKeyInput?.invoke(bytes)
                 return true
@@ -741,7 +732,7 @@ class TerminalView @JvmOverloads constructor(
             ) {
                 return true
             }
-            if (keyCodeToBytes(event.keyCode, event) != null) return true
+            if (keyBytes(event) != null) return true
         }
         return super.dispatchKeyEvent(event)
     }
@@ -770,26 +761,8 @@ class TerminalView @JvmOverloads constructor(
         return TerminalInputConnection().also { it.resetToSentinel() }
     }
 
-    private fun keyCodeToBytes(keyCode: Int, event: KeyEvent): ByteArray? = when (keyCode) {
-        KeyEvent.KEYCODE_ENTER -> byteArrayOf(13)
-        // Android's KEYCODE_DEL is misnamed: it is the Backspace key.
-        KeyEvent.KEYCODE_DEL -> byteArrayOf(127)
-        // The actual Delete (forward delete) key: the xterm Del sequence.
-        KeyEvent.KEYCODE_FORWARD_DEL -> KeySequences.escape("[3~")
-        KeyEvent.KEYCODE_TAB -> byteArrayOf(KeySequences.TAB)
-        KeyEvent.KEYCODE_ESCAPE -> byteArrayOf(KeySequences.ESC)
-        KeyEvent.KEYCODE_DPAD_UP -> cursorKeyBytes('A')
-        KeyEvent.KEYCODE_DPAD_DOWN -> cursorKeyBytes('B')
-        KeyEvent.KEYCODE_DPAD_RIGHT -> cursorKeyBytes('C')
-        KeyEvent.KEYCODE_DPAD_LEFT -> cursorKeyBytes('D')
-        KeyEvent.KEYCODE_MOVE_HOME -> byteArrayOf(27, '['.code.toByte(), 'H'.code.toByte())
-        KeyEvent.KEYCODE_MOVE_END -> byteArrayOf(27, '['.code.toByte(), 'F'.code.toByte())
-        KeyEvent.KEYCODE_PAGE_UP -> byteArrayOf(27, '['.code.toByte(), '5'.code.toByte(), '~'.code.toByte())
-        KeyEvent.KEYCODE_PAGE_DOWN -> byteArrayOf(27, '['.code.toByte(), '6'.code.toByte(), '~'.code.toByte())
-        in KeyEvent.KEYCODE_F1..KeyEvent.KEYCODE_F12 ->
-            KeySequences.escape(KeySequences.FUNCTION_KEYS[keyCode - KeyEvent.KEYCODE_F1])
-        else -> event.unicodeChar.takeIf { it > 0 }?.let { byteArrayOf(it.toByte()) }
-    }
+    private fun keyBytes(event: KeyEvent): ByteArray? =
+        KeyEncoder.key(event.keyCode, event.unicodeChar, buffer.appCursorKeys)
 
     private inner class TerminalInputConnection : BaseInputConnection(this@TerminalView, true) {
 
@@ -802,7 +775,7 @@ class TerminalView @JvmOverloads constructor(
         override fun commitText(text: CharSequence?, newCursorPosition: Int): Boolean {
             super.commitText(text, newCursorPosition)
             val str = editable?.toString()?.removePrefix(SENTINEL) ?: return true
-            if (str.isNotEmpty()) onKeyInput?.invoke(encode(str))
+            if (str.isNotEmpty()) onKeyInput?.invoke(KeyEncoder.text(str, buffer.bracketedPasteMode))
             resetToSentinel()
             return true
         }
@@ -810,29 +783,20 @@ class TerminalView @JvmOverloads constructor(
         override fun finishComposingText(): Boolean {
             super.finishComposingText()
             val str = editable?.toString()?.removePrefix(SENTINEL) ?: return true
-            if (str.isNotEmpty()) onKeyInput?.invoke(encode(str))
+            if (str.isNotEmpty()) onKeyInput?.invoke(KeyEncoder.text(str, buffer.bracketedPasteMode))
             resetToSentinel()
             return true
         }
 
-        private fun encode(str: String): ByteArray {
-            val s = str.replace("\n", "\r")
-            return if (buffer.bracketedPasteMode) {
-                ("\u001B[200~$s\u001B[201~").toByteArray(Charsets.UTF_8)
-            } else {
-                s.toByteArray(Charsets.UTF_8)
-            }
-        }
-
         override fun deleteSurroundingText(beforeLength: Int, afterLength: Int): Boolean {
-            repeat(beforeLength.coerceIn(0, 16)) { onKeyInput?.invoke(byteArrayOf(127)) }
+            repeat(beforeLength.coerceIn(0, 16)) { onKeyInput?.invoke(KeyEncoder.backspace()) }
             resetToSentinel()
             return true
         }
 
         override fun sendKeyEvent(event: KeyEvent): Boolean {
             if (event.action == KeyEvent.ACTION_DOWN) {
-                val bytes = keyCodeToBytes(event.keyCode, event)
+                val bytes = keyBytes(event)
                 if (bytes != null) {
                     onKeyInput?.invoke(bytes)
                     return true

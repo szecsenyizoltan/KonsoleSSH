@@ -6,6 +6,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import hu.billman.konsolessh.AppContainer
 import hu.billman.konsolessh.ssh.SshKeyGenerator
+import hu.billman.konsolessh.ui.sync.SyncViewModel
 
 /**
  * Hands the [AppContainer]'s dependencies to the ViewModels' constructors,

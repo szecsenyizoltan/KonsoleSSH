@@ -27,6 +27,7 @@ import hu.billman.konsolessh.ui.common.PromptDialog
 import hu.billman.konsolessh.ui.common.SshErrorMessages
 import hu.billman.konsolessh.ui.common.ToastHost
 import hu.billman.konsolessh.ui.common.ToastHostState
+import hu.billman.konsolessh.ui.sync.SyncViewModel
 
 /**
  * Dialogs and toasts over the main screen. A session's question stays pending

@@ -1,4 +1,4 @@
-package hu.billman.konsolessh.ui
+package hu.billman.konsolessh.ui.sync
 
 import android.app.PendingIntent
 import android.content.Context
@@ -15,8 +15,8 @@ import hu.billman.konsolessh.sync.DriveAuthorizer
 import hu.billman.konsolessh.sync.MemoryDrive
 import hu.billman.konsolessh.sync.MemoryKeys
 import hu.billman.konsolessh.sync.SyncManager
-import hu.billman.konsolessh.ui.SyncViewModel.Problem
-import hu.billman.konsolessh.ui.SyncViewModel.Step
+import hu.billman.konsolessh.ui.sync.SyncViewModel.Problem
+import hu.billman.konsolessh.ui.sync.SyncViewModel.Step
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi

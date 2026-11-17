@@ -14,6 +14,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import hu.billman.konsolessh.ui.sync.SyncViewModel
 import hu.billman.konsolessh.ui.theme.KonsoleTheme
 
 /**

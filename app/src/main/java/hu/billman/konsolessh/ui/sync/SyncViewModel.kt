@@ -1,4 +1,4 @@
-package hu.billman.konsolessh.ui
+package hu.billman.konsolessh.ui.sync
 
 import android.app.PendingIntent
 import android.util.Log

@@ -29,6 +29,7 @@ import hu.billman.konsolessh.service.SshForegroundService
 import hu.billman.konsolessh.terminal.TerminalView
 import hu.billman.konsolessh.ui.common.ToastHostState
 import hu.billman.konsolessh.ui.keybar.Keybar
+import hu.billman.konsolessh.ui.sync.SyncViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first

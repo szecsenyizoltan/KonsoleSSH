@@ -1,4 +1,4 @@
-package hu.billman.konsolessh.ui
+package hu.billman.konsolessh.ui.sync
 
 /** What the user can do on the sync screen. */
 data class SyncActions(

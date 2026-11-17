@@ -1,4 +1,4 @@
-package hu.billman.konsolessh.ui
+package hu.billman.konsolessh.ui.sync
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -40,8 +40,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import hu.billman.konsolessh.R
 import hu.billman.konsolessh.sync.SyncManager
-import hu.billman.konsolessh.ui.SyncViewModel.Problem
-import hu.billman.konsolessh.ui.SyncViewModel.Step
+import hu.billman.konsolessh.ui.sync.SyncViewModel.Problem
+import hu.billman.konsolessh.ui.sync.SyncViewModel.Step
 import hu.billman.konsolessh.ui.theme.KonsoleColors
 import java.time.Instant
 import java.time.ZoneId

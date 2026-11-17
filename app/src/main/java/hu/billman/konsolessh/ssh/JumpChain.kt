@@ -52,7 +52,7 @@ object JumpChain {
             host = cfg.jumpHost,
             port = cfg.jumpPort,
             username = cfg.jumpUsername,
-            password = cfg.jumpPassword,
+            auth = ConnectionConfig.Auth.Password(cfg.jumpPassword),
         )
         else -> null
     }

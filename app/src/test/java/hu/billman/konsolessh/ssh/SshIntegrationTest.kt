@@ -227,7 +227,8 @@ class SshIntegrationTest {
         val previous = JSch.getConfig(ED25519)
         JSch.setConfig(ED25519, "com.jcraft.jsch.bc.SignatureEd25519")
         try {
-            val s = session(servers.config("vm").copy(privateKey = key.privatePem), prompter = Prompter())
+            val config = servers.config("vm").copy(auth = ConnectionConfig.Auth.PrivateKey(key.privatePem))
+            val s = session(config, prompter = Prompter())
             connect(s)
             assertTrue(readUntil(s, SshTestServers.MARKER).contains(SshTestServers.MARKER))
             s.disconnect()
@@ -242,7 +243,8 @@ class SshIntegrationTest {
         val other = File(servers.dir, "other_key")
         ProcessBuilder("ssh-keygen", "-q", "-t", "rsa", "-b", "2048", "-m", "PEM", "-N", "", "-f", other.path)
             .start().waitFor(TIMEOUT_MS, TimeUnit.MILLISECONDS)
-        val s = session(servers.config("vm").copy(privateKey = other.readText()), prompter = Prompter())
+        val config = servers.config("vm").copy(auth = ConnectionConfig.Auth.PrivateKey(other.readText()))
+        val s = session(config, prompter = Prompter())
         val error = runCatching { connect(s) }.exceptionOrNull() ?: error("connect must fail")
         assertTrue(
             SshErrorClassifier.classify(error) in setOf(SshError.AuthFailed, SshError.UserAuthFailed, SshError.AuthCancelled),

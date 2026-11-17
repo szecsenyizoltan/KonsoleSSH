@@ -55,7 +55,6 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import hu.billman.konsolessh.R
-import hu.billman.konsolessh.model.ConnectionConfig.AuthType
 import hu.billman.konsolessh.ssh.SshError
 import hu.billman.konsolessh.ui.NewConnectionViewModel.FormState
 import hu.billman.konsolessh.ui.NewConnectionViewModel.InvalidReason
@@ -353,6 +352,9 @@ private fun messageText(message: Message, errorText: (SshError) -> String): Stri
     Message.PublicKeyPicked -> stringResource(R.string.warning_public_key)
 }
 
-private val AUTH_OPTIONS = listOf(AuthType.PASSWORD to R.string.password, AuthType.PRIVATE_KEY to R.string.private_key)
+private val AUTH_OPTIONS = listOf(
+    AuthMethod.PASSWORD to R.string.password,
+    AuthMethod.PRIVATE_KEY to R.string.private_key,
+)
 
 internal const val STATUS_TAG = "connection_test_status"

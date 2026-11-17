@@ -90,7 +90,13 @@ class SessionManagerTest {
         username = "u",
         jumpConnectionId = "gw",
     )
-    private val direct = ConnectionConfig(id = "d", name = "direct", host = "srv", username = "u", password = "secret")
+    private val direct = ConnectionConfig(
+        id = "d",
+        name = "direct",
+        host = "srv",
+        username = "u",
+        auth = ConnectionConfig.Auth.Password("secret"),
+    )
 
     private var failWith: Exception? = null
     private var askHostKey = false

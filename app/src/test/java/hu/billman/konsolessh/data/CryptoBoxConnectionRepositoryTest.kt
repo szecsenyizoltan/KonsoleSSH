@@ -137,10 +137,7 @@ class CryptoBoxConnectionRepositoryTest {
             host = "192.168.122.10",
             port = 2222,
             username = "admin",
-            authType = ConnectionConfig.AuthType.PRIVATE_KEY,
-            password = "pw",
-            privateKey = "-----BEGIN KEY-----",
-            privateKeyPassphrase = "secret",
+            auth = ConnectionConfig.Auth.PrivateKey("-----BEGIN KEY-----", passphrase = "secret"),
             jumpConnectionId = "gw",
             jumpHost = "legacy.example.com",
             jumpPort = 2200,
@@ -153,7 +150,7 @@ class CryptoBoxConnectionRepositoryTest {
 
     @Test
     fun `the file holds only encrypted bytes`() = runBlocking {
-        newRepo().saveOne(cfg("a", "VisibleName").copy(password = "VisiblePassword"))
+        newRepo().saveOne(cfg("a", "VisibleName").copy(auth = ConnectionConfig.Auth.Password("VisiblePassword")))
         val text = String(stored()!!, Charsets.ISO_8859_1)
         assertFalse(text.contains("VisibleName"))
         assertFalse(text.contains("VisiblePassword"))

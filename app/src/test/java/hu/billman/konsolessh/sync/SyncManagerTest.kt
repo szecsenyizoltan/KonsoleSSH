@@ -51,8 +51,13 @@ class SyncManagerTest {
     private val drive = MemoryDrive()
     private var now = 100L
 
-    private fun conn(id: String, name: String, at: Long) =
-        ConnectionConfig(id = id, name = name, host = "h", password = "secret-$id", updatedAt = at)
+    private fun conn(id: String, name: String, at: Long) = ConnectionConfig(
+        id = id,
+        name = name,
+        host = "h",
+        auth = ConnectionConfig.Auth.Password("secret-$id"),
+        updatedAt = at,
+    )
 
     @Test
     fun `the first device creates the file, the second joins and gets everything`() = runBlocking {
@@ -67,7 +72,7 @@ class SyncManagerTest {
         assertTrue(second.sync.backupExists())
         assertEquals(SyncManager.Enabled.JOINED, second.sync.enable("pass".toCharArray()))
         assertEquals(listOf("Alpha"), second.names())
-        assertEquals("secret-a", second.repo.get("a")?.password)
+        assertEquals(ConnectionConfig.Auth.Password("secret-a"), second.repo.get("a")?.auth)
         assertEquals(listOf("a.example"), second.hostKeys.entries().map { it.host })
     }
 

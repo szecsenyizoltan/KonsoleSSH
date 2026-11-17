@@ -1,7 +1,5 @@
 package hu.billman.konsolessh.ui
 
-import hu.billman.konsolessh.model.ConnectionConfig.AuthType
-
 /** Everything the form can report; the ViewModel implements the behaviour. */
 data class NewConnectionActions(
     val onName: (String) -> Unit,
@@ -9,7 +7,7 @@ data class NewConnectionActions(
     val onPort: (String) -> Unit,
     val onUsername: (String) -> Unit,
     val onPassword: (String) -> Unit,
-    val onAuthType: (AuthType) -> Unit,
+    val onAuthType: (AuthMethod) -> Unit,
     val onJump: (String?) -> Unit,
     val onExpandJump: () -> Unit,
     val onPickKeyFile: () -> Unit,

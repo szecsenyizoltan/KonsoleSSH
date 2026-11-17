@@ -19,7 +19,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.text.AnnotatedString
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import hu.billman.konsolessh.model.ConnectionConfig.AuthType
+import hu.billman.konsolessh.ui.AuthMethod
 import hu.billman.konsolessh.ui.NewConnectionActions
 import hu.billman.konsolessh.ui.NewConnectionForm
 import hu.billman.konsolessh.ui.NewConnectionViewModel.FormState
@@ -121,7 +121,7 @@ class NewConnectionFormTest {
 
     @Test
     fun keyModeShowsKeyActionsAndGenerationFollowsTheState() {
-        show(FormState(authType = AuthType.PRIVATE_KEY, privateKey = "KEY"))
+        show(FormState(authType = AuthMethod.PRIVATE_KEY, privateKey = "KEY"))
         compose.onNodeWithText(context.getString(R.string.sym_check)).assertIsDisplayed()
         compose.onNodeWithText(context.getString(R.string.generate_and_upload_key)).assertIsNotEnabled()
         compose.onNodeWithText(context.getString(R.string.pick_key_file)).performClick()
@@ -133,7 +133,7 @@ class NewConnectionFormTest {
         val tested = FormState(host = "h", username = "u", password = "p")
         show(
             tested.copy(
-                authType = AuthType.PRIVATE_KEY,
+                authType = AuthMethod.PRIVATE_KEY,
                 passwordTest = PasswordTest(tested.credentials(), "SSH-2.0-OpenSSH_9.6"),
             ),
         )

@@ -41,13 +41,7 @@ internal data class StoredConnection(
         host = host,
         port = port,
         username = username,
-        authType = when (authType) {
-            AuthType.PASSWORD -> ConnectionConfig.AuthType.PASSWORD
-            AuthType.PRIVATE_KEY -> ConnectionConfig.AuthType.PRIVATE_KEY
-        },
-        password = password,
-        privateKey = privateKey,
-        privateKeyPassphrase = privateKeyPassphrase,
+        auth = auth(),
         jumpConnectionId = jumpConnectionId,
         jumpHost = jumpHost,
         jumpPort = jumpPort,
@@ -56,6 +50,21 @@ internal data class StoredConnection(
         updatedAt = updatedAt,
     )
 
+    /**
+     * The chosen method decides. Older versions saved both secrets
+     * whatever the choice, so a profile whose chosen secret is empty while
+     * it holds a key keeps using that key, as it did then; the unused
+     * secret is dropped the next time the profile is written.
+     */
+    private fun auth(): ConnectionConfig.Auth {
+        val usesKey = privateKey.isNotBlank() && (authType == AuthType.PRIVATE_KEY || password.isBlank())
+        return if (usesKey) {
+            ConnectionConfig.Auth.PrivateKey(privateKey, privateKeyPassphrase)
+        } else {
+            ConnectionConfig.Auth.Password(password)
+        }
+    }
+
     companion object {
         fun of(config: ConnectionConfig) = StoredConnection(
             id = config.id,
@@ -63,13 +72,10 @@ internal data class StoredConnection(
             host = config.host,
             port = config.port,
             username = config.username,
-            authType = when (config.authType) {
-                ConnectionConfig.AuthType.PASSWORD -> AuthType.PASSWORD
-                ConnectionConfig.AuthType.PRIVATE_KEY -> AuthType.PRIVATE_KEY
-            },
-            password = config.password,
-            privateKey = config.privateKey,
-            privateKeyPassphrase = config.privateKeyPassphrase,
+            authType = if (config.auth is ConnectionConfig.Auth.PrivateKey) AuthType.PRIVATE_KEY else AuthType.PASSWORD,
+            password = (config.auth as? ConnectionConfig.Auth.Password)?.password.orEmpty(),
+            privateKey = (config.auth as? ConnectionConfig.Auth.PrivateKey)?.pem.orEmpty(),
+            privateKeyPassphrase = (config.auth as? ConnectionConfig.Auth.PrivateKey)?.passphrase.orEmpty(),
             jumpConnectionId = config.jumpConnectionId,
             jumpHost = config.jumpHost,
             jumpPort = config.jumpPort,

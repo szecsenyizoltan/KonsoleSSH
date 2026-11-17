@@ -8,10 +8,7 @@ data class ConnectionConfig(
     val host: String = "",
     val port: Int = 22,
     val username: String = "",
-    val authType: AuthType = AuthType.PASSWORD,
-    val password: String = "",
-    val privateKey: String = "",
-    val privateKeyPassphrase: String = "",
+    val auth: Auth = Auth.Password(""),
     // Jump host (SSH -J)
     val jumpConnectionId: String = "", // reference to a saved connection (preferred)
     val jumpHost: String = "", // manual entry (used when jumpConnectionId is blank)
@@ -22,26 +19,25 @@ data class ConnectionConfig(
     // Sync between devices keeps the newer copy.
     val updatedAt: Long = 0L,
 ) {
-    enum class AuthType {
-        PASSWORD, PRIVATE_KEY
+    /** How the connection logs in; only one method's secrets are kept. */
+    sealed interface Auth {
+        /** A blank password is asked from the user when connecting. */
+        data class Password(val password: String) : Auth {
+            override fun toString() = "Password(<hidden>)"
+        }
+
+        data class PrivateKey(val pem: String, val passphrase: String = "") : Auth {
+            override fun toString() = "PrivateKey(<hidden>)"
+        }
     }
 
     fun displayName(): String = if (name.isNotBlank()) name else "$username@$host"
-
-    /**
-     * Whether the connection logs in with its private key; otherwise it uses
-     * the password, or asks for one. The chosen [authType] decides. Older
-     * versions saved both secrets whatever the choice, so a profile whose
-     * chosen secret is empty while it holds a key still uses that key, as it
-     * did before.
-     */
-    fun usesKey(): Boolean = privateKey.isNotBlank() && (authType == AuthType.PRIVATE_KEY || password.isBlank())
 
     fun hasJump(): Boolean = jumpConnectionId.isNotBlank() || jumpHost.isNotBlank()
 
     // Secrets must not reach logs or problem reports through string templates.
     override fun toString(): String =
         "ConnectionConfig(id=$id, name=$name, host=$host, port=$port, username=$username, " +
-            "authType=$authType, jumpConnectionId=$jumpConnectionId, jumpHost=$jumpHost, " +
+            "auth=$auth, jumpConnectionId=$jumpConnectionId, jumpHost=$jumpHost, " +
             "jumpPort=$jumpPort, jumpUsername=$jumpUsername, updatedAt=$updatedAt, secrets=<hidden>)"
 }

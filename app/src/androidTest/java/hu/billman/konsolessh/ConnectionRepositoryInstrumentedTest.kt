@@ -86,7 +86,7 @@ class ConnectionRepositoryInstrumentedTest {
             name = "InstrTest",
             host = "192.168.1.1",
             username = "pi",
-            password = "raspberry",
+            auth = ConnectionConfig.Auth.Password("raspberry"),
         )
         repo().saveOne(cfg)
 

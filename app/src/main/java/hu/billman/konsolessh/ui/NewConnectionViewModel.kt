@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import hu.billman.konsolessh.data.ConnectionRepository
 import hu.billman.konsolessh.data.ConnectionStoreException
 import hu.billman.konsolessh.model.ConnectionConfig
-import hu.billman.konsolessh.model.ConnectionConfig.AuthType
+import hu.billman.konsolessh.model.ConnectionConfig.Auth
 import hu.billman.konsolessh.session.PendingPrompt
 import hu.billman.konsolessh.session.PromptAnswer
 import hu.billman.konsolessh.session.PromptBroker
@@ -100,7 +100,7 @@ class NewConnectionViewModel(
         val host: String = "",
         val port: String = DEFAULT_PORT.toString(),
         val username: String = "",
-        val authType: AuthType = AuthType.PASSWORD,
+        val authType: AuthMethod = AuthMethod.PASSWORD,
         val password: String = "",
         val privateKey: String = "",
         val jumpId: String? = null,
@@ -110,7 +110,7 @@ class NewConnectionViewModel(
         val busy: Boolean = false,
         val passwordTest: PasswordTest? = null,
     ) {
-        val usesKey: Boolean get() = authType == AuthType.PRIVATE_KEY
+        val usesKey: Boolean get() = authType == AuthMethod.PRIVATE_KEY
         val hasKey: Boolean get() = privateKey.isNotBlank()
 
         /** Private addresses are usually reached through a jump host. */
@@ -176,10 +176,9 @@ class NewConnectionViewModel(
         host = config.host,
         port = config.port.toString(),
         username = config.username,
-        // What the connection really uses, which for old profiles can differ from the stored choice.
-        authType = if (config.usesKey()) AuthType.PRIVATE_KEY else AuthType.PASSWORD,
-        password = config.password,
-        privateKey = config.privateKey,
+        authType = if (config.auth is Auth.PrivateKey) AuthMethod.PRIVATE_KEY else AuthMethod.PASSWORD,
+        password = (config.auth as? Auth.Password)?.password.orEmpty(),
+        privateKey = (config.auth as? Auth.PrivateKey)?.pem.orEmpty(),
         jumpId = config.jumpConnectionId.takeIf { it.isNotBlank() },
     )
 
@@ -201,7 +200,7 @@ class NewConnectionViewModel(
 
     fun setPassword(value: String) = editCredentials { it.copy(password = value) }
 
-    fun setAuthType(value: AuthType) = _form.update { it.copy(authType = value) }
+    fun setAuthType(value: AuthMethod) = _form.update { it.copy(authType = value) }
 
     fun setPrivateKey(value: String) = _form.update { it.copy(privateKey = value) }
 
@@ -263,8 +262,8 @@ class NewConnectionViewModel(
         val config = form.toConfig()
         val invalid = when {
             config.host.isEmpty() || config.username.isEmpty() -> InvalidReason.NEEDS_HOST_AND_USER
-            form.usesKey && config.privateKey.isEmpty() -> InvalidReason.NEEDS_PRIVATE_KEY
-            !form.usesKey && config.password.isEmpty() -> InvalidReason.NEEDS_PASSWORD
+            form.usesKey && form.privateKey.isBlank() -> InvalidReason.NEEDS_PRIVATE_KEY
+            !form.usesKey && form.password.isEmpty() -> InvalidReason.NEEDS_PASSWORD
             else -> null
         }
         if (invalid != null) {
@@ -295,7 +294,7 @@ class NewConnectionViewModel(
             return
         }
         // The upload logs in with the tested password, even if the user has switched to key mode since.
-        val config = form.copy(authType = AuthType.PASSWORD).toConfig()
+        val config = form.copy(authType = AuthMethod.PASSWORD).toConfig()
         val previousStatus = form.status
         runOperation(Status.Uploading) {
             when (val result = generateAndUploadKey(config, tested.serverVersion)) {
@@ -307,7 +306,7 @@ class NewConnectionViewModel(
                     // The password is replaced by the key, so the earlier test no longer applies.
                     _form.update {
                         it.copy(
-                            authType = AuthType.PRIVATE_KEY,
+                            authType = AuthMethod.PRIVATE_KEY,
                             privateKey = result.privatePem,
                             password = "",
                             status = Status.UploadSucceeded(result.serverType),
@@ -363,10 +362,8 @@ class NewConnectionViewModel(
         host = host.trim(),
         port = port.trim().toIntOrNull()?.coerceIn(1, MAX_PORT) ?: DEFAULT_PORT,
         username = username.trim(),
-        authType = authType,
         // Only the chosen method's secret is saved.
-        password = if (usesKey) "" else password,
-        privateKey = if (usesKey) privateKey.trim() else "",
+        auth = if (usesKey) Auth.PrivateKey(privateKey.trim()) else Auth.Password(password),
         jumpConnectionId = jumpId.orEmpty(),
     )
 
@@ -376,8 +373,9 @@ class NewConnectionViewModel(
      */
     private suspend fun store(form: ConnectionConfig): Boolean {
         val config = editConfig?.let { old ->
+            val passphrase = (old.auth as? Auth.PrivateKey)?.passphrase.orEmpty()
             form.copy(
-                privateKeyPassphrase = old.privateKeyPassphrase.takeIf { form.authType == AuthType.PRIVATE_KEY }.orEmpty(),
+                auth = (form.auth as? Auth.PrivateKey)?.copy(passphrase = passphrase) ?: form.auth,
                 jumpHost = old.jumpHost.takeIf { form.jumpConnectionId.isBlank() }.orEmpty(),
                 jumpPort = old.jumpPort,
                 jumpUsername = old.jumpUsername,

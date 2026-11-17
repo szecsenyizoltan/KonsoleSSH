@@ -2,7 +2,7 @@ package hu.billman.konsolessh.ui
 
 import hu.billman.konsolessh.data.FakeConnectionRepository
 import hu.billman.konsolessh.model.ConnectionConfig
-import hu.billman.konsolessh.model.ConnectionConfig.AuthType
+import hu.billman.konsolessh.model.ConnectionConfig.Auth
 import hu.billman.konsolessh.ssh.GeneratedKey
 import hu.billman.konsolessh.ssh.KeyGenerationException
 import hu.billman.konsolessh.ssh.SshKeyFactory
@@ -76,8 +76,7 @@ class NewConnectionViewModelTest {
             host = "10.1.2.3",
             port = 2222,
             username = "admin",
-            authType = AuthType.PRIVATE_KEY,
-            privateKey = "KEY",
+            auth = Auth.PrivateKey("KEY"),
             jumpConnectionId = "gw",
         )
         val vm = vm(gw, db).apply { start("db") }
@@ -139,7 +138,7 @@ class NewConnectionViewModelTest {
         vm.fill(password = "")
         vm.test()
         assertEquals(Status.Invalid(InvalidReason.NEEDS_PASSWORD), vm.form.value.status)
-        vm.setAuthType(AuthType.PRIVATE_KEY)
+        vm.setAuthType(AuthMethod.PRIVATE_KEY)
         vm.test()
         assertEquals(Status.Invalid(InvalidReason.NEEDS_PRIVATE_KEY), vm.form.value.status)
     }
@@ -166,7 +165,7 @@ class NewConnectionViewModelTest {
         testSucceeds()
         val vm = vm().apply { start(null) }
         vm.fill()
-        vm.setAuthType(AuthType.PRIVATE_KEY)
+        vm.setAuthType(AuthMethod.PRIVATE_KEY)
         vm.setPrivateKey("KEY")
         vm.test()
         assertTrue(vm.form.value.status is Status.TestSucceeded)
@@ -318,9 +317,7 @@ class NewConnectionViewModelTest {
             id = "a",
             host = "h",
             username = "u",
-            authType = AuthType.PRIVATE_KEY,
-            privateKey = "KEY",
-            privateKeyPassphrase = "pass",
+            auth = Auth.PrivateKey("KEY", passphrase = "pass"),
             jumpHost = "manual.example",
             jumpPort = 2200,
             jumpUsername = "j",
@@ -338,43 +335,21 @@ class NewConnectionViewModelTest {
         assertEquals(65535, saved.port)
         assertEquals(
             listOf("pass", "manual.example", "j", "jp"),
-            listOf(saved.privateKeyPassphrase, saved.jumpHost, saved.jumpUsername, saved.jumpPassword),
+            listOf((saved.auth as Auth.PrivateKey).passphrase, saved.jumpHost, saved.jumpUsername, saved.jumpPassword),
         )
     }
 
     @Test
-    fun `only the chosen method's secret is saved`() = runBlocking {
-        val stored = ConnectionConfig(
-            id = "a",
-            host = "h",
-            username = "u",
-            authType = AuthType.PRIVATE_KEY,
-            password = "old password",
-            privateKey = "KEY",
-            privateKeyPassphrase = "pass",
-        )
+    fun `switching to a password drops the key and its passphrase`() = runBlocking {
+        val stored = ConnectionConfig(id = "a", host = "h", username = "u", auth = Auth.PrivateKey("KEY", "pass"))
         val repo = FakeConnectionRepository(listOf(stored))
         val vm = vm(repo = repo).apply { start("a") }
-        vm.save()
-        val asKey = repo.get("a")!!
-        assertEquals(listOf("", "KEY", "pass"), listOf(asKey.password, asKey.privateKey, asKey.privateKeyPassphrase))
+        assertTrue(vm.form.value.usesKey)
 
-        vm.setAuthType(AuthType.PASSWORD)
+        vm.setAuthType(AuthMethod.PASSWORD)
         vm.setPassword("new password")
         vm.save()
-        val asPassword = repo.get("a")!!
-        assertEquals(AuthType.PASSWORD, asPassword.authType)
-        assertEquals(
-            listOf("new password", "", ""),
-            listOf(asPassword.password, asPassword.privateKey, asPassword.privateKeyPassphrase),
-        )
-    }
-
-    @Test
-    fun `an old profile opens in the mode its connection really uses`() {
-        val stored = ConnectionConfig(id = "a", host = "h", username = "u", privateKey = "KEY")
-        val vm = vm(stored).apply { start("a") }
-        assertTrue(vm.form.value.usesKey)
+        assertEquals(Auth.Password("new password"), repo.get("a")!!.auth)
     }
 
     @Test
@@ -384,10 +359,10 @@ class NewConnectionViewModelTest {
         val vm = vm().apply { start(null) }
         vm.fill(password = "pw")
         vm.test()
-        vm.setAuthType(AuthType.PRIVATE_KEY)
+        vm.setAuthType(AuthMethod.PRIVATE_KEY)
         vm.generateKey()
 
-        coVerify { provisioner.uploadPublicKey(match { it.password == "pw" && !it.usesKey() }, any(), any(), any()) }
+        coVerify { provisioner.uploadPublicKey(match { it.auth == Auth.Password("pw") }, any(), any(), any()) }
     }
 
     @Test

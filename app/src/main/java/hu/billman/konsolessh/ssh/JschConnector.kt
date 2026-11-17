@@ -41,12 +41,12 @@ internal object JschConnector {
         val jsch = JSch()
         val hostKeys = TofuHostKeyRepository(hostKeyStore)
         jsch.hostKeyRepository = hostKeys
-        // Only the chosen method: a stored secret of the other one must not log in silently.
-        val useKey = allowKey && hop.usesKey()
-        if (useKey) {
-            val passphrase = hop.privateKeyPassphrase.takeIf { it.isNotBlank() }?.toByteArray()
-            jsch.addIdentity("key_${hop.id}", hop.privateKey.toByteArray(), null, passphrase)
+        val key = (hop.auth as? ConnectionConfig.Auth.PrivateKey)?.takeIf { allowKey }
+        if (key != null) {
+            val passphrase = key.passphrase.takeIf { it.isNotBlank() }?.toByteArray()
+            jsch.addIdentity("key_${hop.id}", key.pem.toByteArray(), null, passphrase)
         }
+        val password = (hop.auth as? ConnectionConfig.Auth.Password)?.password.orEmpty()
         val session = jsch.getSession(hop.username, host, port)
         alias?.let { session.setHostKeyAlias(it) }
         session.setConfig(
@@ -54,10 +54,10 @@ internal object JschConnector {
                 // Trust on first use: unknown or changed host keys go to the user.
                 set("StrictHostKeyChecking", "ask")
                 set("server_host_key", SERVER_HOST_KEYS)
-                set("PreferredAuthentications", preferredAuths(useKey))
+                set("PreferredAuthentications", preferredAuths(useKey = key != null))
             },
         )
-        if (!useKey && hop.password.isNotBlank()) session.setPassword(hop.password.toByteArray())
+        if (password.isNotBlank()) session.setPassword(password.toByteArray())
         session.userInfo = userInfo(hostKeys)
         return session
     }

@@ -57,8 +57,7 @@ class SshTestServers : AutoCloseable {
         host = LOOPBACK,
         port = port(name),
         username = user,
-        authType = ConnectionConfig.AuthType.PRIVATE_KEY,
-        privateKey = clientKey.readText(),
+        auth = ConnectionConfig.Auth.PrivateKey(clientKey.readText()),
         jumpConnectionId = jump?.id.orEmpty(),
     )
 

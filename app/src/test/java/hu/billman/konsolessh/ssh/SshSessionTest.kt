@@ -19,7 +19,7 @@ import java.io.File
 class SshSessionTest {
 
     private fun session() = SshSession(
-        ConnectionConfig(host = "localhost", username = "user", password = "pass"),
+        ConnectionConfig(host = "localhost", username = "user", auth = ConnectionConfig.Auth.Password("pass")),
         HostKeyStore(File.createTempFile("known_hosts", null).apply { deleteOnExit() }),
     )
 

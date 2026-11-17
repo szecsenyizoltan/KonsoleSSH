@@ -94,7 +94,7 @@ class SyncMergeTest {
     @Test
     fun `the payload survives its own encoding, secrets included`() {
         val payload = SyncPayload(
-            connections = listOf(conn("a", "A", 1).copy(password = "pw", privateKey = "KEY")),
+            connections = listOf(conn("a", "A", 1).copy(auth = ConnectionConfig.Auth.PrivateKey("KEY", "pp"))),
             deletedConnections = mapOf("b" to 2L),
             hostKeys = listOf(SyncedHostKey("h", "ssh-ed25519", "AAA", 3)),
         )

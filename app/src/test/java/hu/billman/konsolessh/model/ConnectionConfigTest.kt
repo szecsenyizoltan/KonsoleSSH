@@ -47,17 +47,9 @@ class ConnectionConfigTest {
     }
 
     @Test
-    fun `default authType is PASSWORD`() {
+    fun `the default is an empty password, asked when connecting`() {
         val config = ConnectionConfig(host = "host", username = "user")
-        assertEquals(ConnectionConfig.AuthType.PASSWORD, config.authType)
-    }
-
-    @Test
-    fun `default password and privateKey are empty strings`() {
-        val config = ConnectionConfig(host = "host", username = "user")
-        assertEquals("", config.password)
-        assertEquals("", config.privateKey)
-        assertEquals("", config.privateKeyPassphrase)
+        assertEquals(ConnectionConfig.Auth.Password(""), config.auth)
     }
 
     @Test
@@ -65,20 +57,6 @@ class ConnectionConfigTest {
         val a = ConnectionConfig(host = "a", username = "u")
         val b = ConnectionConfig(host = "b", username = "u")
         assertNotEquals(a.id, b.id)
-    }
-
-    // ---- AuthType enum ----
-
-    @Test
-    fun `AuthType PRIVATE_KEY can be set`() {
-        val config = ConnectionConfig(
-            host = "host",
-            username = "user",
-            authType = ConnectionConfig.AuthType.PRIVATE_KEY,
-            privateKey = "-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----"
-        )
-        assertEquals(ConnectionConfig.AuthType.PRIVATE_KEY, config.authType)
-        assertTrue(config.privateKey.startsWith("-----BEGIN"))
     }
 
     // ---- Port bounds ----
@@ -128,28 +106,11 @@ class ConnectionConfigTest {
         val text = ConnectionConfig(
             host = "h",
             username = "u",
-            password = "pw-SECRET",
-            privateKey = "-----BEGIN KEY-SECRET",
-            privateKeyPassphrase = "pp-SECRET",
+            auth = ConnectionConfig.Auth.PrivateKey("-----BEGIN KEY-SECRET", "pp-SECRET"),
             jumpPassword = "jp-SECRET",
         ).toString()
         assertFalse(text, text.contains("SECRET"))
+        assertFalse(ConnectionConfig.Auth.Password("pw-SECRET").toString().contains("SECRET"))
         assertTrue(text.contains("host=h"))
-    }
-
-    // ---- usesKey() ----
-
-    @Test
-    fun `the chosen method decides when both secrets are stored`() {
-        val both = ConnectionConfig(password = "pw", privateKey = "KEY")
-        assertFalse(both.copy(authType = ConnectionConfig.AuthType.PASSWORD).usesKey())
-        assertTrue(both.copy(authType = ConnectionConfig.AuthType.PRIVATE_KEY).usesKey())
-    }
-
-    @Test
-    fun `an old profile without its chosen secret uses the one it has`() {
-        assertTrue(ConnectionConfig(authType = ConnectionConfig.AuthType.PASSWORD, privateKey = "KEY").usesKey())
-        assertFalse(ConnectionConfig(authType = ConnectionConfig.AuthType.PRIVATE_KEY, password = "pw").usesKey())
-        assertFalse(ConnectionConfig(authType = ConnectionConfig.AuthType.PRIVATE_KEY).usesKey())
     }
 }

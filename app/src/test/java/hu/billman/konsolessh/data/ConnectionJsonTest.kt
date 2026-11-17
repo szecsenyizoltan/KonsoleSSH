@@ -1,7 +1,7 @@
 package hu.billman.konsolessh.data
 
 import hu.billman.konsolessh.model.ConnectionConfig
-import hu.billman.konsolessh.model.ConnectionConfig.AuthType
+import hu.billman.konsolessh.model.ConnectionConfig.Auth
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -19,17 +19,17 @@ class ConnectionJsonTest {
         host = "db.example.org",
         port = 2222,
         username = "root",
-        authType = AuthType.PRIVATE_KEY,
-        password = "p=w<>&'\"\\ árvíztűrő",
-        privateKey = "-----BEGIN OPENSSH PRIVATE KEY-----\nabc==\n-----END OPENSSH PRIVATE KEY-----\n",
-        privateKeyPassphrase = "secret",
+        auth = Auth.PrivateKey(
+            pem = "-----BEGIN OPENSSH PRIVATE KEY-----\nabc==\n-----END OPENSSH PRIVATE KEY-----\n",
+            passphrase = "p=w<>&'\"\\ árvíztűrő",
+        ),
         jumpConnectionId = "j1",
         jumpHost = "bastion.example.org",
         jumpPort = 2200,
         jumpUsername = "jump",
         jumpPassword = "jp",
     )
-    private val plain = ConnectionConfig(id = "a", host = "10.0.0.1", username = "pi")
+    private val plain = ConnectionConfig(id = "a", host = "10.0.0.1", username = "pi", auth = Auth.Password("p=w<>&'"))
 
     @Test
     fun `reads back what it writes`() {
@@ -65,7 +65,14 @@ class ConnectionJsonTest {
         val stored = """[{"id":"old","name":"Old","host":"h","port":22,"username":"u",""" +
             """"authType":"PASSWORD","password":"pw","privateKey":"","privateKeyPassphrase":""}]"""
         val config = ConnectionJson.decode(stored).single()
-        assertEquals(ConnectionConfig(id = "old", name = "Old", host = "h", username = "u", password = "pw"), config)
+        val expected = ConnectionConfig(
+            id = "old",
+            name = "Old",
+            host = "h",
+            username = "u",
+            auth = Auth.Password("pw"),
+        )
+        assertEquals(expected, config)
         assertEquals(22, config.jumpPort)
     }
 
@@ -79,8 +86,32 @@ class ConnectionJsonTest {
     fun `null and unknown enum values fall back to the defaults`() {
         val stored = """[{"id":"n","host":"h","username":"u","password":null,"authType":"FIDO2"}]"""
         val config = ConnectionJson.decode(stored).single()
-        assertEquals("", config.password)
-        assertEquals(AuthType.PASSWORD, config.authType)
+        assertEquals(Auth.Password(""), config.auth)
+    }
+
+    @Test
+    fun `of two stored secrets the chosen method's is read`() {
+        val both = """"password":"pw","privateKey":"KEY","privateKeyPassphrase":"pp""""
+        val asPassword = """[{"id":"n","host":"h","authType":"PASSWORD",$both}]"""
+        val asKey = """[{"id":"n","host":"h","authType":"PRIVATE_KEY",$both}]"""
+        assertEquals(Auth.Password("pw"), ConnectionJson.decode(asPassword).single().auth)
+        assertEquals(Auth.PrivateKey("KEY", "pp"), ConnectionJson.decode(asKey).single().auth)
+    }
+
+    @Test
+    fun `an old profile without its chosen secret uses the one it has`() {
+        val keyOnly = """[{"id":"n","host":"h","authType":"PASSWORD","password":"","privateKey":"KEY"}]"""
+        val passwordOnly = """[{"id":"n","host":"h","authType":"PRIVATE_KEY","password":"pw","privateKey":""}]"""
+        val neither = """[{"id":"n","host":"h","authType":"PRIVATE_KEY"}]"""
+        assertEquals(Auth.PrivateKey("KEY"), ConnectionJson.decode(keyOnly).single().auth)
+        assertEquals(Auth.Password("pw"), ConnectionJson.decode(passwordOnly).single().auth)
+        assertEquals(Auth.Password(""), ConnectionJson.decode(neither).single().auth)
+    }
+
+    @Test
+    fun `only the chosen method's secrets are written`() {
+        val written = ConnectionJson.encode(listOf(full))
+        assertTrue(written.contains(""""authType":"PRIVATE_KEY","password":"","""))
     }
 
     @Test

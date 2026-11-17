@@ -138,11 +138,7 @@ class CryptoBoxConnectionRepositoryTest {
             port = 2222,
             username = "admin",
             auth = ConnectionConfig.Auth.PrivateKey("-----BEGIN KEY-----", passphrase = "secret"),
-            jumpConnectionId = "gw",
-            jumpHost = "legacy.example.com",
-            jumpPort = 2200,
-            jumpUsername = "j",
-            jumpPassword = "jp",
+            jump = ConnectionConfig.Jump.Manual("legacy.example.com", port = 2200, username = "j", password = "jp"),
         )
         newRepo().saveOne(full)
         assertEquals(full.copy(updatedAt = now), newRepo().get("full"))

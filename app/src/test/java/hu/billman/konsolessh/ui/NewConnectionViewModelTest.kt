@@ -3,6 +3,7 @@ package hu.billman.konsolessh.ui
 import hu.billman.konsolessh.data.FakeConnectionRepository
 import hu.billman.konsolessh.model.ConnectionConfig
 import hu.billman.konsolessh.model.ConnectionConfig.Auth
+import hu.billman.konsolessh.model.ConnectionConfig.Jump
 import hu.billman.konsolessh.ssh.GeneratedKey
 import hu.billman.konsolessh.ssh.KeyGenerationException
 import hu.billman.konsolessh.ssh.SshKeyFactory
@@ -77,7 +78,7 @@ class NewConnectionViewModelTest {
             port = 2222,
             username = "admin",
             auth = Auth.PrivateKey("KEY"),
-            jumpConnectionId = "gw",
+            jump = Jump.Saved("gw"),
         )
         val vm = vm(gw, db).apply { start("db") }
 
@@ -92,7 +93,7 @@ class NewConnectionViewModelTest {
 
     @Test
     fun `a jump host that no longer exists is dropped`() {
-        val stored = ConnectionConfig(id = "a", host = "h", username = "u", jumpConnectionId = "gone")
+        val stored = ConnectionConfig(id = "a", host = "h", username = "u", jump = Jump.Saved("gone"))
         val vm = vm(stored).apply { start("a") }
         assertNull(vm.form.value.jumpId)
     }
@@ -318,10 +319,7 @@ class NewConnectionViewModelTest {
             host = "h",
             username = "u",
             auth = Auth.PrivateKey("KEY", passphrase = "pass"),
-            jumpHost = "manual.example",
-            jumpPort = 2200,
-            jumpUsername = "j",
-            jumpPassword = "jp",
+            jump = Jump.Manual("manual.example", port = 2200, username = "j", password = "jp"),
         )
         val repo = FakeConnectionRepository(listOf(stored))
         val vm = vm(repo = repo).apply { start("a") }
@@ -333,10 +331,20 @@ class NewConnectionViewModelTest {
         val saved = repo.get("a")!!
         assertEquals("Renamed", saved.name)
         assertEquals(65535, saved.port)
-        assertEquals(
-            listOf("pass", "manual.example", "j", "jp"),
-            listOf((saved.auth as Auth.PrivateKey).passphrase, saved.jumpHost, saved.jumpUsername, saved.jumpPassword),
-        )
+        assertEquals("pass", (saved.auth as Auth.PrivateKey).passphrase)
+        assertEquals(stored.jump, saved.jump)
+    }
+
+    @Test
+    fun `picking a saved jump host replaces an old manual one`() = runBlocking {
+        val gw = ConnectionConfig(id = "gw", host = "gw.example", username = "u")
+        val manual = Jump.Manual("old.example", username = "j", password = "jp")
+        val stored = ConnectionConfig(id = "a", host = "h", username = "u", jump = manual)
+        val repo = FakeConnectionRepository(listOf(gw, stored))
+        val vm = vm(repo = repo).apply { start("a") }
+        vm.selectJump("gw")
+        vm.save()
+        assertEquals(Jump.Saved("gw"), repo.get("a")!!.jump)
     }
 
     @Test

@@ -6,6 +6,7 @@ import hu.billman.konsolessh.data.ConnectionRepository
 import hu.billman.konsolessh.data.ConnectionStoreException
 import hu.billman.konsolessh.model.ConnectionConfig
 import hu.billman.konsolessh.model.ConnectionConfig.Auth
+import hu.billman.konsolessh.model.ConnectionConfig.Jump
 import hu.billman.konsolessh.session.PendingPrompt
 import hu.billman.konsolessh.session.PromptAnswer
 import hu.billman.konsolessh.session.PromptBroker
@@ -179,7 +180,7 @@ class NewConnectionViewModel(
         authType = if (config.auth is Auth.PrivateKey) AuthMethod.PRIVATE_KEY else AuthMethod.PASSWORD,
         password = (config.auth as? Auth.Password)?.password.orEmpty(),
         privateKey = (config.auth as? Auth.PrivateKey)?.pem.orEmpty(),
-        jumpId = config.jumpConnectionId.takeIf { it.isNotBlank() },
+        jumpId = (config.jump as? Jump.Saved)?.connectionId,
     )
 
     private fun FormState.withUsualUsername(all: List<ConnectionConfig>): FormState {
@@ -364,7 +365,7 @@ class NewConnectionViewModel(
         username = username.trim(),
         // Only the chosen method's secret is saved.
         auth = if (usesKey) Auth.PrivateKey(privateKey.trim()) else Auth.Password(password),
-        jumpConnectionId = jumpId.orEmpty(),
+        jump = jumpId?.let(Jump::Saved) ?: Jump.None,
     )
 
     /**
@@ -376,10 +377,7 @@ class NewConnectionViewModel(
             val passphrase = (old.auth as? Auth.PrivateKey)?.passphrase.orEmpty()
             form.copy(
                 auth = (form.auth as? Auth.PrivateKey)?.copy(passphrase = passphrase) ?: form.auth,
-                jumpHost = old.jumpHost.takeIf { form.jumpConnectionId.isBlank() }.orEmpty(),
-                jumpPort = old.jumpPort,
-                jumpUsername = old.jumpUsername,
-                jumpPassword = old.jumpPassword,
+                jump = old.jump.takeIf { it is Jump.Manual && form.jump == Jump.None } ?: form.jump,
             )
         } ?: form
         return try {

@@ -58,7 +58,7 @@ class SshTestServers : AutoCloseable {
         port = port(name),
         username = user,
         auth = ConnectionConfig.Auth.PrivateKey(clientKey.readText()),
-        jumpConnectionId = jump?.id.orEmpty(),
+        jump = jump?.let { ConnectionConfig.Jump.Saved(it.id) } ?: ConnectionConfig.Jump.None,
     )
 
     /** Restarts the server with a new host key, e.g. to test a changed key. */

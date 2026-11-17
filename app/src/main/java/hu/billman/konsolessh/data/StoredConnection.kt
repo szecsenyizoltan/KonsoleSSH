@@ -42,11 +42,7 @@ internal data class StoredConnection(
         port = port,
         username = username,
         auth = auth(),
-        jumpConnectionId = jumpConnectionId,
-        jumpHost = jumpHost,
-        jumpPort = jumpPort,
-        jumpUsername = jumpUsername,
-        jumpPassword = jumpPassword,
+        jump = jump(),
         updatedAt = updatedAt,
     )
 
@@ -65,24 +61,38 @@ internal data class StoredConnection(
         }
     }
 
+    // A saved jump host wins over leftover manual fields, as it always has.
+    private fun jump(): ConnectionConfig.Jump = when {
+        jumpConnectionId.isNotBlank() -> ConnectionConfig.Jump.Saved(jumpConnectionId)
+        jumpHost.isNotBlank() -> ConnectionConfig.Jump.Manual(jumpHost, jumpPort, jumpUsername, jumpPassword)
+        else -> ConnectionConfig.Jump.None
+    }
+
     companion object {
-        fun of(config: ConnectionConfig) = StoredConnection(
-            id = config.id,
-            name = config.name,
-            host = config.host,
-            port = config.port,
-            username = config.username,
-            authType = if (config.auth is ConnectionConfig.Auth.PrivateKey) AuthType.PRIVATE_KEY else AuthType.PASSWORD,
-            password = (config.auth as? ConnectionConfig.Auth.Password)?.password.orEmpty(),
-            privateKey = (config.auth as? ConnectionConfig.Auth.PrivateKey)?.pem.orEmpty(),
-            privateKeyPassphrase = (config.auth as? ConnectionConfig.Auth.PrivateKey)?.passphrase.orEmpty(),
-            jumpConnectionId = config.jumpConnectionId,
-            jumpHost = config.jumpHost,
-            jumpPort = config.jumpPort,
-            jumpUsername = config.jumpUsername,
-            jumpPassword = config.jumpPassword,
-            updatedAt = config.updatedAt,
-        )
+        fun of(config: ConnectionConfig): StoredConnection {
+            val password = config.auth as? ConnectionConfig.Auth.Password
+            val key = config.auth as? ConnectionConfig.Auth.PrivateKey
+            val manual = config.jump as? ConnectionConfig.Jump.Manual
+            return StoredConnection(
+                id = config.id,
+                name = config.name,
+                host = config.host,
+                port = config.port,
+                username = config.username,
+                authType = if (key != null) AuthType.PRIVATE_KEY else AuthType.PASSWORD,
+                password = password?.password.orEmpty(),
+                privateKey = key?.pem.orEmpty(),
+                privateKeyPassphrase = key?.passphrase.orEmpty(),
+                jumpConnectionId = (config.jump as? ConnectionConfig.Jump.Saved)?.connectionId.orEmpty(),
+                jumpHost = manual?.host.orEmpty(),
+                jumpPort = manual?.port ?: DEFAULT_PORT,
+                jumpUsername = manual?.username.orEmpty(),
+                jumpPassword = manual?.password.orEmpty(),
+                updatedAt = config.updatedAt,
+            )
+        }
+
+        private const val DEFAULT_PORT = 22
     }
 }
 

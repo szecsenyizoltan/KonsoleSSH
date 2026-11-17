@@ -107,7 +107,7 @@ class ConnectionConfigTest {
             host = "h",
             username = "u",
             auth = ConnectionConfig.Auth.PrivateKey("-----BEGIN KEY-SECRET", "pp-SECRET"),
-            jumpPassword = "jp-SECRET",
+            jump = ConnectionConfig.Jump.Manual("gw", username = "j", password = "jp-SECRET"),
         ).toString()
         assertFalse(text, text.contains("SECRET"))
         assertFalse(ConnectionConfig.Auth.Password("pw-SECRET").toString().contains("SECRET"))

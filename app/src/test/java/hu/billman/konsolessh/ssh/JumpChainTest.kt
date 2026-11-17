@@ -8,8 +8,12 @@ import org.junit.Test
 /** Resolving the jump chain from the saved connections. */
 class JumpChainTest {
 
-    private fun cfg(id: String, host: String, jump: String = "") =
-        ConnectionConfig(id = id, host = host, username = "u", jumpConnectionId = jump)
+    private fun cfg(id: String, host: String, jump: String = "") = ConnectionConfig(
+        id = id,
+        host = host,
+        username = "u",
+        jump = if (jump.isEmpty()) ConnectionConfig.Jump.None else ConnectionConfig.Jump.Saved(jump),
+    )
 
     private fun reason(block: () -> Unit): JumpChainException.Reason =
         try {
@@ -83,10 +87,7 @@ class JumpChainTest {
     fun `legacy manual jump fields become a single hop`() {
         val target = ConnectionConfig(
             host = "10.0.0.5",
-            jumpHost = "gw.example.com",
-            jumpPort = 2222,
-            jumpUsername = "jumper",
-            jumpPassword = "pw",
+            jump = ConnectionConfig.Jump.Manual("gw.example.com", port = 2222, username = "jumper", password = "pw"),
         )
         val hop = JumpChain.resolve(target, emptyList()).single()
         assertEquals("gw.example.com", hop.host)

@@ -88,7 +88,7 @@ class SessionManagerTest {
         name = "vm",
         host = "10.0.0.5",
         username = "u",
-        jumpConnectionId = "gw",
+        jump = ConnectionConfig.Jump.Saved("gw"),
     )
     private val direct = ConnectionConfig(
         id = "d",

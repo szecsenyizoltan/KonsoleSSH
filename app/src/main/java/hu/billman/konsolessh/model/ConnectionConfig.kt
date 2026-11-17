@@ -9,12 +9,7 @@ data class ConnectionConfig(
     val port: Int = 22,
     val username: String = "",
     val auth: Auth = Auth.Password(""),
-    // Jump host (SSH -J)
-    val jumpConnectionId: String = "", // reference to a saved connection (preferred)
-    val jumpHost: String = "", // manual entry (used when jumpConnectionId is blank)
-    val jumpPort: Int = 22,
-    val jumpUsername: String = "",
-    val jumpPassword: String = "",
+    val jump: Jump = Jump.None,
     // When this connection last changed, in epoch milliseconds; 0 before 2.2.0.
     // Sync between devices keeps the newer copy.
     val updatedAt: Long = 0L,
@@ -31,13 +26,26 @@ data class ConnectionConfig(
         }
     }
 
-    fun displayName(): String = if (name.isNotBlank()) name else "$username@$host"
+    /** The jump host in front of this connection (ssh -J). */
+    sealed interface Jump {
+        data object None : Jump
 
-    fun hasJump(): Boolean = jumpConnectionId.isNotBlank() || jumpHost.isNotBlank()
+        /** Another saved connection, which may have a jump host of its own. */
+        data class Saved(val connectionId: String) : Jump
+
+        /**
+         * A jump host typed in by hand in older versions. The form no longer
+         * offers it, but keeps it while the user picks no saved jump host.
+         */
+        data class Manual(val host: String, val port: Int = 22, val username: String, val password: String) : Jump {
+            override fun toString() = "Manual(host=$host, port=$port, username=$username, password=<hidden>)"
+        }
+    }
+
+    fun displayName(): String = if (name.isNotBlank()) name else "$username@$host"
 
     // Secrets must not reach logs or problem reports through string templates.
     override fun toString(): String =
         "ConnectionConfig(id=$id, name=$name, host=$host, port=$port, username=$username, " +
-            "auth=$auth, jumpConnectionId=$jumpConnectionId, jumpHost=$jumpHost, " +
-            "jumpPort=$jumpPort, jumpUsername=$jumpUsername, updatedAt=$updatedAt, secrets=<hidden>)"
+            "auth=$auth, jump=$jump, updatedAt=$updatedAt)"
 }

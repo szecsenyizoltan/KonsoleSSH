@@ -43,19 +43,20 @@ object JumpChain {
     suspend fun resolve(target: ConnectionConfig, repository: ConnectionRepository): List<ConnectionConfig> =
         resolve(target, repository.load())
 
-    private fun nextHop(cfg: ConnectionConfig, saved: List<ConnectionConfig>): ConnectionConfig? = when {
-        cfg.jumpConnectionId.isNotBlank() ->
-            saved.find { it.id == cfg.jumpConnectionId }
-                ?: throw JumpChainException(JumpChainException.Reason.NOT_FOUND)
-        // An old, hand-entered jump host refers to nothing further: the chain ends here.
-        cfg.jumpHost.isNotBlank() -> ConnectionConfig(
-            host = cfg.jumpHost,
-            port = cfg.jumpPort,
-            username = cfg.jumpUsername,
-            auth = ConnectionConfig.Auth.Password(cfg.jumpPassword),
-        )
-        else -> null
-    }
+    private fun nextHop(cfg: ConnectionConfig, saved: List<ConnectionConfig>): ConnectionConfig? =
+        when (val jump = cfg.jump) {
+            ConnectionConfig.Jump.None -> null
+            is ConnectionConfig.Jump.Saved ->
+                saved.find { it.id == jump.connectionId }
+                    ?: throw JumpChainException(JumpChainException.Reason.NOT_FOUND)
+            // An old, hand-entered jump host refers to nothing further: the chain ends here.
+            is ConnectionConfig.Jump.Manual -> ConnectionConfig(
+                host = jump.host,
+                port = jump.port,
+                username = jump.username,
+                auth = ConnectionConfig.Auth.Password(jump.password),
+            )
+        }
 
     /**
      * Connects to the [hops] in order, the last being the target. Each

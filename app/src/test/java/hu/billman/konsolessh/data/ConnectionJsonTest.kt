@@ -2,6 +2,7 @@ package hu.billman.konsolessh.data
 
 import hu.billman.konsolessh.model.ConnectionConfig
 import hu.billman.konsolessh.model.ConnectionConfig.Auth
+import hu.billman.konsolessh.model.ConnectionConfig.Jump
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -23,18 +24,19 @@ class ConnectionJsonTest {
             pem = "-----BEGIN OPENSSH PRIVATE KEY-----\nabc==\n-----END OPENSSH PRIVATE KEY-----\n",
             passphrase = "p=w<>&'\"\\ árvíztűrő",
         ),
-        jumpConnectionId = "j1",
-        jumpHost = "bastion.example.org",
-        jumpPort = 2200,
-        jumpUsername = "jump",
-        jumpPassword = "jp",
+        jump = Jump.Saved("j1"),
+    )
+    private val manualJump = ConnectionConfig(
+        id = "m",
+        host = "10.0.0.2",
+        jump = Jump.Manual("bastion.example.org", port = 2200, username = "jump", password = "jp"),
     )
     private val plain = ConnectionConfig(id = "a", host = "10.0.0.1", username = "pi", auth = Auth.Password("p=w<>&'"))
 
     @Test
     fun `reads back what it writes`() {
-        val written = ConnectionJson.encode(listOf(full, plain))
-        assertEquals(listOf(full, plain), ConnectionJson.decode(written))
+        val written = ConnectionJson.encode(listOf(full, plain, manualJump))
+        assertEquals(listOf(full, plain, manualJump), ConnectionJson.decode(written))
     }
 
     @Test
@@ -73,7 +75,7 @@ class ConnectionJsonTest {
             auth = Auth.Password("pw"),
         )
         assertEquals(expected, config)
-        assertEquals(22, config.jumpPort)
+        assertEquals(Jump.None, config.jump)
     }
 
     @Test
@@ -112,6 +114,12 @@ class ConnectionJsonTest {
     fun `only the chosen method's secrets are written`() {
         val written = ConnectionJson.encode(listOf(full))
         assertTrue(written.contains(""""authType":"PRIVATE_KEY","password":"","""))
+    }
+
+    @Test
+    fun `a saved jump host wins over leftover manual jump fields`() {
+        val stored = """[{"id":"n","host":"h","jumpConnectionId":"gw","jumpHost":"old.example","jumpPort":2200}]"""
+        assertEquals(Jump.Saved("gw"), ConnectionJson.decode(stored).single().jump)
     }
 
     @Test

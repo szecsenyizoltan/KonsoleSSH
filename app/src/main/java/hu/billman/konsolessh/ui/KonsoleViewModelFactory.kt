@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import hu.billman.konsolessh.AppContainer
+import hu.billman.konsolessh.ssh.SshKeyGenerator
 
 /**
  * Hands the [AppContainer]'s dependencies to the ViewModels' constructors,
@@ -23,7 +24,9 @@ object KonsoleViewModelFactory {
             )
         }
         initializer { ConnectionsViewModel(container.connectionRepository) }
-        initializer { NewConnectionViewModel(container.connectionRepository, container.keyProvisioner) }
+        initializer {
+            NewConnectionViewModel(container.connectionRepository, container.keyProvisioner, SshKeyGenerator)
+        }
         initializer {
             SyncViewModel(container.syncManager, container.settingsRepository, container.connectionRepository)
         }

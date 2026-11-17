@@ -10,9 +10,10 @@ import hu.billman.konsolessh.session.PendingPrompt
 import hu.billman.konsolessh.session.PromptAnswer
 import hu.billman.konsolessh.session.PromptBroker
 import hu.billman.konsolessh.ssh.JumpChain
+import hu.billman.konsolessh.ssh.KeyGenerationException
 import hu.billman.konsolessh.ssh.SshError
 import hu.billman.konsolessh.ssh.SshErrorClassifier
-import hu.billman.konsolessh.ssh.SshKeyGenerator
+import hu.billman.konsolessh.ssh.SshKeyFactory
 import hu.billman.konsolessh.ssh.SshKeyProvisioner
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,6 +35,7 @@ import java.util.UUID
 class NewConnectionViewModel(
     private val repository: ConnectionRepository,
     private val provisioner: SshKeyProvisioner,
+    private val keyFactory: SshKeyFactory,
 ) : ViewModel() {
 
     data class JumpOption(val id: String, val label: String)
@@ -381,8 +383,8 @@ class NewConnectionViewModel(
     /** A local key pair for the tested server, its public half appended to authorized_keys. */
     private suspend fun generateAndUploadKey(config: ConnectionConfig, serverVersion: String): UploadResult {
         val generated = try {
-            SshKeyGenerator.generateFor(serverVersion, comment = "konsolessh:${config.username}@${config.host}")
-        } catch (e: com.jcraft.jsch.JSchException) {
+            keyFactory.generateFor(serverVersion, comment = "konsolessh:${config.username}@${config.host}")
+        } catch (e: KeyGenerationException) {
             return UploadResult.KeyGenerationFailure(SshErrorClassifier.classify(e))
         }
         return try {

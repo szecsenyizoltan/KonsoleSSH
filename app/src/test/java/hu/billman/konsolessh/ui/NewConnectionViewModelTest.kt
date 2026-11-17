@@ -3,6 +3,9 @@ package hu.billman.konsolessh.ui
 import hu.billman.konsolessh.data.FakeConnectionRepository
 import hu.billman.konsolessh.model.ConnectionConfig
 import hu.billman.konsolessh.model.ConnectionConfig.AuthType
+import hu.billman.konsolessh.ssh.GeneratedKey
+import hu.billman.konsolessh.ssh.KeyGenerationException
+import hu.billman.konsolessh.ssh.SshKeyFactory
 import hu.billman.konsolessh.ssh.SshKeyProvisioner
 import hu.billman.konsolessh.ssh.SshKeyProvisioner.ServerType
 import hu.billman.konsolessh.ui.NewConnectionViewModel.InvalidReason
@@ -10,6 +13,7 @@ import hu.billman.konsolessh.ui.NewConnectionViewModel.KeyDialog
 import hu.billman.konsolessh.ui.NewConnectionViewModel.Message
 import hu.billman.konsolessh.ui.NewConnectionViewModel.Status
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -31,6 +35,13 @@ class NewConnectionViewModelTest {
 
     private val provisioner = mockk<SshKeyProvisioner>()
 
+    /** The server banners keys were generated for. */
+    private val generatedFor = mutableListOf<String>()
+    private var keyFactory = SshKeyFactory { serverVersion, comment ->
+        generatedFor += serverVersion
+        GeneratedKey(privatePem = FAKE_PRIVATE_KEY, publicLine = "ssh-ed25519 AAAAfake $comment")
+    }
+
     @Before
     fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())
 
@@ -40,7 +51,7 @@ class NewConnectionViewModelTest {
     private fun vm(
         vararg stored: ConnectionConfig,
         repo: FakeConnectionRepository = FakeConnectionRepository(stored.toList()),
-    ) = NewConnectionViewModel(repo, provisioner)
+    ) = NewConnectionViewModel(repo, provisioner, keyFactory)
 
     private fun NewConnectionViewModel.fill(host: String = "203.0.113.5", password: String = "pw") {
         setHost(host)
@@ -208,7 +219,8 @@ class NewConnectionViewModelTest {
 
         val form = vm.form.value
         assertEquals(Status.UploadSucceeded(ServerType.OPENSSH), form.status)
-        assertTrue(form.usesKey && form.privateKey.contains("PRIVATE KEY"))
+        assertTrue(form.usesKey)
+        assertEquals(FAKE_PRIVATE_KEY, form.privateKey)
         assertEquals("", form.password)
         assertFalse(form.canGenerateKey)
         assertTrue(vm.keyDialog.value is KeyDialog.Uploaded)
@@ -225,11 +237,27 @@ class NewConnectionViewModelTest {
 
         assertTrue(vm.form.value.status is Status.UploadFailed)
         assertTrue(vm.form.value.canGenerateKey)
-        assertTrue(vm.keyDialog.value!!.publicLine.startsWith("ssh-ed25519 "))
+        assertEquals("ssh-ed25519 AAAAfake konsolessh:root@203.0.113.5", vm.keyDialog.value!!.publicLine)
     }
 
     @Test
-    fun `a MikroTik server gets an RSA key`() {
+    fun `a failed key generation uploads nothing and restores the status`() {
+        testSucceeds()
+        keyFactory = SshKeyFactory { _, _ -> throw KeyGenerationException(IllegalStateException("no entropy")) }
+        val vm = vm().apply { start(null) }
+        vm.fill()
+        vm.test()
+        val tested = vm.form.value.status
+        vm.generateKey()
+
+        assertTrue(vm.message.value is Message.KeyGenerationFailed)
+        assertEquals(tested, vm.form.value.status)
+        assertNull(vm.keyDialog.value)
+        coVerify(exactly = 0) { provisioner.uploadPublicKey(any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `the key is generated for the tested server's banner`() {
         coEvery { provisioner.testConnection(any(), any(), any()) } returns
             SshKeyProvisioner.TestOutcome("SSH-2.0-ROSSSH", ServerType.MIKROTIK)
         coEvery { provisioner.uploadPublicKey(any(), any(), any(), any()) } returns ServerType.MIKROTIK
@@ -238,7 +266,7 @@ class NewConnectionViewModelTest {
         vm.test()
         vm.generateKey()
 
-        assertTrue(vm.keyDialog.value!!.publicLine.startsWith("ssh-rsa "))
+        assertEquals(listOf("SSH-2.0-ROSSSH"), generatedFor)
     }
 
     // ── Saving ────────────────────────────────────────────────────────────────
@@ -303,5 +331,9 @@ class NewConnectionViewModelTest {
         vm.save()
         assertEquals(Message.StoreWriteFailed, vm.message.value)
         assertNull(vm.savedId.value)
+    }
+
+    private companion object {
+        const val FAKE_PRIVATE_KEY = "-----BEGIN OPENSSH PRIVATE KEY-----\nfake\n-----END OPENSSH PRIVATE KEY-----\n"
     }
 }

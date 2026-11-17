@@ -1,6 +1,7 @@
 package hu.billman.konsolessh.ssh
 
 import com.jcraft.jsch.JSch
+import com.jcraft.jsch.JSchException
 import com.jcraft.jsch.KeyPair
 import org.bouncycastle.crypto.generators.Ed25519KeyPairGenerator
 import org.bouncycastle.crypto.params.Ed25519KeyGenerationParameters
@@ -18,12 +19,7 @@ import java.util.Base64
  *
  * Free of Android dependencies, so it is unit-tested on the JVM.
  */
-object SshKeyGenerator {
-
-    data class GeneratedKey(
-        val privatePem: String,
-        val publicLine: String,
-    )
+object SshKeyGenerator : SshKeyFactory {
 
     // Ed25519 arrived in OpenSSH 6.5 and Dropbear 2020.79.
     private val OPENSSH = Regex("""OpenSSH_(\d+)\.(\d+)""")
@@ -33,8 +29,11 @@ object SshKeyGenerator {
     private const val PEM_LINE = 70
 
     /** The key type for the server that sent [serverVersion], see [acceptsEd25519]. */
-    fun generateFor(serverVersion: String, comment: String): GeneratedKey =
+    override fun generateFor(serverVersion: String, comment: String): GeneratedKey = try {
         if (acceptsEd25519(serverVersion)) generateEd25519(comment) else generateRsa3072(comment)
+    } catch (e: JSchException) {
+        throw KeyGenerationException(e)
+    }
 
     fun acceptsEd25519(serverVersion: String): Boolean {
         val openSsh = OPENSSH.find(serverVersion)

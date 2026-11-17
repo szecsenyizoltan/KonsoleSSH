@@ -31,6 +31,15 @@ data class ConnectionConfig(
 
     fun displayName(): String = if (name.isNotBlank()) name else "$username@$host"
 
+    /**
+     * Whether the connection logs in with its private key; otherwise it uses
+     * the password, or asks for one. The chosen [authType] decides. Older
+     * versions saved both secrets whatever the choice, so a profile whose
+     * chosen secret is empty while it holds a key still uses that key, as it
+     * did before.
+     */
+    fun usesKey(): Boolean = privateKey.isNotBlank() && (authType == AuthType.PRIVATE_KEY || password.isBlank())
+
     fun hasJump(): Boolean = jumpConnectionId.isNotBlank() || jumpHost.isNotBlank()
 
     // Secrets must not reach logs or problem reports through string templates.

@@ -136,4 +136,20 @@ class ConnectionConfigTest {
         assertFalse(text, text.contains("SECRET"))
         assertTrue(text.contains("host=h"))
     }
+
+    // ---- usesKey() ----
+
+    @Test
+    fun `the chosen method decides when both secrets are stored`() {
+        val both = ConnectionConfig(password = "pw", privateKey = "KEY")
+        assertFalse(both.copy(authType = ConnectionConfig.AuthType.PASSWORD).usesKey())
+        assertTrue(both.copy(authType = ConnectionConfig.AuthType.PRIVATE_KEY).usesKey())
+    }
+
+    @Test
+    fun `an old profile without its chosen secret uses the one it has`() {
+        assertTrue(ConnectionConfig(authType = ConnectionConfig.AuthType.PASSWORD, privateKey = "KEY").usesKey())
+        assertFalse(ConnectionConfig(authType = ConnectionConfig.AuthType.PRIVATE_KEY, password = "pw").usesKey())
+        assertFalse(ConnectionConfig(authType = ConnectionConfig.AuthType.PRIVATE_KEY).usesKey())
+    }
 }

@@ -20,11 +20,7 @@ internal object JschConnector {
         "ssh-ed25519,ecdsa-sha2-nistp521,ecdsa-sha2-nistp384," +
             "ecdsa-sha2-nistp256,rsa-sha2-512,rsa-sha2-256,ssh-rsa"
 
-    fun preferredAuths(hasKey: Boolean, hasPassword: Boolean): String = when {
-        hasKey && hasPassword -> "publickey,password,keyboard-interactive"
-        hasKey -> "publickey"
-        else -> "password,keyboard-interactive"
-    }
+    fun preferredAuths(useKey: Boolean): String = if (useKey) "publickey" else "password,keyboard-interactive"
 
     /**
      * Creates and configures the session without connecting it. Behind a
@@ -45,7 +41,8 @@ internal object JschConnector {
         val jsch = JSch()
         val hostKeys = TofuHostKeyRepository(hostKeyStore)
         jsch.hostKeyRepository = hostKeys
-        val useKey = allowKey && hop.privateKey.isNotBlank()
+        // Only the chosen method: a stored secret of the other one must not log in silently.
+        val useKey = allowKey && hop.usesKey()
         if (useKey) {
             val passphrase = hop.privateKeyPassphrase.takeIf { it.isNotBlank() }?.toByteArray()
             jsch.addIdentity("key_${hop.id}", hop.privateKey.toByteArray(), null, passphrase)
@@ -57,10 +54,10 @@ internal object JschConnector {
                 // Trust on first use: unknown or changed host keys go to the user.
                 set("StrictHostKeyChecking", "ask")
                 set("server_host_key", SERVER_HOST_KEYS)
-                set("PreferredAuthentications", preferredAuths(useKey, hop.password.isNotBlank()))
+                set("PreferredAuthentications", preferredAuths(useKey))
             },
         )
-        if (hop.password.isNotBlank()) session.setPassword(hop.password.toByteArray())
+        if (!useKey && hop.password.isNotBlank()) session.setPassword(hop.password.toByteArray())
         session.userInfo = userInfo(hostKeys)
         return session
     }

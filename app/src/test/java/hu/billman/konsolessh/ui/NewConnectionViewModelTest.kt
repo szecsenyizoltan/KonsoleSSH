@@ -318,6 +318,8 @@ class NewConnectionViewModelTest {
             id = "a",
             host = "h",
             username = "u",
+            authType = AuthType.PRIVATE_KEY,
+            privateKey = "KEY",
             privateKeyPassphrase = "pass",
             jumpHost = "manual.example",
             jumpPort = 2200,
@@ -338,6 +340,54 @@ class NewConnectionViewModelTest {
             listOf("pass", "manual.example", "j", "jp"),
             listOf(saved.privateKeyPassphrase, saved.jumpHost, saved.jumpUsername, saved.jumpPassword),
         )
+    }
+
+    @Test
+    fun `only the chosen method's secret is saved`() = runBlocking {
+        val stored = ConnectionConfig(
+            id = "a",
+            host = "h",
+            username = "u",
+            authType = AuthType.PRIVATE_KEY,
+            password = "old password",
+            privateKey = "KEY",
+            privateKeyPassphrase = "pass",
+        )
+        val repo = FakeConnectionRepository(listOf(stored))
+        val vm = vm(repo = repo).apply { start("a") }
+        vm.save()
+        val asKey = repo.get("a")!!
+        assertEquals(listOf("", "KEY", "pass"), listOf(asKey.password, asKey.privateKey, asKey.privateKeyPassphrase))
+
+        vm.setAuthType(AuthType.PASSWORD)
+        vm.setPassword("new password")
+        vm.save()
+        val asPassword = repo.get("a")!!
+        assertEquals(AuthType.PASSWORD, asPassword.authType)
+        assertEquals(
+            listOf("new password", "", ""),
+            listOf(asPassword.password, asPassword.privateKey, asPassword.privateKeyPassphrase),
+        )
+    }
+
+    @Test
+    fun `an old profile opens in the mode its connection really uses`() {
+        val stored = ConnectionConfig(id = "a", host = "h", username = "u", privateKey = "KEY")
+        val vm = vm(stored).apply { start("a") }
+        assertTrue(vm.form.value.usesKey)
+    }
+
+    @Test
+    fun `a key upload uses the tested password even after switching to key mode`() {
+        testSucceeds()
+        coEvery { provisioner.uploadPublicKey(any(), any(), any(), any()) } returns ServerType.OPENSSH
+        val vm = vm().apply { start(null) }
+        vm.fill(password = "pw")
+        vm.test()
+        vm.setAuthType(AuthType.PRIVATE_KEY)
+        vm.generateKey()
+
+        coVerify { provisioner.uploadPublicKey(match { it.password == "pw" && !it.usesKey() }, any(), any(), any()) }
     }
 
     @Test

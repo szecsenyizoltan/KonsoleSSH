@@ -1,4 +1,4 @@
-package hu.billman.konsolessh.ui
+package hu.billman.konsolessh.ui.form
 
 import androidx.compose.runtime.saveable.Saver
 import java.util.UUID

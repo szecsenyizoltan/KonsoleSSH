@@ -1,4 +1,4 @@
-package hu.billman.konsolessh.ui
+package hu.billman.konsolessh.ui.form
 
 import android.content.ClipData
 import androidx.compose.foundation.layout.Arrangement
@@ -56,12 +56,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import hu.billman.konsolessh.R
 import hu.billman.konsolessh.ssh.SshError
-import hu.billman.konsolessh.ui.NewConnectionViewModel.FormState
-import hu.billman.konsolessh.ui.NewConnectionViewModel.InvalidReason
-import hu.billman.konsolessh.ui.NewConnectionViewModel.KeyDialog
-import hu.billman.konsolessh.ui.NewConnectionViewModel.KeyFileProblem
-import hu.billman.konsolessh.ui.NewConnectionViewModel.Message
-import hu.billman.konsolessh.ui.NewConnectionViewModel.Status
+import hu.billman.konsolessh.ui.form.NewConnectionViewModel.FormState
+import hu.billman.konsolessh.ui.form.NewConnectionViewModel.InvalidReason
+import hu.billman.konsolessh.ui.form.NewConnectionViewModel.KeyDialog
+import hu.billman.konsolessh.ui.form.NewConnectionViewModel.KeyFileProblem
+import hu.billman.konsolessh.ui.form.NewConnectionViewModel.Message
+import hu.billman.konsolessh.ui.form.NewConnectionViewModel.Status
 import hu.billman.konsolessh.ui.theme.KonsoleColors
 import hu.billman.konsolessh.ui.theme.Monospace
 import kotlinx.coroutines.launch

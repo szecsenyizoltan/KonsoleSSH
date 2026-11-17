@@ -21,6 +21,8 @@ import androidx.navigation3.ui.NavDisplay
 import hu.billman.konsolessh.AppContainer
 import hu.billman.konsolessh.ui.connections.ConnectionListScreen
 import hu.billman.konsolessh.ui.connections.ConnectionsViewModel
+import hu.billman.konsolessh.ui.form.ConnectionFormDialog
+import hu.billman.konsolessh.ui.form.FormRequest
 import hu.billman.konsolessh.ui.sync.SyncActions
 import hu.billman.konsolessh.ui.sync.SyncScreen
 import hu.billman.konsolessh.ui.sync.SyncViewModel

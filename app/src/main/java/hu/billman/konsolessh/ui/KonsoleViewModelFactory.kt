@@ -7,6 +7,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import hu.billman.konsolessh.AppContainer
 import hu.billman.konsolessh.ssh.SshKeyGenerator
 import hu.billman.konsolessh.ui.connections.ConnectionsViewModel
+import hu.billman.konsolessh.ui.form.NewConnectionViewModel
 import hu.billman.konsolessh.ui.sync.SyncViewModel
 
 /**

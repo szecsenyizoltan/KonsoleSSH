@@ -28,6 +28,8 @@ import hu.billman.konsolessh.R
 import hu.billman.konsolessh.service.SshForegroundService
 import hu.billman.konsolessh.terminal.TerminalView
 import hu.billman.konsolessh.ui.common.ToastHostState
+import hu.billman.konsolessh.ui.form.ConnectionFormDialog
+import hu.billman.konsolessh.ui.form.FormRequest
 import hu.billman.konsolessh.ui.keybar.Keybar
 import hu.billman.konsolessh.ui.sync.SyncViewModel
 import kotlinx.coroutines.CoroutineScope

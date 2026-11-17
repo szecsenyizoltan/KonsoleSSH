@@ -1,4 +1,4 @@
-package hu.billman.konsolessh.ui
+package hu.billman.konsolessh.ui.form
 
 /** Everything the form can report; the ViewModel implements the behaviour. */
 data class NewConnectionActions(

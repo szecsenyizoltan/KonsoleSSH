@@ -1,4 +1,4 @@
-package hu.billman.konsolessh.ui
+package hu.billman.konsolessh.ui.form
 
 /**
  * Whether a host, possibly still being typed, is an RFC 1918 private IPv4

@@ -1,4 +1,4 @@
-package hu.billman.konsolessh.ui
+package hu.billman.konsolessh.ui.form
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -15,6 +15,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import hu.billman.konsolessh.ui.KonsoleViewModelFactory
 import hu.billman.konsolessh.ui.common.PromptDialog
 import hu.billman.konsolessh.ui.common.SshErrorMessages
 import hu.billman.konsolessh.ui.common.rememberDialogScope

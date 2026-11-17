@@ -1,4 +1,4 @@
-package hu.billman.konsolessh.ui
+package hu.billman.konsolessh.ui.form
 
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

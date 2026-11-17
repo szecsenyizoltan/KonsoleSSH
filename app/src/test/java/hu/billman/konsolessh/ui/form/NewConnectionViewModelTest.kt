@@ -1,4 +1,4 @@
-package hu.billman.konsolessh.ui
+package hu.billman.konsolessh.ui.form
 
 import hu.billman.konsolessh.data.FakeConnectionRepository
 import hu.billman.konsolessh.model.ConnectionConfig
@@ -9,11 +9,11 @@ import hu.billman.konsolessh.ssh.KeyGenerationException
 import hu.billman.konsolessh.ssh.SshKeyFactory
 import hu.billman.konsolessh.ssh.SshKeyProvisioner
 import hu.billman.konsolessh.ssh.SshKeyProvisioner.ServerType
-import hu.billman.konsolessh.ui.NewConnectionViewModel.InvalidReason
-import hu.billman.konsolessh.ui.NewConnectionViewModel.KeyDialog
-import hu.billman.konsolessh.ui.NewConnectionViewModel.KeyFileProblem
-import hu.billman.konsolessh.ui.NewConnectionViewModel.Message
-import hu.billman.konsolessh.ui.NewConnectionViewModel.Status
+import hu.billman.konsolessh.ui.form.NewConnectionViewModel.InvalidReason
+import hu.billman.konsolessh.ui.form.NewConnectionViewModel.KeyDialog
+import hu.billman.konsolessh.ui.form.NewConnectionViewModel.KeyFileProblem
+import hu.billman.konsolessh.ui.form.NewConnectionViewModel.Message
+import hu.billman.konsolessh.ui.form.NewConnectionViewModel.Status
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

@@ -32,8 +32,6 @@ class ArchitectureTest {
             exceptions = mapOf(
                 // Asks the platform for the local network permission state.
                 "LocalNetworkAccess.kt" to listOf("android.", "androidx."),
-                // Logs a failed keystroke write: the one Android call left in the SSH code.
-                "SshSession.kt" to listOf("android.util.Log"),
             ),
         ),
         "session" to Rule(setOf("model", "data", "ssh"), listOf("android.", "androidx.", "com.jcraft.")),

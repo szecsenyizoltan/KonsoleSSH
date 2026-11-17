@@ -143,8 +143,9 @@ class SshSession(
             try {
                 output?.write(bytes)
                 output?.flush()
-            } catch (e: java.io.IOException) {
-                android.util.Log.e("SshSession", "send failed: ${e.message}", e)
+            } catch (_: java.io.IOException) {
+                // The channel is gone; the read loop meets the end of the
+                // stream and shows the disconnect to the user.
             }
         }
     }
